@@ -39,20 +39,6 @@ export const GAME_THEMES: { [key in ThemeKeys]: GameTheme } = {
     gridBackground: '#0d1117',
     wallColor:      '#ffffff',
     intensityColors: GITHUB_DARK
-  },
-
-  /* ---------- GitLab (mantido) ---------- */
-  gitlab: {
-    textColor:      '#626167',
-    gridBackground: '#ffffff',
-    wallColor:      '#000000',
-    intensityColors: GITHUB_LIGHT    // fallback
-  },
-  'gitlab-dark': {
-    textColor:      '#999999',
-    gridBackground: '#1f1f1f',
-    wallColor:      '#ffffff',
-    intensityColors: GITHUB_DARK     // fallback
   }
 };
 

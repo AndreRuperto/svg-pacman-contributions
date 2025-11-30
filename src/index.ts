@@ -25,7 +25,6 @@ export class PacmanRenderer {
       gameTheme: 'github',
       gameSpeed: 1,
       enableSounds: false,
-      pointsIncreasedCallback: (_: number) => {},
       githubSettings: { accessToken: '' },
     };
 
@@ -34,9 +33,6 @@ export class PacmanRenderer {
     this.store.config = { ...defaultConfig, ...this.conf };
 
     switch (this.store.config.platform) {
-      case 'gitlab':
-        this.store.contributions = await Utils.getGitlabContribution(this.store);
-        break;
       case 'github':
         if (this.store.config.githubSettings?.accessToken) {
           try {

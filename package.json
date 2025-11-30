@@ -3,6 +3,7 @@
   "version": "1.0.5",
   "main": "dist/pacman-contribution-graph.min.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "exports": {
     ".": {
       "import": "./dist/pacman-contribution-graph.min.js",
@@ -39,7 +40,8 @@
     "build:web": "npm run clean:web && webpack --config webpack.prod.js",
     "build:action": "pnpm run clean:action && ncc build github-action/src/index.js -o github-action/dist",
     "build:all": "npm run build:web && npm run build:action",
-    "generate:svg": "pnpm exec tsc -p tsconfig.json && node dist/scripts/generate-svg.js",
+    "clean:dist:svg": "node scripts/clean-dist.js",
+    "generate:svg": "pnpm exec tsc -p tsconfig.json && node dist/scripts/generate-svg2.js",
     "svg": "pnpm run generate:svg > logs/output.txt 2>&1",
     "compare:styles": "pnpm exec tsc -p tsconfig.json && node dist/scripts/generate-svg-comparison.js",
     "styles": "pnpm run compare:styles > logs/output1.txt 2>&1"

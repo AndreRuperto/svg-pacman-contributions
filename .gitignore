@@ -43,6 +43,8 @@ arena.html
 scripts/test-*.ts
 scripts/test-*.js
 
+github-action/src/teste-local.js
+
 # Pacote lock (opcional, dependendo da sua preferência)
 package-lock.json
 # yarn.lock

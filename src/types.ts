@@ -13,6 +13,12 @@ export type ContributionLevel =
   | 'THIRD_QUARTILE'
   | 'FOURTH_QUARTILE';
 
+  export enum PlayerStyle {
+    CONSERVATIVE = 'conservador',
+    AGGRESSIVE = 'agressivo',
+    OPPORTUNISTIC = 'oportunista'
+  }
+
 export interface Contribution {
   date: Date;
   count: number;
@@ -58,6 +64,20 @@ export interface GridCell {
   level: ContributionLevel;
 }
 
+export interface GameStatistics {
+  totalPoints: number;
+  ghostsEaten: number;
+  deaths: number;
+  powerUpsCollected: number;
+  highestGhostCombo: number;
+  efficiencyMultiplier: number;
+  timeBonus: number;
+  lastPoints?: number;
+  pointsFromContributions?: number;
+  pointsFromGhosts?: number;
+  pointsFromPowerUps?: number;
+}
+
 export interface StoreType {
 	frameCount: number;
 	contributions: Contribution[];
@@ -77,11 +97,12 @@ export interface StoreType {
   __loggedGhosts?: Set<string>;
   moveCounter?: number;
   deathCount?: number;
+  statistics?: GameStatistics;
 }  
 
 /* ───────────────────────── Configuração ───────────────────────────── */
 export interface Config {
-  platform: 'github' | 'gitlab';
+  platform: 'github';
   username: string;
   canvas: HTMLCanvasElement;
   outputFormat: 'canvas' | 'svg';
@@ -90,16 +111,15 @@ export interface Config {
   gameTheme: ThemeKeys;
   gameSpeed: number;
   enableSounds: boolean;
-  pointsIncreasedCallback: (pointsSum: number) => void;
   githubSettings?: {
     accessToken: string;      // necessário para GraphQL
   };
-  maxFrames?: number;          // Limite máximo de frames para o jogo
-  maxHistorySize?: number;
+  playerStyle?: PlayerStyle;
+  joinRanking?: boolean;
 }
 
 /* ───────────────────────── Temas ──────────────────────────────────── */
-export type ThemeKeys = 'github' | 'github-dark' | 'gitlab' | 'gitlab-dark';
+export type ThemeKeys = 'github' | 'github-dark';
 
 export interface GameTheme {
   textColor: string;

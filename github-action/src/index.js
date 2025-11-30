@@ -13,8 +13,8 @@ async function generateSvg(username, token, theme, playerStyle) {
       gameTheme: theme,
       outputFormat: 'svg',
       gameSpeed: 1,
-      playerStyle,
       githubSettings: { accessToken: token },
+      playerStyle: 'oportunista',
       svgCallback: (svg) => {
         generatedSvg = svg;
       },

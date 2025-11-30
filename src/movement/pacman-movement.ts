@@ -1,15 +1,9 @@
 import { GRID_HEIGHT, GRID_WIDTH, PACMAN_POWERUP_DURATION } from '../core/constants.js';
-import { Point2d, StoreType } from '../types.js';
+import { Point2d, StoreType, PlayerStyle } from '../types.js';
 import { MovementUtils } from './movement-utils.js';
 import { Utils } from '../utils/utils.js';
 
 const RECENT_POSITIONS_LIMIT = 5;
-
-enum PlayerStyle {
-	CONSERVATIVE = 'conservador',
-	AGGRESSIVE = 'agressivo',
-	OPPORTUNISTIC = 'oportunista'
-};
 
 function logPacmanBehavior(
 	dangerNearby: boolean,
@@ -91,39 +85,56 @@ const findClosestScaredGhost = (store: StoreType) => {
 };
 
 const findOptimalTarget = (store: StoreType) => {
-    const pointCells: { x: number; y: number; value: number }[] = [];
+    const potentialTargets: { x: number; y: number; value: number }[] = [];
+
+    const CRITICAL_DISTANCE = 5;
+
+    const dangerousGhostNearby = store.ghosts.some(ghost => {
+        if (ghost.scared) return false;
+        const distance = MovementUtils.calculateDistance(ghost.x, ghost.y, store.pacman.x, store.pacman.y);
+        return distance <= CRITICAL_DISTANCE;
+    });
 
     for (let x = 0; x < GRID_WIDTH; x++) {
         for (let y = 0; y < GRID_HEIGHT; y++) {
             const cell = store.grid[x][y];
+
             if (cell.level !== 'NONE') {
+                if (cell.level === 'FOURTH_QUARTILE') {
+                    console.log(`🔍 Power-up found at (${x}, ${y}). Dangerous ghost nearby? ${dangerousGhostNearby}`);
+                    if (!dangerousGhostNearby) {
+                        console.log(`⚠️ Skipping power-up at (${x}, ${y}) - no nearby threat`);
+                        continue;
+                    }
+                }
+
                 const distance = MovementUtils.calculateDistance(x, y, store.pacman.x, store.pacman.y);
                 const value = cell.commitsCount / (distance + 1);
-                pointCells.push({ x, y, value });
+                potentialTargets.push({ x, y, value });
             }
         }
     }
 
-    pointCells.sort((a, b) => b.value - a.value);
-    
-    // Check if there are any cells with points left
-    if (pointCells.length === 0) {
-        // Return Pac-Man's current position as fallback
+    potentialTargets.sort((a, b) => b.value - a.value);
+
+    if (potentialTargets.length === 0) {
         return { x: store.pacman.x, y: store.pacman.y, value: 0 };
     }
-    
-    return pointCells[0];
+
+    return potentialTargets[0];
 };
+
 
 const calculateOptimalPath = (store: StoreType, target: Point2d) => {
 	const queue: { x: number; y: number; path: Point2d[]; score: number }[] = [
 	  { x: store.pacman.x, y: store.pacman.y, path: [], score: 0 }
 	];
 	const visited = new Set<string>([`${store.pacman.x},${store.pacman.y}`]);
-	const dangerMap = createDangerMap(store);
-	
-	// Obter o estilo do jogador e logar para debug
 	const playerStyle = getPlayerStyle();
+	const dangerMap =
+		playerStyle === PlayerStyle.AGGRESSIVE
+			? createDangerMap(store)                 // agressivo continua só posição atual
+			: buildPredictiveDanger(store);
 	// console.log(`🎮 Usando estilo: ${playerStyle}`); // Debug para confirmar o estilo
 	const maxDangerValue = 15;
 	
@@ -132,20 +143,22 @@ const calculateOptimalPath = (store: StoreType, target: Point2d) => {
 	let pointWeight = 0.5;  // peso padrão para pontos
 	
 	switch (playerStyle) {
-	  case PlayerStyle.CONSERVATIVE:
-		safetyWeight = 3.0; // Valores muito mais altos para garantir comportamento conservador
-		pointWeight = 0.1;
-		break;
-	  case PlayerStyle.AGGRESSIVE:
-		safetyWeight = 0.3;
-		pointWeight = 2.0;
-		break;
-	  case PlayerStyle.OPPORTUNISTIC:
-	  default:
-		safetyWeight = 0.8;
-		pointWeight = 0.8;
-		break;
-	}
+		case PlayerStyle.CONSERVATIVE:
+		  safetyWeight = 3.0;
+		  pointWeight  = 0.3;
+		  break;
+	  
+		case PlayerStyle.AGGRESSIVE:
+		  safetyWeight = 0.4;
+		  pointWeight  = 2.5;
+		  break;
+	  
+		case PlayerStyle.OPPORTUNISTIC:
+		default:
+		  safetyWeight = 1.2;
+		  pointWeight  = 0.9;
+		  break;
+	  }
 	
 	// Calcular a distância do fantasma mais próximo
 	let closestGhostDistance = Infinity;
@@ -165,6 +178,10 @@ const calculateOptimalPath = (store: StoreType, target: Point2d) => {
 	// Ajustar pesos ainda mais se houver perigo e for conservador
 	if (playerStyle === PlayerStyle.CONSERVATIVE && dangerNearby) {
 	  safetyWeight *= 5; // Aumentar drasticamente o peso de segurança em situações perigosas
+	}
+
+	if (playerStyle === PlayerStyle.OPPORTUNISTIC && dangerNearby){
+		safetyWeight *= 2;
 	}
 	
 	while (queue.length > 0) {
@@ -187,13 +204,13 @@ const calculateOptimalPath = (store: StoreType, target: Point2d) => {
 			totalPointScore += points * pointWeight;
 		  });
 	
-		//   logPacmanBehavior(
-		// 	dangerNearby,
-		// 	path,
-		// 	totalSafetyScore,
-		// 	totalPointScore,
-		// 	playerStyle
-		//   );
+		  logPacmanBehavior(
+			dangerNearby,
+			path,
+			totalSafetyScore,
+			totalPointScore,
+			playerStyle
+		  );
 	
 		  // Loga a cada 10 movimentos para não poluir o console
 		  store.moveCounter = (store.moveCounter || 0) + 1;
@@ -216,7 +233,7 @@ const calculateOptimalPath = (store: StoreType, target: Point2d) => {
 		  const danger = dangerMap.get(key) || 0;
 		  const pointValue = store.grid[newX][newY].commitsCount;
 		  const distanceToTarget = MovementUtils.calculateDistance(newX, newY, target.x, target.y);
-		  const revisitPenalty = store.pacman.recentPositions?.includes(key) ? 100 : 0;
+		  const revisitPenalty = store.pacman.recentPositions?.includes(key) ? 100 + danger * 2 : 0;
 	
 		  let safetyScore, pointScore, finalScore;
 	
@@ -297,6 +314,28 @@ const createDangerMap = (store: StoreType) => {
 	return map;
 };
 
+function buildPredictiveDanger(store: StoreType, horizon = 4) {
+	const map = new Map<string, number>();
+  
+	store.ghosts.forEach(g => {
+	  if (g.scared) return;                     // fantasma assustado = 0 perigo
+	  const frontier = [{ x: g.x, y: g.y, d: 0 }];
+  
+	  for (const node of frontier) {
+		const key    = `${node.x},${node.y}`;
+		const danger = Math.max(0, 15 - node.d * 4);   // decai mais rápido
+		map.set(key, Math.max(map.get(key) ?? 0, danger));
+  
+		if (node.d < horizon) {
+		  MovementUtils.getValidMoves(node.x, node.y).forEach(([dx, dy]) =>
+			frontier.push({ x: node.x + dx, y: node.y + dy, d: node.d + 1 }));
+		}
+	  }
+	});
+  
+	return map;
+  }
+
 const makeDesperationMove = (store: StoreType) => {
 	const validMoves = MovementUtils.getValidMoves(store.pacman.x, store.pacman.y);
 	if (validMoves.length === 0) return;
@@ -348,13 +387,11 @@ const updatePacmanPosition = (store: StoreType, position: Point2d) => {
 const checkAndEatPoint = (store: StoreType) => {
 	const cell = store.grid[store.pacman.x][store.pacman.y];
 	if (cell.level !== 'NONE') {
-	  store.pacman.totalPoints += cell.commitsCount;
-	  store.pacman.points++;
-	  store.config.pointsIncreasedCallback(store.pacman.totalPoints);
+	  store.statistics!.totalPoints += cell.commitsCount;
   
 	  const theme = Utils.getCurrentTheme(store);
 	  if (cell.level === 'FOURTH_QUARTILE') {
-		// console.log(`🔥 Power-up ativado na célula [${store.pacman.x}, ${store.pacman.y}] com nível ${cell.level}`);
+		console.log(`🔥 Power-up ativado na célula [${store.pacman.x}, ${store.pacman.y}] com nível ${cell.level}`);
 		activatePowerUp(store);
 	  }
   
