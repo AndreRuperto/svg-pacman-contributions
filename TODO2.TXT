@@ -1,0 +1,330 @@
+📋 TODO 2 — Melhorias Gerais do Projeto
+
+═══════════════════════════════════════════════════════════════════════════════
+🧪 QUALIDADE DE CÓDIGO E TESTES
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 1. Adicionar testes automatizados
+   - Instalar Vitest ou Jest
+   - Testar lógica de movimento do Pac-Man e fantasmas
+   - Testar algoritmos de pathfinding
+   - Testar geração de SVG
+   - Testar integração com API do GitHub
+   - Meta: Cobertura de código > 80%
+
+✅ 2. Configurar ESLint e Prettier
+   - Criar .eslintrc.json no root
+   - Criar .prettierrc.json no root
+   - Adicionar scripts de lint no package.json
+   - Configurar pre-commit hooks com husky
+
+✅ 3. Adicionar CI/CD com GitHub Actions
+   - Workflow para rodar testes automaticamente
+   - Workflow para validar build
+   - Workflow para verificar linting
+   - Workflow para verificar tipos TypeScript
+
+═══════════════════════════════════════════════════════════════════════════════
+🎯 MELHORIAS DE LÓGICA E ALGORITMOS (do TODO.TXT original)
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 4. Mapa de Perigo Preditivo
+   - Prever onde fantasmas podem chegar nos próximos 1-2 passos
+   - Útil para estilos Conservador e Oportunista
+   - Melhorar detecção de situações de perigo
+
+✅ 5. Pesos Dinâmicos em Tempo de Execução
+   - Ajustar pesos de decisão com base em contexto
+   - Considerar: distância do fantasma, power-up ativo, pontos restantes, combo de fantasmas
+   - Implementar sistema de prioridades adaptativo
+
+✅ 6. Algoritmo A* Real (com heurística f = g + h)
+   - Substituir lógica Best-First atual por A* completo
+   - Somar custo até agora + heurística de distância + penalidades/recompensas
+   - Resulta em rotas mais curtas e inteligentes
+
+✅ 7. Penalidade de Revisita com Decaimento
+   - Substituir penalidade constante por decaimento temporal
+   - Exemplo: 50 → 0 em 50 frames
+   - Evita loops e travamentos em runs longas
+
+✅ 8. Implementar túneis no grid do Pac-Man
+   - Grid: 53 colunas (0 a 52) por 7 linhas (0 a 6)
+   - Linha central do túnel: linha 3
+   - Túnel esquerdo: coluna 0, linha 3
+   - Túnel direito: coluna 52, linha 3
+   - Lógica: sair pela esquerda (coluna < 0) → aparece na direita (coluna 52)
+   - Lógica: sair pela direita (coluna > 52) → aparece na esquerda (coluna 0)
+   - Visual: cinza padrão, muda para azul-ciano (#00FFFF) quando Pac-Man próximo
+   - NÃO usar amarelo (confunde com Pac-Man)
+
+✅ 9. Melhorar movimentação dos fantasmas no modo assustado
+   - Revisar comportamento de fuga dos fantasmas
+   - Implementar movimento mais errático e realista
+   - Verificar se respeitam velocidade reduzida
+
+✅ 10. Checar comportamento dos power-ups
+   - Validar duração do power-up
+   - Verificar transição entre estados
+   - Testar múltiplos power-ups em sequência
+   - Validar pontuação de combo
+
+═══════════════════════════════════════════════════════════════════════════════
+🚀 NOVAS FUNCIONALIDADES
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 11. Mais temas visuais
+   - Tema clássico arcade (cores originais do Pac-Man)
+   - Temas GitLab (claro e escuro) - já mencionado no README
+   - Sistema de cores customizáveis (permitir usuário definir paleta)
+   - Tema high-contrast para acessibilidade
+   - Tema neon/synthwave
+
+✅ 12. Métricas e estatísticas no SVG
+   - Pontuação total alcançada
+   - Número de fantasmas comidos
+   - Maior sequência de combo
+   - Duração da animação (em segundos)
+   - Porcentagem de contribuições coletadas
+   - Adicionar painel de estatísticas no canto do SVG
+
+✅ 13. Opções de velocidade da animação
+   - Adicionar parâmetro de configuração: speed (slow/normal/fast)
+   - Slow: 2x mais lento
+   - Normal: velocidade atual
+   - Fast: 2x mais rápido
+   - Permitir velocidade customizada (multiplicador)
+
+✅ 14. Preview local do SVG
+   - Criar script para gerar e visualizar SVG localmente
+   - Comando: npm run preview
+   - Abrir SVG no navegador automaticamente
+   - Hot-reload durante desenvolvimento
+
+✅ 15. Sistema de replay
+   - Salvar estado da jogada em JSON
+   - Permitir reproduzir jogadas específicas
+   - Útil para debug e compartilhamento
+
+✅ 16. Modo de comparação
+   - Comparar diferentes estilos de jogador lado a lado
+   - Gerar SVG com 2-3 runs simultâneas
+   - Útil para demonstrar diferenças de comportamento
+
+═══════════════════════════════════════════════════════════════════════════════
+📚 DOCUMENTAÇÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 17. Documentação de código (JSDoc/TSDoc)
+   - Documentar todas as funções públicas
+   - Adicionar exemplos de uso
+   - Documentar interfaces e tipos em types.ts
+   - Gerar documentação automática com TypeDoc
+
+✅ 18. Criar CONTRIBUTING.md
+   - Guia de como contribuir
+   - Como configurar ambiente de desenvolvimento
+   - Como rodar testes localmente
+   - Padrões de código e convenções
+   - Como submeter PR
+   - Como reportar bugs
+
+✅ 19. Criar CHANGELOG.md
+   - Documentar todas as versões
+   - Seguir formato Keep a Changelog
+   - Categorizar: Added, Changed, Deprecated, Removed, Fixed, Security
+   - Incluir links para PRs e issues
+
+✅ 20. Melhorar README.md
+   - Adicionar badges (build status, coverage, version, license)
+   - Seção de troubleshooting
+   - FAQ (perguntas frequentes)
+   - Arquitetura do projeto (diagrama)
+   - Performance benchmarks
+
+✅ 21. Criar docs/ com documentação técnica
+   - Arquitetura detalhada do sistema
+   - Explicação dos algoritmos de IA
+   - Como funciona a geração de SVG
+   - Guia de personalização avançada
+
+═══════════════════════════════════════════════════════════════════════════════
+🔧 MELHORIAS TÉCNICAS
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 22. Otimizar gerenciamento de dependências
+   - Mover 'canvas' para devDependencies (se só usado em build)
+   - Separar corretamente dependencies de devDependencies
+   - Auditar dependências não utilizadas
+   - Atualizar dependências desatualizadas
+
+✅ 23. Padronizar gerenciador de pacotes
+   - package.json mistura pnpm e npm
+   - Escolher um: npm OU pnpm OU yarn
+   - Atualizar todos os scripts para usar o mesmo
+   - Adicionar instruções no README
+
+✅ 24. Melhorar error handling
+   - Adicionar try-catch em operações críticas
+   - Tratar erros da API do GitHub (rate limit, 404, timeout)
+   - Validar entrada do usuário (username, token)
+   - Adicionar mensagens de erro amigáveis
+   - Implementar retry logic para requisições
+
+✅ 25. Otimização de performance
+   - Profiling de geração de SVG
+   - Otimizar para perfis com muitas contribuições (>1000)
+   - Considerar streaming para animações muito longas
+   - Lazy loading de assets
+   - Minificar SVG gerado (remover metadados desnecessários)
+
+✅ 26. Verificar uso de @ts-ignore e any
+   - Auditar código TypeScript
+   - Remover @ts-ignore desnecessários
+   - Tipar corretamente variáveis com 'any'
+   - Usar 'unknown' quando tipo não conhecido
+
+✅ 27. Adicionar validação de schema
+   - Validar resposta da API do GitHub
+   - Validar configurações do usuário
+   - Usar Zod ou Joi para validação de tipos em runtime
+
+✅ 28. Implementar logging estruturado
+   - Adicionar sistema de logs (debug, info, warn, error)
+   - Usar biblioteca como Winston ou Pino
+   - Logs úteis para debugging em produção
+   - Diferentes níveis de verbosidade
+
+═══════════════════════════════════════════════════════════════════════════════
+🐛 CORREÇÕES E LIMPEZA
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 29. Corrigir git dubious ownership warning
+   - Adicionar instruções no README para Windows
+   - Comando: git config --global --add safe.directory D:/Projetos/pacman
+   - Documentar problemas comuns do Windows
+
+✅ 30. Corrigir vazamento do arquivo .env
+   - .env está no repositório (não deveria estar)
+   - Remover .env do repositório
+   - Adicionar .env ao .gitignore (já está)
+   - Criar .env.example com variáveis de exemplo
+   - Documentar variáveis de ambiente no README
+
+✅ 31. Limpar .gitignore
+   - Remover duplicatas
+   - Organizar por categoria
+   - TODO.txt está ignorado mas existe no repo
+   - Verificar se scripts/ deve estar ignorado
+
+✅ 32. Remover arquivos não utilizados
+   - Verificar se teste.py é necessário
+   - Verificar arquivos em outputs/ e logs/
+   - Limpar comentários e código morto
+
+✅ 33. Consistência de nomenclatura
+   - Padronizar nomes de arquivos (kebab-case vs camelCase)
+   - Padronizar nomes de variáveis
+   - Padronizar mensagens de commit
+
+═══════════════════════════════════════════════════════════════════════════════
+📦 PUBLICAÇÃO E DISTRIBUIÇÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 34. Otimizar NPM package
+   - Verificar tamanho do bundle
+   - Implementar tree-shaking
+   - Gerar sourcemaps apenas para dev
+   - Verificar o que está incluído no package (files em package.json)
+
+✅ 35. Versionamento semântico automatizado
+   - Usar standard-version OU semantic-release
+   - Automatizar geração de CHANGELOG
+   - Automatizar tags de versão
+   - Integrar com GitHub Releases
+
+✅ 36. Criar demo online
+   - GitHub Pages com demonstração interativa
+   - Mostrar diferentes estilos (oportunista, agressivo, conservador)
+   - Mostrar diferentes temas
+   - Permitir usuário testar com seu próprio username
+   - Playground interativo
+
+✅ 37. Criar badges para README
+   - npm version
+   - build status (GitHub Actions)
+   - coverage
+   - license
+   - downloads
+   - issues/PRs
+
+═══════════════════════════════════════════════════════════════════════════════
+🎨 UX/UI E MELHORIAS VISUAIS
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 38. Feedback de progresso durante geração
+   - Mostrar barra de progresso
+   - Mostrar % de conclusão
+   - Útil para perfis com muitas contribuições
+   - Adicionar ETA (tempo estimado restante)
+
+✅ 39. Validação de entrada do usuário
+   - Validar se username do GitHub existe
+   - Verificar se tem contribuições públicas
+   - Verificar se branch 'output' existe (na Action)
+   - Mensagens de erro claras e acionáveis
+
+✅ 40. Melhorar feedback visual no SVG
+   - Indicador de power-up ativo (contador visual)
+   - Animação quando Pac-Man come fantasma
+   - Partículas ou efeitos visuais
+   - Sons (opcional, com SVG + SMIL)
+
+✅ 41. Responsividade do SVG
+   - SVG responsivo para diferentes tamanhos
+   - Teste em dispositivos móveis
+   - viewBox configurável
+
+✅ 42. Acessibilidade
+   - Adicionar aria-labels
+   - Descrições alternativas para screen readers
+   - Garantir contraste adequado
+   - Suporte a prefers-reduced-motion
+
+═══════════════════════════════════════════════════════════════════════════════
+🔐 SEGURANÇA
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 43. Auditoria de segurança
+   - Rodar npm audit regularmente
+   - Configurar Dependabot
+   - Revisar permissões do GitHub Token
+   - Não logar tokens ou dados sensíveis
+
+✅ 44. Validação de input sanitization
+   - Sanitizar username antes de usar em URLs
+   - Prevenir XSS no SVG gerado
+   - Validar todos os inputs do usuário
+
+═══════════════════════════════════════════════════════════════════════════════
+🌐 INTERNACIONALIZAÇÃO
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 45. Suporte a múltiplos idiomas
+   - README em inglês (README.en.md)
+   - Mensagens de erro em inglês/português
+   - Documentação bilíngue
+
+═══════════════════════════════════════════════════════════════════════════════
+📊 ANALYTICS E MONITORING
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ 46. Adicionar telemetria opcional
+   - Coletar métricas de uso (com opt-in)
+   - Entender quais features são mais usadas
+   - Identificar erros comuns
+
+✅ 47. Health checks
+   - Verificar se API do GitHub está disponível
+   - Verificar rate limits
+   - Status page da Action

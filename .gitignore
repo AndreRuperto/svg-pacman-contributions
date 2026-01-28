@@ -58,3 +58,5 @@ check_path.py
 .npmignore
 
 TODO.txt
+
+*.py
