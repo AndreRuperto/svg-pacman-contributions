@@ -1,0 +1,22 @@
+{
+  "name": "pacman-ranking",
+  "version": "1.0.0",
+  "description": "Sistema de ranking para SVG-Pacman-Contributions",
+  "private": true,
+  "scripts": {
+    "install:all": "cd server && pnpm install && cd ../client && pnpm install",
+    "dev": "concurrently \"cd server && pnpm dev\" \"cd client && pnpm dev\"",
+    "build": "cd server && pnpm build && cd ../client && pnpm build",
+    "migrate": "cd server && pnpm run migrate",
+    "seed": "cd server && pnpm exec tsx src/db/seed.ts",
+    "test-data": "psql -d pacman_ranking -f server/test-data.sql",
+    "setup": "pnpm install:all && pnpm migrate && pnpm seed",
+    "clean": "rm -rf server/node_modules server/dist client/node_modules client/dist"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
