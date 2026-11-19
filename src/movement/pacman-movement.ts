@@ -9,7 +9,7 @@ type Profile = { safety: number; points: number; horizon: number; powerupRange: 
 export const STYLE_PROFILES: Record<PlayerStyle, Profile> = {
   [PlayerStyle.CONSERVATIVE]:  { safety: 3.0, points: 0.3, horizon: 4, powerupRange: 3 },
   [PlayerStyle.OPPORTUNISTIC]: { safety: 1.2, points: 0.9, horizon: 3, powerupRange: 5 },
-  [PlayerStyle.AGGRESSIVE]:    { safety: 0.4, points: 2.5, horizon: 1, powerupRange: Infinity }
+  [PlayerStyle.AGGRESSIVE]:    { safety: 0.4, points: 2.5, horizon: 1, powerupRange: 8 }
 };
 
 const LEVEL_VALUE: Record<ContributionLevel, number> = {
@@ -28,7 +28,7 @@ export const getPlayerStyle = (store: StoreType): PlayerStyle =>
 const debug = (store: StoreType, ...args: unknown[]) => { if (store.config.debug) console.log(...args); };
 
 const dangerFactor = (g: Ghost) =>
-  g.name === 'eyes' || g.inHouse ? 0 : !g.scared ? 1 : g.flashing ? 0.5 : 0;
+  g.name === 'eyes' || (g.inHouse && !g.justReleasedFromHouse) ? 0 : !g.scared ? 1 : g.flashing ? 0.5 : 0;
 
 /** Passos reais (paredes + túnel) de `from` até cada célula alcançável. */
 const distanceMap = (from: Point2d): Map<string, number> => {
@@ -186,7 +186,13 @@ const movePacman = (store: StoreType) => {
   const dist = distanceMap(store.pacman);
   const target = chooseTarget(store, dist, danger, profile, weights);
   const frame = store.frameCount;
-  const revisit = (k: string) => revisitPenalty(store.pacman.visitedAt[k], frame);
+  // Casa do fantasma perigoso e a casa à frente dele são proibidas (custo infinito no A*).
+  const lethal = new Set<string>();
+  for (const g of store.ghosts) if (dangerFactor(g) === 1) {
+    lethal.add(key(g.x, g.y));
+    for (const n of MovementUtils.getNeighbors(g.x, g.y)) if (n.direction === g.direction) lethal.add(key(n.x, n.y));
+  }
+  const revisit = (k: string) => lethal.has(k) ? Infinity : revisitPenalty(store.pacman.visitedAt[k], frame);
   const step = (target && aStarNextStep(store.pacman, target, danger, weights.safety, revisit)) || safestNeighbor(store, danger);
   if (step) updatePacmanPosition(store, step, frame);
   debug(store, `[pacman] f=${frame} alvo=${target ? key(target.x, target.y) : '-'} passo=${step ? key(step.x, step.y) : '-'}`);

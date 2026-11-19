@@ -50,7 +50,7 @@ Cobre os itens 4, 6, 7, 8, 9 e 10 do `TODO2.TXT`, mais bugs encontrados na leitu
 
 - **A\***: custo do passo = `1 + perigo × pesoSegurança + revisita`; heurística = `gridDistance` (admissível, custo ≥ 1). Recompensas ficam fora do custo. Replaneja a cada frame. Fila com heap binário.
 - **Alvo**: BFS de distância real a partir do Pac-Man; nota = `valor / passos` + bônus por vizinhas com pontos. Valor do power-up por estilo:
-  - agressivo: alto sempre (caçar);
+  - agressivo: alto com fantasma perigoso a ≤ 8 passos (antes "sempre": gastava o power-up com fantasmas ainda na casa e comia menos fantasmas que o oportunista);
   - oportunista: alto com fantasma perigoso a ≤ 5 passos;
   - conservador: só com fantasma perigoso a ≤ 3 passos (emergência).
 - **Perigo previsto**: BFS a partir de cada fantasma perigoso até horizonte por estilo (conservador 4, oportunista 3, agressivo 1); casa à frente da direção do fantasma pesa mais; fantasma piscando conta como 0,5.

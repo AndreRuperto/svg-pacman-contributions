@@ -24,6 +24,8 @@ const POINTS_MAP: Record<ContributionLevel, number> = {
   'FOURTH_QUARTILE': 40,
 };
 
+/** Limite de segurança do loop do SVG (~20 min de animação). */
+const MAX_FRAMES = 6000;
 const GHOST_BASE_POINTS = 200;
 const BASE_DEATH_PENALTY = 200;
 
@@ -91,7 +93,13 @@ const startGame = async (store: StoreType) => {
   initRound(store);
   const remainingCells = () => store.grid.some(row => row.some(cell => cell.commitsCount > 0));
   if (store.config.outputFormat === 'svg') {
-    while (remainingCells()) updateGame(store);
+    while (remainingCells() && store.frameCount < MAX_FRAMES) updateGame(store);
+    if (remainingCells()) {
+      // Salvaguarda: nunca gerar uma animação infinita; encerra limpando o que sobrou.
+      console.warn(`Partida interrompida em ${MAX_FRAMES} frames; células restantes foram limpas.`);
+      const empty = Utils.getCurrentTheme(store).intensityColors[0];
+      store.grid.forEach(col => col.forEach(c => { c.commitsCount = 0; c.level = 'NONE'; c.color = empty; }));
+    }
     updateGame(store); // snapshot final + callbacks
   } else {
     clearInterval(store.gameInterval as number);
