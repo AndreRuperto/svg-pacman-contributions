@@ -8,10 +8,43 @@ import {
 	PACMAN_COLOR,
 	PACMAN_COLOR_DEAD,
 	PACMAN_COLOR_POWERUP,
+	TUNNEL_ROW,
 	WALLS
 } from '../core/constants.js';
-import { AnimationData, GhostName, StoreType } from '../types.js';
+import { MovementUtils } from '../movement/movement-utils.js';
+import { AnimationData, Ghost, GhostName, StoreType } from '../types.js';
 import { Utils } from '../utils/utils.js';
+
+const toPixel = (x: number, y: number) => `${x * (CELL_SIZE + GAP_SIZE)},${y * (CELL_SIZE + GAP_SIZE) + 15}`;
+const samePos = (a: { x: number; y: number }, b: { x: number; y: number }) => a.x === b.x && a.y === b.y;
+/** Salto do túnel: mesma linha, de uma borda à outra (um teleporte qualquer na mesma linha não conta). */
+const isWrap = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+	a.y === b.y && Math.min(a.x, b.x) === 0 && Math.max(a.x, b.x) === GRID_WIDTH - 1;
+
+/** Animação de posição com interpolação linear entre frames; o salto do túnel some por uma borda e surge pela outra. */
+export const generatePositionAnimation = (points: { x: number; y: number }[]): AnimationData => {
+	const n = points.length;
+	if (n === 0) return { keyTimes: '0;1', values: '0,0;0,0' };
+	if (n === 1) { const v = toPixel(points[0].x, points[0].y); return { keyTimes: '0;1', values: `${v};${v}` }; }
+	const t = (i: number) => i / (n - 1);
+	const fmt = (v: number) => Number(v.toFixed(6));
+	const keyTimes: number[] = [];
+	const values: string[] = [];
+	for (let i = 0; i < n; i++) {
+		const p = points[i];
+		if (i > 0 && isWrap(points[i - 1], p)) {
+			const prev = points[i - 1];
+			const mid = (t(i - 1) + t(i)) / 2;
+			const exitX = prev.x === 0 ? -1 : GRID_WIDTH;
+			const enterX = p.x === 0 ? -1 : GRID_WIDTH;
+			keyTimes.push(fmt(mid)); values.push(toPixel(exitX, p.y));
+			keyTimes.push(fmt(Math.min(mid + 0.000001, t(i)))); values.push(toPixel(enterX, p.y));
+		}
+		const keep = i === 0 || i === n - 1 || !samePos(p, points[i - 1]) || !samePos(p, points[i + 1]);
+		if (keep) { keyTimes.push(fmt(t(i))); values.push(toPixel(p.x, p.y)); }
+	}
+	return { keyTimes: keyTimes.join(';'), values: values.join(';') };
+};
 
 const generateAnimatedSVG = (store: StoreType) => {
 	// Dimensões e duração
@@ -37,6 +70,8 @@ const generateAnimatedSVG = (store: StoreType) => {
 	svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
 	
 	svg += generateGhostsPredefinition();
+	const arenaHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE);
+	svg += `<defs><clipPath id="arena"><rect x="0" y="15" width="${svgWidth}" height="${arenaHeight}"/></clipPath></defs>`;
   
 	// Month labels
 	let lastMonth = '';
@@ -75,10 +110,25 @@ const generateAnimatedSVG = (store: StoreType) => {
 		}
 	  }
 	}
-  
+
+	// Bocas do túnel: acendem quando o Pac-Man está a até 3 passos
+	const theme = Utils.getCurrentTheme(store);
+	const mouthColors = (mouthX: number) => generateChangingValuesAnimation(store, store.gameHistory.map(s =>
+		MovementUtils.gridDistance(s.pacman, { x: mouthX, y: TUNNEL_ROW }) <= 3 ? theme.tunnelActiveColor : theme.tunnelColor));
+	const mouthY = TUNNEL_ROW * (CELL_SIZE + GAP_SIZE) + 15;
+	for (const [id, mx, rx] of [['tunnel-left', 0, 0], ['tunnel-right', GRID_WIDTH - 1, svgWidth - 3]] as const) {
+		const a = mouthColors(mx);
+		svg += `<rect id="${id}" x="${rx}" y="${mouthY}" width="3" height="${CELL_SIZE}" rx="1.5" fill="${theme.tunnelColor}">
+		  <animate attributeName="fill" dur="${totalDurationMs}ms" repeatCount="indefinite" keyTimes="${a.keyTimes}" values="${a.values}"/>
+		</rect>`;
+	}
+
+	// Personagens ficam recortados na arena (somem pela borda do túnel)
+	svg += `<g clip-path="url(#arena)">`;
+
 	// Pacman
 	const pacmanColorAnimation = generateChangingValuesAnimation(store, generatePacManColors(store));
-	const pacmanPositionAnimation = generateChangingValuesAnimation(store, generatePacManPositions(store));
+	const pacmanPositionAnimation = generatePositionAnimation(store.gameHistory.map(s => s.pacman));
 	const pacmanRotationAnimation = generateChangingValuesAnimation(store, generatePacManRotations(store));
 	svg += `<path id="pacman" d="${generatePacManPath(0.55)}" fill="${PACMAN_COLOR}">
 	  <animate attributeName="fill" dur="${totalDurationMs}ms" repeatCount="indefinite"
@@ -98,7 +148,7 @@ const generateAnimatedSVG = (store: StoreType) => {
   
 	// Fantasmas
 	store.ghosts.forEach((ghost, index) => {
-	  const ghostPositionAnimation = generateChangingValuesAnimation(store, generateGhostPositions(store, index));
+	  const ghostPositionAnimation = generatePositionAnimation(store.gameHistory.map(s => s.ghosts[index] ?? { x: 0, y: 0 }));
 	  
 	  // Grupo para o fantasma
 	  svg += `<g id="ghost${index}" transform="translate(0,0)">
@@ -130,6 +180,7 @@ const generateAnimatedSVG = (store: StoreType) => {
 	  
 	  svg += `</g>`;
 	});
+	svg += `</g>`; // fim do recorte da arena
   
 	// Estatísticas e barra de progresso
 	const textColor = Utils.getCurrentTheme(store).textColor;
@@ -164,8 +215,13 @@ function mapGhostStateChanges(store: StoreType, ghostIndex: number) {
         'pinky-up', 'pinky-down', 'pinky-left', 'pinky-right',
         'clyde-up', 'clyde-down', 'clyde-left', 'clyde-right',
         'eyes-up', 'eyes-down', 'eyes-left', 'eyes-right',
-        'scared'
+        'scared', 'scared-flash'
     ];
+
+    // Estado visual de um fantasma num frame (piscando alterna entre azul e branco)
+    const stateOf = (g: Ghost, frameIndex: number) =>
+        g.scared ? (g.flashing && frameIndex % 2 === 1 ? 'scared-flash' : 'scared')
+        : g.name === 'eyes' ? `eyes-${g.direction || 'right'}` : `${g.name}-${g.direction || 'right'}`;
     
     // Inicializar todos os estados como ocultos
     allPossibleStates.forEach(state => {
@@ -177,11 +233,7 @@ function mapGhostStateChanges(store: StoreType, ghostIndex: number) {
     if (!initialGhost) return stateChanges;
     
     // Definir o estado inicial corretamente
-    const initialState = initialGhost.scared 
-        ? 'scared' 
-        : initialGhost.name === 'eyes' 
-            ? `eyes-${initialGhost.direction || 'right'}` 
-            : `${initialGhost.name}-${initialGhost.direction || 'right'}`;
+    const initialState = stateOf(initialGhost, 0);
     
     // Marcar esse estado como visível inicialmente
     stateChanges[initialState] = [{ time: 0, visible: true }];
@@ -198,11 +250,7 @@ function mapGhostStateChanges(store: StoreType, ghostIndex: number) {
         const currentTime = frameIndex / (store.gameHistory.length - 1);
         
         // Determinar o estado atual
-        const currentState = ghost.scared 
-            ? 'scared' 
-            : ghost.name === 'eyes' 
-                ? `eyes-${ghost.direction || 'right'}` 
-                : `${ghost.name}-${ghost.direction || 'right'}`;
+        const currentState = stateOf(ghost, frameIndex);
         
         // Se o estado mudou
         if (currentState !== lastState) {
@@ -247,14 +295,6 @@ const generatePacManPath = (mouthAngle: number) => {
             Z`;
 };
 
-const generatePacManPositions = (store: StoreType): string[] => {
-	return store.gameHistory.map((state) => {
-		const x = state.pacman.x * (CELL_SIZE + GAP_SIZE);
-		const y = state.pacman.y * (CELL_SIZE + GAP_SIZE) + 15;
-		return `${x},${y}`;
-	});
-};
-
 const generatePacManRotations = (store: StoreType): string[] => {
 	const pivit = CELL_SIZE / 2;
 	return store.gameHistory.map((state) => {
@@ -289,18 +329,6 @@ const generateCellColorValues = (store: StoreType, x: number, y: number): string
 	return store.gameHistory.map((state) => state.grid[x][y].color);
 };
 
-const generateGhostPositions = (store: StoreType, ghostIndex: number): string[] => {
-	return store.gameHistory.map((state) => {
-		if (ghostIndex >= state.ghosts.length) {
-			return "0,0"; // Valor padrão para casos onde o fantasma não existe
-		}
-		const ghost = state.ghosts[ghostIndex];
-		const x = ghost.x * (CELL_SIZE + GAP_SIZE);
-		const y = ghost.y * (CELL_SIZE + GAP_SIZE) + 15;
-		return `${x},${y}`;
-	});
-};
-
 const generateGhostsPredefinition = () => {
 	// console.log("Definindo símbolos dos fantasmas");
     let defs = `<defs>`;
@@ -325,6 +353,13 @@ const generateGhostsPredefinition = () => {
     defs += `
     <symbol id="ghost-scared" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
         <image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
+    </symbol>`;
+
+    // Fantasma assustado piscando (mesma imagem, toda branca)
+    defs += `
+    <filter id="flash-white"><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/></filter>
+    <symbol id="ghost-scared-flash" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
+        <image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/>
     </symbol>`;
     
     // Adicionar os olhos do fantasma (para cada direção)

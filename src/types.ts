@@ -139,6 +139,8 @@ export interface GameTheme {
   gridBackground: string;
   wallColor: string;
   intensityColors: string[];  // 5 cores (NONE … FOURTH)
+  tunnelColor: string;        // boca do túnel em repouso
+  tunnelActiveColor: string;  // boca do túnel com o Pac-Man perto
 }
 
 /* ───────────────────────── SVG Animation helper ──────────────────── */

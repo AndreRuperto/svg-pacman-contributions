@@ -40,20 +40,26 @@ export const GAME_THEMES: { [key in ThemeKeys]: GameTheme } = {
     textColor:      '#57606a',
     gridBackground: '#ffffff',
     wallColor:      '#000000',
-    intensityColors: GITHUB_LIGHT
+    intensityColors: GITHUB_LIGHT,
+    tunnelColor:       '#8c959f',
+    tunnelActiveColor: '#00FFFF'
   },
   'github-dark': {
     textColor:      '#8b949e',
     gridBackground: '#0d1117',
     wallColor:      '#ffffff',
-    intensityColors: GITHUB_DARK
+    intensityColors: GITHUB_DARK,
+    tunnelColor:       '#6e7681',
+    tunnelActiveColor: '#00FFFF'
   },
   /* ---------- Brasa (escuro, em laranja) ---------- */
   brasa: {
     textColor:      '#988881',
     gridBackground: '#120F0D',
     wallColor:      '#FBFAF9',
-    intensityColors: BRASA
+    intensityColors: BRASA,
+    tunnelColor:       '#5C4F49',
+    tunnelActiveColor: '#00FFFF'
   }
 };
 
