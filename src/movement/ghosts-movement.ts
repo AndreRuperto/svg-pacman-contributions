@@ -205,7 +205,7 @@ const moveScaredGhost = (ghost: Ghost, store: StoreType) => {
         ghost.target = getRandomDestination(ghost.x, ghost.y, store.rng);
     }
 
-    const validMoves = getValidMovesWithoutReverse(ghost);
+    const validMoves = getNeighborsWithoutReverse(ghost);
     if (validMoves.length === 0) return;
 
     // Move toward target but with some randomness to appear "scared"
@@ -220,12 +220,9 @@ const moveScaredGhost = (ghost: Ghost, store: StoreType) => {
         // Escolhe qualquer movimento válido
     } else {
         // Tenta escolher um movimento que vá na direção do alvo
-        const goodMoves = validMoves.filter((move) => {
-            const moveX = move[0];
-            const moveY = move[1];
-            return (dx > 0 && moveX > 0) || (dx < 0 && moveX < 0) || 
-                   (dy > 0 && moveY > 0) || (dy < 0 && moveY < 0);
-        });
+        const goodMoves = validMoves.filter(({ direction }) =>
+            (dx > 0 && direction === 'right') || (dx < 0 && direction === 'left') ||
+            (dy > 0 && direction === 'down') || (dy < 0 && direction === 'up'));
         
         // Se houver movimentos "bons", use-os
         if (goodMoves.length > 0) {
@@ -234,39 +231,22 @@ const moveScaredGhost = (ghost: Ghost, store: StoreType) => {
     }
 
     // Choose a random move from the possible moves
-    const [moveX, moveY] = possibleMoves[Math.floor(store.rng() * possibleMoves.length)];
+    const move = possibleMoves[Math.floor(store.rng() * possibleMoves.length)];
 
     // Se Pacman tem power-up, fantasmas se movem mais devagar (60% mais lentos)
     if (store.pacman.powerupRemainingDuration && store.rng() < 0.6) return;
 
-    // Atualizar a direção do fantasma com base no movimento
-    if (moveX > 0) ghost.direction = 'right';
-    else if (moveX < 0) ghost.direction = 'left';
-    else if (moveY > 0) ghost.direction = 'down';
-    else if (moveY < 0) ghost.direction = 'up';
-    
-    ghost.x += moveX;
-    ghost.y += moveY;
+    ghost.direction = move.direction;
+    ghost.x = move.x;
+    ghost.y = move.y;
 };
 
-// Função para obter movimentos válidos que não sejam reversão da direção atual
-const getValidMovesWithoutReverse = (ghost: Ghost): [number, number][] => {
-    const validMoves = MovementUtils.getValidMoves(ghost.x, ghost.y);
-    
-    // Não permitir que o fantasma reverta sua direção, exceto se for o único caminho
-    return validMoves.filter(move => {
-        const [dx, dy] = move;
-        
-        // Verifica se o movimento seria uma reversão da direção atual
-        if ((ghost.direction === 'right' && dx < 0) ||
-            (ghost.direction === 'left' && dx > 0) ||
-            (ghost.direction === 'up' && dy > 0) ||
-            (ghost.direction === 'down' && dy < 0)) {
-            return false;
-        }
-        
-        return true;
-    });
+// Vizinhos (com túnel) que não sejam reversão da direção atual
+const getNeighborsWithoutReverse = (ghost: Ghost) => {
+    const neighbors = MovementUtils.getNeighbors(ghost.x, ghost.y);
+    if (!ghost.direction) return neighbors;
+    const back = MovementUtils.opposite(ghost.direction);
+    return neighbors.filter(n => n.direction !== back);
 };
 
 // Movimento especial para olhos voltarem para casa
@@ -291,16 +271,8 @@ const moveEyesToHome = (ghost: Ghost, store: StoreType) => {
     );
     
     if (nextMove) {
-        // Calcular a direção com base no movimento
-        const dx = nextMove.x - ghost.x;
-        const dy = nextMove.y - ghost.y;
-        
-        // Atualizar a direção baseada no movimento real
-        if (dx > 0) ghost.direction = 'right';
-        else if (dx < 0) ghost.direction = 'left';
-        else if (dy > 0) ghost.direction = 'down';
-        else if (dy < 0) ghost.direction = 'up';
-        
+        if (nextMove.direction) ghost.direction = nextMove.direction;
+
         // Atualizar posição
         ghost.x = nextMove.x;
         ghost.y = nextMove.y;
@@ -375,7 +347,7 @@ const BFSTargetLocation = (
         x: number; 
         y: number; 
         path: PathNode[]; 
-        direction: 'right' | 'left' | 'up' | 'down' | string;
+        direction: 'right' | 'left' | 'up' | 'down';
     };
 
     const queue: QueueItem[] = [
@@ -388,43 +360,22 @@ const BFSTargetLocation = (
         const current = queue.shift()!;
         const { x, y, path, direction } = current;
 
-        // Obter movimentos válidos
-        const validMoves = MovementUtils.getValidMoves(x, y);
-        
-        // Filtrar movimentos que seriam reversão da direção atual
-        const filteredMoves = validMoves.filter(move => {
-            const [dx, dy] = move;
-            
-            // Se não temos direção definida, permitir qualquer movimento
-            if (!direction) return true;
-            
-            // Verificar se seria uma reversão
-            if ((direction === 'right' && dx < 0) ||
-                (direction === 'left' && dx > 0) ||
-                (direction === 'up' && dy > 0) ||
-                (direction === 'down' && dy < 0)) {
-                // Se só há um movimento válido e seria reversão, permitir mesmo assim
-                return validMoves.length === 1;
-            }
-            
-            return true;
-        });
+        // Vizinhos (com túnel), sem reversão — a menos que seja o único caminho
+        const neighbors = MovementUtils.getNeighbors(x, y);
+        const back = MovementUtils.opposite(direction);
+        const filteredMoves = neighbors.length === 1
+            ? neighbors
+            : neighbors.filter(n => n.direction !== back);
 
-        for (const [dx, dy] of filteredMoves) {
-            const newX = x + dx;
-            const newY = y + dy;
+        for (const n of filteredMoves) {
+            const newX = n.x;
+            const newY = n.y;
             const key = `${newX},${newY}`;
 
             if (visited.has(key)) continue;
             visited.add(key);
 
-            // Determinar a nova direção
-            let newDirection: 'right' | 'left' | 'up' | 'down';
-            if (dx > 0) newDirection = 'right';
-            else if (dx < 0) newDirection = 'left';
-            else if (dy > 0) newDirection = 'down';
-            else if (dy < 0) newDirection = 'up';
-            else newDirection = direction as 'right' | 'left' | 'up' | 'down';
+            const newDirection = n.direction;
 
             const pathNode: PathNode = { 
                 x: newX, 
@@ -448,22 +399,10 @@ const BFSTargetLocation = (
     }
 
     // Se não encontramos um caminho, verificar se há algum movimento válido
-    const validMoves = MovementUtils.getValidMoves(startX, startY);
-    if (validMoves.length > 0) {
+    const neighbors = MovementUtils.getNeighbors(startX, startY);
+    if (neighbors.length > 0) {
         // Escolher um movimento aleatório se não encontrarmos caminho
-        const [dx, dy] = validMoves[Math.floor(rng() * validMoves.length)];
-        let direction: 'right' | 'left' | 'up' | 'down' = currentDirection as 'right' | 'left' | 'up' | 'down';
-        
-        if (dx > 0) direction = 'right';
-        else if (dx < 0) direction = 'left';
-        else if (dy > 0) direction = 'down';
-        else if (dy < 0) direction = 'up';
-        
-        return { 
-            x: startX + dx, 
-            y: startY + dy, 
-            direction 
-        };
+        return neighbors[Math.floor(rng() * neighbors.length)];
     }
 
     // Se não há movimento válido, não se mover

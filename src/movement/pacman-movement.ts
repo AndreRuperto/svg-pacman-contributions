@@ -221,16 +221,16 @@ const calculateOptimalPath = (store: StoreType, target: Point2d) => {
 		return null;
 	  }
 	
-	  for (const [dx, dy] of MovementUtils.getValidMoves(x, y)) {
-		const newX = x + dx;
-		const newY = y + dy;
+	  for (const n of MovementUtils.getNeighbors(x, y)) {
+		const newX = n.x;
+		const newY = n.y;
 		const key = `${newX},${newY}`;
 	
 		if (!visited.has(key)) {
-		  const newPath = [...path, { x: newX, y: newY }];
+		  const newPath = [...path, n];
 		  const danger = dangerMap.get(key) || 0;
 		  const pointValue = store.grid[newX][newY].commitsCount;
-		  const distanceToTarget = MovementUtils.calculateDistance(newX, newY, target.x, target.y);
+		  const distanceToTarget = MovementUtils.gridDistance(n, target);
 		  const revisitPenalty = store.pacman.recentPositions?.includes(key) ? 100 + danger * 2 : 0;
 	
 		  let safetyScore, pointScore, finalScore;
@@ -325,8 +325,8 @@ function buildPredictiveDanger(store: StoreType, horizon = 4) {
 		map.set(key, Math.max(map.get(key) ?? 0, danger));
   
 		if (node.d < horizon) {
-		  MovementUtils.getValidMoves(node.x, node.y).forEach(([dx, dy]) =>
-			frontier.push({ x: node.x + dx, y: node.y + dy, d: node.d + 1 }));
+		  MovementUtils.getNeighbors(node.x, node.y).forEach(n =>
+			frontier.push({ x: n.x, y: n.y, d: node.d + 1 }));
 		}
 	  }
 	});
@@ -335,31 +335,23 @@ function buildPredictiveDanger(store: StoreType, horizon = 4) {
   }
 
 const makeDesperationMove = (store: StoreType) => {
-	const validMoves = MovementUtils.getValidMoves(store.pacman.x, store.pacman.y);
-	if (validMoves.length === 0) return;
+	const neighbors = MovementUtils.getNeighbors(store.pacman.x, store.pacman.y);
+	if (neighbors.length === 0) return;
 
-	const safest = validMoves.reduce(
-		(best, [dx, dy]) => {
-			const newX = store.pacman.x + dx;
-			const newY = store.pacman.y + dy;
-			let minDist = Infinity;
+	let safest = neighbors[0];
+	let bestDistance = -Infinity;
+	for (const n of neighbors) {
+		let minDist = Infinity;
+		store.ghosts.forEach((ghost) => {
+			if (!ghost.scared) {
+				const dist = MovementUtils.calculateDistance(ghost.x, ghost.y, n.x, n.y);
+				minDist = Math.min(minDist, dist);
+			}
+		});
+		if (minDist > bestDistance) { safest = n; bestDistance = minDist; }
+	}
 
-			store.ghosts.forEach((ghost) => {
-				if (!ghost.scared) {
-					const dist = MovementUtils.calculateDistance(ghost.x, ghost.y, newX, newY);
-					minDist = Math.min(minDist, dist);
-				}
-			});
-
-			return minDist > best.distance ? { dx, dy, distance: minDist } : best;
-		},
-		{ dx: 0, dy: 0, distance: -Infinity }
-	);
-
-	updatePacmanPosition(store, {
-		x: store.pacman.x + safest.dx,
-		y: store.pacman.y + safest.dy
-	});
+	updatePacmanPosition(store, safest);
 };
 
 const updatePacmanPosition = (store: StoreType, position: Point2d) => {
@@ -372,11 +364,11 @@ const updatePacmanPosition = (store: StoreType, position: Point2d) => {
 	const dx = position.x - store.pacman.x;
 	const dy = position.y - store.pacman.y;
 
-	store.pacman.direction =
-		dx > 0 ? 'right' :
+	store.pacman.direction = position.direction ??
+		(dx > 0 ? 'right' :
 		dx < 0 ? 'left' :
 		dy > 0 ? 'down' :
-		dy < 0 ? 'up' : store.pacman.direction;
+		dy < 0 ? 'up' : store.pacman.direction);
 
 	store.pacman.x = position.x;
 	store.pacman.y = position.y;
