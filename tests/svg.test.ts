@@ -6,6 +6,16 @@ import { makeStore, run } from './helpers.js';
 const px = (x: number) => x * (CELL_SIZE + GAP_SIZE);
 
 describe('svg', () => {
+  it('renascimento salta sem deslizar pelo grid', () => {
+    const anim = generatePositionAnimation([{ x: 40, y: 0 }, { x: 26, y: 5 }, { x: 27, y: 5 }]);
+    const vals = anim.values.split(';');
+    const times = anim.keyTimes.split(';').map(Number);
+    // fica em (40,0) até um instante antes do frame 1 e então aparece em (26,5)
+    const iJump = vals.indexOf(`${px(26)},${5 * (CELL_SIZE + GAP_SIZE) + 15}`);
+    expect(vals[iJump - 1]).toBe(`${px(40)},15`);
+    expect(times[iJump] - times[iJump - 1]).toBeLessThan(0.001);
+  });
+
   it('salto do túnel não passa pelo meio do mapa', () => {
     const anim = generatePositionAnimation([{ x: 1, y: 3 }, { x: 0, y: 3 }, { x: 52, y: 3 }, { x: 51, y: 3 }]);
     const xs = anim.values.split(';').map(v => Number(v.split(',')[0]));
@@ -33,6 +43,8 @@ describe('svg', () => {
     expect(svg).toContain('clip-path="url(#arena)"');
     expect(svg).toContain('id="tunnel-left"');
     expect(svg).toContain('id="tunnel-right"');
-    expect(svg).toContain('#ghost-scared-flash');
+    const flash = svg.match(/<use href="#ghost-scared-flash"[^>]*>\s*<animate[^>]*values="([^"]*)"/);
+    expect(flash).not.toBeNull();
+    expect(flash![1].split(';')).toContain('visible');
   });
 });

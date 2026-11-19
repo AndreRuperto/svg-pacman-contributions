@@ -20,6 +20,9 @@ const samePos = (a: { x: number; y: number }, b: { x: number; y: number }) => a.
 /** Salto do túnel: mesma linha, de uma borda à outra (um teleporte qualquer na mesma linha não conta). */
 const isWrap = (a: { x: number; y: number }, b: { x: number; y: number }) =>
 	a.y === b.y && Math.min(a.x, b.x) === 0 && Math.max(a.x, b.x) === GRID_WIDTH - 1;
+/** Qualquer outro salto de mais de uma casa (renascimento, saída da casa dos fantasmas). */
+const isTeleport = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+	Math.abs(a.x - b.x) + Math.abs(a.y - b.y) > 1;
 
 /** Animação de posição com interpolação linear entre frames; o salto do túnel some por uma borda e surge pela outra. */
 export const generatePositionAnimation = (points: { x: number; y: number }[]): AnimationData => {
@@ -39,6 +42,10 @@ export const generatePositionAnimation = (points: { x: number; y: number }[]): A
 			const enterX = p.x === 0 ? -1 : GRID_WIDTH;
 			keyTimes.push(fmt(mid)); values.push(toPixel(exitX, p.y));
 			keyTimes.push(fmt(Math.min(mid + 0.000001, t(i)))); values.push(toPixel(enterX, p.y));
+		} else if (i > 0 && isTeleport(points[i - 1], p)) {
+			// Renascimento: fica parado e salta no instante do frame, sem deslizar pelo grid.
+			const prev = points[i - 1];
+			keyTimes.push(fmt(Math.max(t(i - 1), t(i) - 0.000001))); values.push(toPixel(prev.x, prev.y));
 		}
 		const keep = i === 0 || i === n - 1 || !samePos(p, points[i - 1]) || !samePos(p, points[i + 1]);
 		if (keep) { keyTimes.push(fmt(t(i))); values.push(toPixel(p.x, p.y)); }
@@ -116,7 +123,7 @@ const generateAnimatedSVG = (store: StoreType) => {
 	const mouthColors = (mouthX: number) => generateChangingValuesAnimation(store, store.gameHistory.map(s =>
 		MovementUtils.gridDistance(s.pacman, { x: mouthX, y: TUNNEL_ROW }) <= 3 ? theme.tunnelActiveColor : theme.tunnelColor));
 	const mouthY = TUNNEL_ROW * (CELL_SIZE + GAP_SIZE) + 15;
-	for (const [id, mx, rx] of [['tunnel-left', 0, 0], ['tunnel-right', GRID_WIDTH - 1, svgWidth - 3]] as const) {
+	for (const [id, mx, rx] of [['tunnel-left', 0, 0], ['tunnel-right', GRID_WIDTH - 1, (GRID_WIDTH - 1) * (CELL_SIZE + GAP_SIZE) + CELL_SIZE - 3]] as const) {
 		const a = mouthColors(mx);
 		svg += `<rect id="${id}" x="${rx}" y="${mouthY}" width="3" height="${CELL_SIZE}" rx="1.5" fill="${theme.tunnelColor}">
 		  <animate attributeName="fill" dur="${totalDurationMs}ms" repeatCount="indefinite" keyTimes="${a.keyTimes}" values="${a.values}"/>
@@ -229,7 +236,7 @@ function mapGhostStateChanges(store: StoreType, ghostIndex: number) {
     });
     
     // Obter o fantasma inicial
-    const initialGhost = store.ghosts[ghostIndex];
+    const initialGhost = store.gameHistory[0]?.ghosts[ghostIndex] ?? store.ghosts[ghostIndex];
     if (!initialGhost) return stateChanges;
     
     // Definir o estado inicial corretamente
