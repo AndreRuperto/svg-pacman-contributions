@@ -20284,13 +20284,19 @@ function mapGhostStateChanges(store, ghostIndex) {
   });
   return stateChanges;
 }
-var toPixel, samePos, isWrap, isTeleport, generatePositionAnimation, generateAnimatedSVG, generatePacManPath, generatePacManRotations, generatePacManColors, generateCellColorValues, generateGhostsPredefinition, generateChangingValuesAnimation, SVG;
+var SPEED_PRESETS, frameDurationMs, toPixel, samePos, isWrap, isTeleport, generatePositionAnimation, generateAnimatedSVG, generatePacManPath, generatePacManRotations, generatePacManColors, generateCellColorValues, generateGhostsPredefinition, generateChangingValuesAnimation, SVG;
 var init_svg = __esm({
   "src/renderers/svg.ts"() {
     "use strict";
     init_constants();
     init_movement_utils();
     init_utils();
+    SPEED_PRESETS = { slow: 0.5, normal: 1, fast: 2 };
+    frameDurationMs = (config) => {
+      const s2 = config.animationSpeed;
+      const mult = typeof s2 === "number" ? s2 : SPEED_PRESETS[s2 ?? "normal"];
+      return mult && Number.isFinite(mult) && mult > 0 ? DELTA_TIME / mult : DELTA_TIME;
+    };
     toPixel = (x2, y) => `${x2 * (CELL_SIZE + GAP_SIZE)},${y * (CELL_SIZE + GAP_SIZE) + 15}`;
     samePos = (a, b) => a.x === b.x && a.y === b.y;
     isWrap = (a, b) => a.y === b.y && Math.min(a.x, b.x) === 0 && Math.max(a.x, b.x) === GRID_WIDTH - 1;
@@ -20333,7 +20339,8 @@ var init_svg = __esm({
     generateAnimatedSVG = (store) => {
       const svgWidth = GRID_WIDTH * (CELL_SIZE + GAP_SIZE);
       const svgHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE) + 50;
-      const totalDurationMs = store.gameHistory.length * DELTA_TIME;
+      const frameMs = frameDurationMs(store.config);
+      const totalDurationMs = store.gameHistory.length * frameMs;
       const totalDurationSecs = totalDurationMs / 1e3;
       const minutes = Math.floor(totalDurationSecs / 60);
       const seconds = Math.round(totalDurationSecs % 60);
@@ -20343,7 +20350,7 @@ var init_svg = __esm({
       svg += `<metadata>
 	  <info>
 		<frames>${store.gameHistory.length}</frames>
-		<frameRate>${1e3 / DELTA_TIME}</frameRate>
+		<frameRate>${1e3 / frameMs}</frameRate>
 		<durationMs>${totalDurationMs}</durationMs>
 		<generatedOn>${(/* @__PURE__ */ new Date()).toISOString()}</generatedOn>
 	  </info>
@@ -21003,9 +21010,9 @@ var init_pacman_movement = __esm({
     init_movement_utils();
     init_min_heap();
     STYLE_PROFILES = {
-      ["conservador" /* CONSERVATIVE */]: { safety: 3, points: 0.3, horizon: 4, powerupRange: 3 },
-      ["oportunista" /* OPPORTUNISTIC */]: { safety: 1.2, points: 0.9, horizon: 3, powerupRange: 5 },
-      ["agressivo" /* AGGRESSIVE */]: { safety: 0.4, points: 2.5, horizon: 1, powerupRange: 8 }
+      ["conservador" /* CONSERVATIVE */]: { safety: 3, points: 0.3, horizon: 4, powerupRange: 3, stickyDanger: 4 },
+      ["oportunista" /* OPPORTUNISTIC */]: { safety: 1.2, points: 0.9, horizon: 3, powerupRange: 5, stickyDanger: 8 },
+      ["agressivo" /* AGGRESSIVE */]: { safety: 0.4, points: 2.5, horizon: 1, powerupRange: 8, stickyDanger: 12 }
     };
     LEVEL_VALUE = {
       NONE: 0,
@@ -21133,9 +21140,11 @@ var init_pacman_movement = __esm({
         }
         if (best2) return best2;
       }
-      const t2 = store.pacman.target;
-      if (t2 && store.grid[t2.x]?.[t2.y]?.level !== "NONE" && dist.has(key(t2.x, t2.y)) && (danger.get(key(t2.x, t2.y)) ?? 0) < 8) return t2;
       const threat = closestDangerousGhost(store);
+      const wantsPowerUp = threat <= p.powerupRange && store.grid.some((col) => col.some((c) => c.level === "FOURTH_QUARTILE"));
+      const t2 = store.pacman.target;
+      const tCell = t2 && store.grid[t2.x]?.[t2.y];
+      if (t2 && tCell && tCell.level !== "NONE" && dist.has(key(t2.x, t2.y)) && (danger.get(key(t2.x, t2.y)) ?? 0) < p.stickyDanger && (!wantsPowerUp || tCell.level === "FOURTH_QUARTILE")) return t2;
       let best = null, bestScore = -Infinity;
       for (let x2 = 0; x2 < GRID_WIDTH; x2++) {
         for (let y = 0; y < GRID_HEIGHT; y++) {
@@ -21155,7 +21164,13 @@ var init_pacman_movement = __esm({
       store.pacman.target = best ?? void 0;
       return best;
     };
-    safestNeighbor = (store, danger) => MovementUtils.getNeighbors(store.pacman.x, store.pacman.y).sort((a, b) => (danger.get(key(a.x, a.y)) ?? 0) - (danger.get(key(b.x, b.y)) ?? 0))[0] ?? null;
+    safestNeighbor = (store, danger, lethal, frame) => {
+      const cost = (n) => {
+        const k = key(n.x, n.y);
+        return (lethal.has(k) ? 1e3 : 0) + (danger.get(k) ?? 0) + revisitPenalty(store.pacman.visitedAt?.[k], frame);
+      };
+      return MovementUtils.getNeighbors(store.pacman.x, store.pacman.y).sort((a, b) => cost(a) - cost(b))[0] ?? null;
+    };
     updatePacmanPosition = (store, step, frame) => {
       store.pacman.visitedAt[key(store.pacman.x, store.pacman.y)] = frame;
       store.pacman.x = step.x;
@@ -21177,7 +21192,7 @@ var init_pacman_movement = __esm({
         for (const n of MovementUtils.getNeighbors(g.x, g.y)) if (n.direction === g.direction) lethal.add(key(n.x, n.y));
       }
       const revisit = (k) => lethal.has(k) ? Infinity : revisitPenalty(store.pacman.visitedAt[k], frame);
-      const step = target && aStarNextStep(store.pacman, target, danger, weights.safety, revisit) || safestNeighbor(store, danger);
+      const step = target && aStarNextStep(store.pacman, target, danger, weights.safety, revisit) || safestNeighbor(store, danger, lethal, frame);
       if (step) updatePacmanPosition(store, step, frame);
       debug(store, `[pacman] f=${frame} alvo=${target ? key(target.x, target.y) : "-"} passo=${step ? key(step.x, step.y) : "-"}`);
     };
@@ -28212,7 +28227,7 @@ var core = require_core();
 var fs2 = require("fs");
 var path = require("path");
 var { PacmanRenderer: PacmanRenderer2 } = (init_src2(), __toCommonJS(src_exports));
-async function generateSvg(username, token, theme, playerStyle) {
+async function generateSvg(username, token, theme, playerStyle, animationSpeed) {
   return new Promise((resolve) => {
     let generatedSvg = "";
     const config = {
@@ -28223,6 +28238,7 @@ async function generateSvg(username, token, theme, playerStyle) {
       gameSpeed: 1,
       githubSettings: { accessToken: token },
       playerStyle,
+      animationSpeed,
       svgCallback: (svg) => {
         generatedSvg = svg;
       },
@@ -28241,9 +28257,11 @@ async function run() {
     const selectedTheme = core.getInput("theme") || "github-dark";
     const outputDir = core.getInput("output_directory") || "dist";
     const playerStyle = core.getInput("player_style") || "oportunista";
+    const speedInput = core.getInput("speed") || "normal";
+    const animationSpeed = Number.isFinite(Number(speedInput)) ? Number(speedInput) : speedInput;
     fs2.mkdirSync(outputDir, { recursive: true });
     console.log(`\u{1F7E1} Gerando SVG para o tema: ${selectedTheme}`);
-    const svg = await generateSvg(username, token, selectedTheme, playerStyle);
+    const svg = await generateSvg(username, token, selectedTheme, playerStyle, animationSpeed);
     const sufixo = { github: "", "github-dark": "-dark" }[selectedTheme] ?? `-${selectedTheme}`;
     const fileName = `pacman-contribution-graph${sufixo}.svg`;
     const fullPath = path.join(outputDir, fileName);

@@ -21,6 +21,10 @@ inputs:
     description: 'Estilo do Pac-Man (oportunista, conservador, agressivo)'
     required: false
     default: 'oportunista'
+  speed:
+    description: 'Velocidade da animação: slow, normal, fast ou um multiplicador (ex.: 1.5)'
+    required: false
+    default: 'normal'
 
 runs:
   using: node20

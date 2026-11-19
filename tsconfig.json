@@ -13,7 +13,7 @@
     "declaration": true,
     "emitDeclarationOnly": false
   },
-  "include": ["src", "scripts"],
+  "include": ["src", "scripts", "tools"],
   "exclude": [
     "node_modules",
     "build",

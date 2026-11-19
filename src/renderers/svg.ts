@@ -12,8 +12,17 @@ import {
 	WALLS
 } from '../core/constants.js';
 import { MovementUtils } from '../movement/movement-utils.js';
-import { AnimationData, Ghost, GhostName, StoreType } from '../types.js';
+import { AnimationData, Config, Ghost, GhostName, StoreType } from '../types.js';
 import { Utils } from '../utils/utils.js';
+
+const SPEED_PRESETS: Record<string, number> = { slow: 0.5, normal: 1, fast: 2 };
+
+/** Duração de um frame no SVG, já aplicando `config.animationSpeed`. Valor inválido = normal. */
+export const frameDurationMs = (config: Pick<Config, 'animationSpeed'>): number => {
+	const s = config.animationSpeed;
+	const mult = typeof s === 'number' ? s : SPEED_PRESETS[s ?? 'normal'];
+	return mult && Number.isFinite(mult) && mult > 0 ? DELTA_TIME / mult : DELTA_TIME;
+};
 
 const toPixel = (x: number, y: number) => `${x * (CELL_SIZE + GAP_SIZE)},${y * (CELL_SIZE + GAP_SIZE) + 15}`;
 const samePos = (a: { x: number; y: number }, b: { x: number; y: number }) => a.x === b.x && a.y === b.y;
@@ -57,7 +66,8 @@ const generateAnimatedSVG = (store: StoreType) => {
 	// Dimensões e duração
 	const svgWidth = GRID_WIDTH * (CELL_SIZE + GAP_SIZE);
 	const svgHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE) + 50; // Altura extra para estatísticas
-	const totalDurationMs = store.gameHistory.length * DELTA_TIME;
+	const frameMs = frameDurationMs(store.config);
+	const totalDurationMs = store.gameHistory.length * frameMs;
 	const totalDurationSecs = totalDurationMs / 1000;
 	const minutes = Math.floor(totalDurationSecs / 60);
 	const seconds = Math.round(totalDurationSecs % 60);
@@ -69,7 +79,7 @@ const generateAnimatedSVG = (store: StoreType) => {
 	svg += `<metadata>
 	  <info>
 		<frames>${store.gameHistory.length}</frames>
-		<frameRate>${1000 / DELTA_TIME}</frameRate>
+		<frameRate>${1000 / frameMs}</frameRate>
 		<durationMs>${totalDurationMs}</durationMs>
 		<generatedOn>${new Date().toISOString()}</generatedOn>
 	  </info>

@@ -70,13 +70,14 @@ const run = (): Promise<string> => new Promise((done, fail) => {
   Game.startGame(store).catch(fail);
 });
 
-const svg = await run();
-mkdirSync('outputs', { recursive: true });
-const file = resolve(`outputs/preview-${style}-${theme}.svg`);
-writeFileSync(file, svg);
-console.log(`SVG gerado: ${file}`);
-if (!process.argv.includes('--no-open')) {
-  const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', file]]
-    : process.platform === 'darwin' ? ['open', [file]] : ['xdg-open', [file]];
-  spawn(cmd, args, { stdio: 'ignore', detached: true }).unref();
-}
+run().then(svg => {
+  mkdirSync('outputs', { recursive: true });
+  const file = resolve(`outputs/preview-${style}-${theme}.svg`);
+  writeFileSync(file, svg);
+  console.log(`SVG gerado: ${file}`);
+  if (!process.argv.includes('--no-open')) {
+    const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', file]]
+      : process.platform === 'darwin' ? ['open', [file]] : ['xdg-open', [file]];
+    spawn(cmd, args, { stdio: 'ignore', detached: true }).unref();
+  }
+}).catch(err => { console.error(err instanceof Error ? err.message : err); process.exit(1); });

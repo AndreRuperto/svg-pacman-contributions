@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { PacmanRenderer } = require('../../src/index.ts');
 
-async function generateSvg(username, token, theme, playerStyle) {
+async function generateSvg(username, token, theme, playerStyle, animationSpeed) {
   return new Promise((resolve) => {
     let generatedSvg = '';
 
@@ -15,6 +15,7 @@ async function generateSvg(username, token, theme, playerStyle) {
       gameSpeed: 1,
       githubSettings: { accessToken: token },
       playerStyle,
+      animationSpeed,
       svgCallback: (svg) => {
         generatedSvg = svg;
       },
@@ -35,11 +36,13 @@ async function run() {
     const selectedTheme = core.getInput('theme') || 'github-dark';
     const outputDir = core.getInput('output_directory') || 'dist';
     const playerStyle = core.getInput('player_style') || 'oportunista';
+    const speedInput = core.getInput('speed') || 'normal';
+    const animationSpeed = Number.isFinite(Number(speedInput)) ? Number(speedInput) : speedInput;
 
     fs.mkdirSync(outputDir, { recursive: true });
 
     console.log(`🟡 Gerando SVG para o tema: ${selectedTheme}`);
-    const svg = await generateSvg(username, token, selectedTheme, playerStyle);
+    const svg = await generateSvg(username, token, selectedTheme, playerStyle, animationSpeed);
     // github → sem sufixo; github-dark → -dark (nomes antigos mantidos); demais temas → -<tema>
     const sufixo = { github: '', 'github-dark': '-dark' }[selectedTheme] ?? `-${selectedTheme}`;
     const fileName = `pacman-contribution-graph${sufixo}.svg`;

@@ -111,6 +111,8 @@ export interface StoreType {
 }  
 
 /* ───────────────────────── Configuração ───────────────────────────── */
+export type AnimationSpeed = 'slow' | 'normal' | 'fast' | number;
+
 export interface Config {
   platform: 'github';
   username: string;
@@ -126,7 +128,9 @@ export interface Config {
   };
   playerStyle?: PlayerStyle;
   joinRanking?: boolean;
-  seed?: string;     // sobrepõe a semente padrão (usuário + dia)
+  seed?: string;
+  /** Velocidade da animação: 'slow' (½×), 'normal' (1×), 'fast' (2×) ou um multiplicador > 0. */
+  animationSpeed?: AnimationSpeed;     // sobrepõe a semente padrão (usuário + dia)
   debug?: boolean;   // liga logs de diagnóstico
 }
 
