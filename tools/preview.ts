@@ -50,7 +50,7 @@ const run = (): Promise<string> => new Promise((done, fail) => {
   let svg = '';
   const config: Partial<Config> = {
     platform: 'github', username: user ?? 'preview', outputFormat: 'svg', gameTheme: theme,
-    playerStyle: style, seed, ...(speed ? { animationSpeed: Number(speed) } : {}),
+    playerStyle: style, seed, ...(speed ? { animationSpeed: Number.isFinite(Number(speed)) ? Number(speed) : speed as 'slow' | 'normal' | 'fast' } : {}),
     svgCallback: (s: string) => { svg = s; },
     gameOverCallback: () => done(svg)
   };

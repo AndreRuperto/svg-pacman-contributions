@@ -1,7 +1,7 @@
 # Próximos passos
 
 - **Data:** 2026-11-19
-- **Branch:** `claude/pacman-improvements-b8201c` (base: `main`)
+- **Branch:** `claude/proximos-passos` (base: `main`); rodada 1 em `claude/pacman-improvements-b8201c`, mergeada no PR #2
 - **Plano:** `docs/plans/2026-11-19-jogabilidade.md` · **Desenho:** `docs/plans/2026-11-19-jogabilidade-design.md`
 
 ## O que foi feito nesta sessão (Tasks 0–12 do plano)
@@ -43,18 +43,20 @@
 
 ## Próximos passos (prioridade)
 
-- [ ] Abrir o PR desta branch contra `main` (conferir antes com `gh pr view`).
-- [ ] Revisão visual dos `outputs/partida-*.svg` no navegador: túnel, bocas em ciano, fantasmas virando e piscando, nada fora do grid.
-- [ ] Unificar o build da Action: trocar `build:action` para esbuild (e adicionar `esbuild` às `devDependencies`) ou commitar todos os arquivos que o ncc gera.
-- [ ] Pontuação final muito sensível ao multiplicador de eficiência (`1 + fantasmas / mortes`, em `game.ts`): o oportunista chega a 99787 pts com ×7,67. Decidir se vale suavizar (ex.: teto no multiplicador).
-- [ ] Temas novos.
-- [ ] Painel de estatísticas no SVG (placar: pontos, mortes, fantasmas, maior combo).
-- [ ] Opção de velocidade da animação.
-- [ ] Preview local (gerar e abrir o SVG com um comando).
-- [ ] ESLint e CI (rodar `pnpm test` e `tsc --noEmit` em cada PR).
-- [ ] Pequenos ajustes conhecidos na IA:
-  - o alvo "grudento" usa `danger < 8` fixo, sem considerar o estilo;
-  - `safestNeighbor` ignora a penalidade de revisita.
+Rodada 2 (branch `claude/proximos-passos`, 2026-11-19), já feito:
+- [x] PR #2 mergeado na `main`.
+- [x] Build da Action unificado: `pnpm run build:action` usa esbuild (esbuild nas devDependencies) e reproduz o arquivo versionado.
+- [x] CI (`.github/workflows/ci.yml`): `tsc --noEmit`, `pnpm test` e confere se o bundle da Action está atualizado.
+- [x] IA: limiar do alvo "grudento" por estilo (`stickyDanger` 4/8/12) e largar o alvo pelo power-up quando um fantasma se aproxima; `safestNeighbor` evita casas letais e recém-visitadas.
+- [x] Preview local: `pnpm preview` (mapa sorteado ou `--user` com `GITHUB_TOKEN`).
+- [x] Velocidade da animação: `speed` na Action, `animationSpeed` na biblioteca.
+
+Pendente:
+- [ ] **Decidir:** pontuação final explode com o multiplicador `1 + fantasmas / mortes` (`game.ts`). Ex.: 27 fantasmas e 1 morte dá ×28 e 878.640 pts. Opções: teto no multiplicador, soma em vez de multiplicação, ou tirar o multiplicador.
+- [ ] Revisão visual da animação completa no navegador (`pnpm preview`): túnel, bocas em ciano, fantasmas virando e piscando.
+- [ ] Rodar a Action de verdade no GitHub (workflow do perfil) e conferir o SVG publicado.
+- [ ] Temas novos e painel de estatísticas no SVG: são visuais; pela regra global, antes montar a prancha de identidade e sistema de design do projeto (`/prancha`).
+- [ ] ESLint/Prettier.
 
 ## Decisões tomadas
 
