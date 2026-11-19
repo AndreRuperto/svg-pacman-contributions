@@ -1,4 +1,4 @@
-import { GRID_HEIGHT, GRID_WIDTH } from '../core/constants.js';
+import { GRID_HEIGHT, GRID_WIDTH, isTunnelCell } from '../core/constants.js';
 import { Ghost, Point2d, StoreType } from '../types.js';
 import { MovementUtils } from './movement-utils.js';
 
@@ -12,29 +12,9 @@ const SCATTER_CORNERS: Record<string, Point2d> = {
     'clyde': { x: 0, y: GRID_HEIGHT - 1 }          // Canto inferior esquerdo
 };
 
-// Estado global dos modos de jogo
-let currentMode = 'scatter';
-let modeTimer = 0;
-let currentLevel = 1;
-let dotsRemaining = 0;
-
 const moveGhosts = (store: StoreType) => {
-    // Calcular o número total de pontos restantes para definir o comportamento
-    dotsRemaining = countRemainingDots(store);
-    
     // Atualizar o modo de jogo (scatter ou chase)
     updateGameMode(store);
-    
-    // Log de diagnóstico para rastrear o movimento dos fantasmas
-    store.ghosts.forEach((ghost, i) => {
-        // Use uma estrutura de conjunto para evitar logs duplicados
-        store.__loggedGhosts = store.__loggedGhosts || new Set();
-        const key = `${ghost.name}:${ghost.x},${ghost.y}:${ghost.direction}`;
-        if (!store.__loggedGhosts.has(key)) {
-            // console.log(`Ghost ${ghost.name} at (${ghost.x},${ghost.y}) moving ${ghost.direction}`);
-            store.__loggedGhosts.add(key);
-        }
-    });
 
     for (const ghost of store.ghosts) {
         // Lógica especial para fantasmas dentro da casa
@@ -55,6 +35,16 @@ const moveGhosts = (store: StoreType) => {
             }
         }
 
+        // Velocidade: assustado e túnel andam a cada 2 frames (acumulam)
+        if (ghost.name !== 'eyes') {
+            let every = 1;
+            if (ghost.scared) every *= 2;
+            if (isTunnelCell(ghost.x, ghost.y)) every *= 2;
+            ghost.moveTick = (ghost.moveTick ?? 0) + 1;
+            if (ghost.moveTick < every) continue;
+            ghost.moveTick = 0;
+        }
+
         // Lógica principal de movimento
         if (ghost.scared) {
             moveScaredGhost(ghost, store);
@@ -62,7 +52,7 @@ const moveGhosts = (store: StoreType) => {
             moveEyesToHome(ghost, store);
         } else {
             // Escolher o comportamento baseado no modo atual
-            if (currentMode === 'scatter') {
+            if (store.game.mode === 'scatter') {
                 moveGhostToScatterTarget(ghost, store);
             } else {
                 moveGhostWithPersonality(ghost, store);
@@ -90,15 +80,15 @@ const updateGameMode = (store: StoreType) => {
     if (store.pacman.powerupRemainingDuration > 0) return;
     
     // Incrementar o timer do modo atual
-    modeTimer++;
+    store.game.modeTimer++;
     
     // Verificar se é hora de mudar o modo
-    const modeDuration = currentMode === 'scatter' ? SCATTER_MODE_DURATION : CHASE_MODE_DURATION;
+    const modeDuration = store.game.mode === 'scatter' ? SCATTER_MODE_DURATION : CHASE_MODE_DURATION;
     
-    if (modeTimer >= modeDuration * (1000 / 200)) { // Convertendo para frames (assumindo 200ms por frame)
+    if (store.game.modeTimer >= modeDuration * (1000 / 200)) { // Convertendo para frames (assumindo 200ms por frame)
         // Alternar entre scatter e chase
-        currentMode = currentMode === 'scatter' ? 'chase' : 'scatter';
-        modeTimer = 0;
+        store.game.mode = store.game.mode === 'scatter' ? 'chase' : 'scatter';
+        store.game.modeTimer = 0;
         
         // Reverter a direção dos fantasmas quando mudar o modo
         store.ghosts.forEach(ghost => {
@@ -150,7 +140,8 @@ const moveGhostInHouse = (ghost: Ghost, store: StoreType) => {
             if (ghost.originalName) {
                 ghost.name = ghost.originalName;
                 ghost.inHouse = false;
-                ghost.scared = store.pacman.powerupRemainingDuration > 0;
+                ghost.scared = false;
+                ghost.flashing = false;
                 // console.log(`Ghost respawned as ${ghost.name}`);
             }
         }
@@ -195,7 +186,7 @@ const moveGhostToScatterTarget = (ghost: Ghost, store: StoreType) => {
     const target = SCATTER_CORNERS[ghost.name] || SCATTER_CORNERS['blinky'];
     ghost.target = target;
     
-    const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction);
+    const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction, store.rng);
     if (nextMove) {
         ghost.x = nextMove.x;
         ghost.y = nextMove.y;
@@ -206,75 +197,31 @@ const moveGhostToScatterTarget = (ghost: Ghost, store: StoreType) => {
     }
 };
 
-// When scared, ghosts move randomly but with some intelligence
+/** Foge do Pac-Man com ruído: maioria das vezes se afasta, às vezes hesita. */
 const moveScaredGhost = (ghost: Ghost, store: StoreType) => {
-    // Verificar se já tem um alvo ou se já chegou no alvo atual
-    if (!ghost.target || (ghost.x === ghost.target.x && ghost.y === ghost.target.y)) {
-        ghost.target = getRandomDestination(ghost.x, ghost.y);
-    }
+    const all = MovementUtils.getNeighbors(ghost.x, ghost.y);
+    const forward = all.filter(n => n.direction !== MovementUtils.opposite(ghost.direction));
+    const choices = forward.length ? forward : all;
+    if (!choices.length) return;
 
-    const validMoves = getValidMovesWithoutReverse(ghost);
-    if (validMoves.length === 0) return;
-
-    // Move toward target but with some randomness to appear "scared"
-    const dx = ghost.target.x - ghost.x;
-    const dy = ghost.target.y - ghost.y;
-
-    // Filter moves that generally go toward the target but with randomness
-    let possibleMoves = validMoves;
-    
-    // 50% de chance de escolher um movimento aleatório completamente
-    if (Math.random() < 0.5) {
-        // Escolhe qualquer movimento válido
-    } else {
-        // Tenta escolher um movimento que vá na direção do alvo
-        const goodMoves = validMoves.filter((move) => {
-            const moveX = move[0];
-            const moveY = move[1];
-            return (dx > 0 && moveX > 0) || (dx < 0 && moveX < 0) || 
-                   (dy > 0 && moveY > 0) || (dy < 0 && moveY < 0);
-        });
-        
-        // Se houver movimentos "bons", use-os
-        if (goodMoves.length > 0) {
-            possibleMoves = goodMoves;
-        }
-    }
-
-    // Choose a random move from the possible moves
-    const [moveX, moveY] = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-
-    // Se Pacman tem power-up, fantasmas se movem mais devagar (60% mais lentos)
-    if (store.pacman.powerupRemainingDuration && Math.random() < 0.6) return;
-
-    // Atualizar a direção do fantasma com base no movimento
-    if (moveX > 0) ghost.direction = 'right';
-    else if (moveX < 0) ghost.direction = 'left';
-    else if (moveY > 0) ghost.direction = 'down';
-    else if (moveY < 0) ghost.direction = 'up';
-    
-    ghost.x += moveX;
-    ghost.y += moveY;
-};
-
-// Função para obter movimentos válidos que não sejam reversão da direção atual
-const getValidMovesWithoutReverse = (ghost: Ghost): [number, number][] => {
-    const validMoves = MovementUtils.getValidMoves(ghost.x, ghost.y);
-    
-    // Não permitir que o fantasma reverta sua direção, exceto se for o único caminho
-    return validMoves.filter(move => {
-        const [dx, dy] = move;
-        
-        // Verifica se o movimento seria uma reversão da direção atual
-        if ((ghost.direction === 'right' && dx < 0) ||
-            (ghost.direction === 'left' && dx > 0) ||
-            (ghost.direction === 'up' && dy > 0) ||
-            (ghost.direction === 'down' && dy < 0)) {
-            return false;
-        }
-        
-        return true;
+    const weights = choices.map(n => {
+        const flee = MovementUtils.gridDistance(n, store.pacman);
+        const deadEnd = MovementUtils.getNeighbors(n.x, n.y).length <= 1 ? 4 : 0;
+        const noise = store.rng() * 3;
+        const w = Math.max(0.1, flee - deadEnd + noise);
+        return w * w; // acentua a preferência pela fuga
     });
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = store.rng() * total;
+    let idx = 0;
+    for (; idx < weights.length - 1; idx++) {
+        r -= weights[idx];
+        if (r <= 0) break;
+    }
+    const next = choices[idx];
+    ghost.x = next.x;
+    ghost.y = next.y;
+    ghost.direction = next.direction;
 };
 
 // Movimento especial para olhos voltarem para casa
@@ -299,16 +246,8 @@ const moveEyesToHome = (ghost: Ghost, store: StoreType) => {
     );
     
     if (nextMove) {
-        // Calcular a direção com base no movimento
-        const dx = nextMove.x - ghost.x;
-        const dy = nextMove.y - ghost.y;
-        
-        // Atualizar a direção baseada no movimento real
-        if (dx > 0) ghost.direction = 'right';
-        else if (dx < 0) ghost.direction = 'left';
-        else if (dy > 0) ghost.direction = 'down';
-        else if (dy < 0) ghost.direction = 'up';
-        
+        if (nextMove.direction) ghost.direction = nextMove.direction;
+
         // Atualizar posição
         ghost.x = nextMove.x;
         ghost.y = nextMove.y;
@@ -319,7 +258,8 @@ const moveEyesToHome = (ghost: Ghost, store: StoreType) => {
         const alternativeMove = BFSTargetLocation(
             ghost.x, ghost.y, 
             respawnPosition.x, respawnPosition.y, 
-            ghost.direction as 'right' | 'left' | 'up' | 'down'
+            ghost.direction as 'right' | 'left' | 'up' | 'down',
+            store.rng
         );
         
         if (alternativeMove) {
@@ -348,7 +288,7 @@ const moveGhostWithPersonality = (ghost: Ghost, store: StoreType) => {
     ghost.target = target;
 
     // Encontra o próximo movimento usando BFS, respeitando regras de não-reversão
-    const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction);
+    const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction, store.rng);
     if (nextMove) {
         ghost.x = nextMove.x;
         ghost.y = nextMove.y;
@@ -365,7 +305,8 @@ const BFSTargetLocation = (
     startY: number, 
     targetX: number, 
     targetY: number, 
-    currentDirection?: 'right' | 'left' | 'up' | 'down'
+    currentDirection: 'right' | 'left' | 'up' | 'down' | undefined,
+    rng: () => number
 ): { x: number; y: number; direction?: 'right' | 'left' | 'up' | 'down' } | null => {
     // Se já estamos no alvo, não precisa se mover
     if (startX === targetX && startY === targetY) return null;
@@ -381,7 +322,7 @@ const BFSTargetLocation = (
         x: number; 
         y: number; 
         path: PathNode[]; 
-        direction: 'right' | 'left' | 'up' | 'down' | string;
+        direction: 'right' | 'left' | 'up' | 'down';
     };
 
     const queue: QueueItem[] = [
@@ -394,43 +335,22 @@ const BFSTargetLocation = (
         const current = queue.shift()!;
         const { x, y, path, direction } = current;
 
-        // Obter movimentos válidos
-        const validMoves = MovementUtils.getValidMoves(x, y);
-        
-        // Filtrar movimentos que seriam reversão da direção atual
-        const filteredMoves = validMoves.filter(move => {
-            const [dx, dy] = move;
-            
-            // Se não temos direção definida, permitir qualquer movimento
-            if (!direction) return true;
-            
-            // Verificar se seria uma reversão
-            if ((direction === 'right' && dx < 0) ||
-                (direction === 'left' && dx > 0) ||
-                (direction === 'up' && dy > 0) ||
-                (direction === 'down' && dy < 0)) {
-                // Se só há um movimento válido e seria reversão, permitir mesmo assim
-                return validMoves.length === 1;
-            }
-            
-            return true;
-        });
+        // Vizinhos (com túnel), sem reversão — a menos que seja o único caminho
+        const neighbors = MovementUtils.getNeighbors(x, y);
+        const back = MovementUtils.opposite(direction);
+        const filteredMoves = neighbors.length === 1
+            ? neighbors
+            : neighbors.filter(n => n.direction !== back);
 
-        for (const [dx, dy] of filteredMoves) {
-            const newX = x + dx;
-            const newY = y + dy;
+        for (const n of filteredMoves) {
+            const newX = n.x;
+            const newY = n.y;
             const key = `${newX},${newY}`;
 
             if (visited.has(key)) continue;
             visited.add(key);
 
-            // Determinar a nova direção
-            let newDirection: 'right' | 'left' | 'up' | 'down';
-            if (dx > 0) newDirection = 'right';
-            else if (dx < 0) newDirection = 'left';
-            else if (dy > 0) newDirection = 'down';
-            else if (dy < 0) newDirection = 'up';
-            else newDirection = direction as 'right' | 'left' | 'up' | 'down';
+            const newDirection = n.direction;
 
             const pathNode: PathNode = { 
                 x: newX, 
@@ -454,22 +374,10 @@ const BFSTargetLocation = (
     }
 
     // Se não encontramos um caminho, verificar se há algum movimento válido
-    const validMoves = MovementUtils.getValidMoves(startX, startY);
-    if (validMoves.length > 0) {
+    const neighbors = MovementUtils.getNeighbors(startX, startY);
+    if (neighbors.length > 0) {
         // Escolher um movimento aleatório se não encontrarmos caminho
-        const [dx, dy] = validMoves[Math.floor(Math.random() * validMoves.length)];
-        let direction: 'right' | 'left' | 'up' | 'down' = currentDirection as 'right' | 'left' | 'up' | 'down';
-        
-        if (dx > 0) direction = 'right';
-        else if (dx < 0) direction = 'left';
-        else if (dy > 0) direction = 'down';
-        else if (dy < 0) direction = 'up';
-        
-        return { 
-            x: startX + dx, 
-            y: startY + dy, 
-            direction 
-        };
+        return neighbors[Math.floor(rng() * neighbors.length)];
     }
 
     // Se não há movimento válido, não se mover
@@ -486,6 +394,7 @@ const calculateGhostTarget = (ghost: Ghost, store: StoreType): Point2d => {
     if (ghost.name === 'blinky') {
         // Quando há poucos pontos restantes, Blinky fica mais rápido ("Elroy mode")
         const totalDots = GRID_WIDTH * GRID_HEIGHT;
+        const dotsRemaining = countRemainingDots(store);
         const dotsEaten = totalDots - dotsRemaining;
         const percentageEaten = dotsEaten / totalDots;
         
@@ -497,7 +406,7 @@ const calculateGhostTarget = (ghost: Ghost, store: StoreType): Point2d => {
         }
         
         // Aplicar o multiplicador de velocidade se estiver perseguindo o Pac-Man
-        if (Math.random() < 0.8 * speedMultiplier) {
+        if (store.rng() < 0.8 * speedMultiplier) {
             // Blinky mira diretamente no Pac-Man
             return { x: pacman.x, y: pacman.y };
         }
@@ -590,17 +499,4 @@ const getPacmanDirection = (store: StoreType): [number, number] => {
     }
 };
 
-// Obter um destino aleatório para fantasmas assustados
-const getRandomDestination = (x: number, y: number) => {
-    const maxDistance = 8;
-    const randomX = x + Math.floor(Math.random() * (2 * maxDistance + 1)) - maxDistance;
-    const randomY = y + Math.floor(Math.random() * (2 * maxDistance + 1)) - maxDistance;
-    return {
-        x: Math.max(0, Math.min(randomX, GRID_WIDTH - 1)),
-        y: Math.max(0, Math.min(randomY, GRID_HEIGHT - 1))
-    };
-};
-
-export const GhostsMovement = {
-    moveGhosts
-};
+export const GhostsMovement = { moveGhosts, moveScaredGhost };

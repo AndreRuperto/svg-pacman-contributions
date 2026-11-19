@@ -1,5 +1,6 @@
 // store.ts
 import type { Config, StoreType } from '../types.js';
+import { createRng } from '../utils/rng.js';
 
 export const Store: StoreType = {
 	frameCount: 0,
@@ -12,7 +13,7 @@ export const Store: StoreType = {
 		totalPoints: 0,
 		deadRemainingDuration: 0,
 		powerupRemainingDuration: 0,
-		recentPositions: []
+		visitedAt: {}
 	},
 	ghosts: [],
 	grid: [],
@@ -21,7 +22,9 @@ export const Store: StoreType = {
 	gameInterval: 0, // ← corrigido: number, conforme a tipagem de StoreType
 	gameHistory: [],
 	config: undefined as unknown as Config,
-	useGithubThemeColor: true // ← nova flag para usar cor real da API
+	useGithubThemeColor: true, // ← nova flag para usar cor real da API
+	rng: createRng('padrao'), // substituído em start() pela semente do usuário
+	game: { frame: 0, combo: 0, mode: 'scatter', modeTimer: 0 }
 };
 
 export function registerPacmanDeath(store: StoreType) {

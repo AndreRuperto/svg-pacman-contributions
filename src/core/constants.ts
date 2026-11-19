@@ -6,6 +6,11 @@ export const GAP_SIZE   = 2;
 export const GRID_WIDTH = 53;   // 52 semanas + semana corrente
 export const GRID_HEIGHT = 7;   // dom … sáb
 
+export const TUNNEL_ROW = 3;
+/** Células de "boca" do túnel (fantasmas andam mais devagar aqui). */
+export const isTunnelCell = (x: number, y: number) =>
+  y === TUNNEL_ROW && (x <= 1 || x >= GRID_WIDTH - 2);
+
 export const GHOST_HOUSE_COLOR = 'yellow';
 
 export const PACMAN_COLOR          = 'yellow';
@@ -18,7 +23,8 @@ export const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oc
 
 export const DELTA_TIME              = 200;
 export const PACMAN_DEATH_DURATION   = 10;
-export const PACMAN_POWERUP_DURATION = 15;
+export const PACMAN_POWERUP_DURATION = 30;
+export const POWERUP_FLASH_FRAMES    = 6;
 
 /* ───────────── Paletas GitHub oficiais ─────────────
    Array de 5 cores: índice 0 = NONE … 4 = FOURTH_QUARTILE             */
@@ -34,20 +40,26 @@ export const GAME_THEMES: { [key in ThemeKeys]: GameTheme } = {
     textColor:      '#57606a',
     gridBackground: '#ffffff',
     wallColor:      '#000000',
-    intensityColors: GITHUB_LIGHT
+    intensityColors: GITHUB_LIGHT,
+    tunnelColor:       '#8c959f',
+    tunnelActiveColor: '#00FFFF'
   },
   'github-dark': {
     textColor:      '#8b949e',
     gridBackground: '#0d1117',
     wallColor:      '#ffffff',
-    intensityColors: GITHUB_DARK
+    intensityColors: GITHUB_DARK,
+    tunnelColor:       '#6e7681',
+    tunnelActiveColor: '#00FFFF'
   },
   /* ---------- Brasa (escuro, em laranja) ---------- */
   brasa: {
     textColor:      '#988881',
     gridBackground: '#120F0D',
     wallColor:      '#FBFAF9',
-    intensityColors: BRASA
+    intensityColors: BRASA,
+    tunnelColor:       '#5C4F49',
+    tunnelActiveColor: '#00FFFF'
   }
 };
 
@@ -118,16 +130,3 @@ export const WALLS: {
 	  }
 	}
   };
-
-export const hasWall = (x: number, y: number, direction: 'up' | 'down' | 'left' | 'right'): boolean => {
-	switch (direction) {
-		case 'up':
-			return WALLS.horizontal[x][y].active;
-		case 'down':
-			return WALLS.horizontal[x + 1][y].active;
-		case 'left':
-			return WALLS.vertical[x][y].active;
-		case 'right':
-			return WALLS.vertical[x][y + 1].active;
-	}
-};

@@ -37,14 +37,16 @@
     "build-action": "pnpm run --prefix ./github-action build",
     "clean:web": "rimraf dist",
     "clean:action": "rimraf github-action/dist",
-    "build:web": "npm run clean:web && webpack --config webpack.prod.js",
-    "build:action": "pnpm run clean:action && ncc build github-action/src/index.js -o github-action/dist",
+    "build:web": "npm run clean:web && webpack --config webpack.prod.cjs",
+    "build:action": "esbuild github-action/src/index.js --bundle --platform=node --target=node20 --outfile=github-action/dist/index.js",
     "build:all": "npm run build:web && npm run build:action",
     "clean:dist:svg": "node scripts/clean-dist.js",
     "generate:svg": "pnpm exec tsc -p tsconfig.json && node dist/scripts/generate-svg2.js",
     "svg": "pnpm run generate:svg > logs/output.txt 2>&1",
     "compare:styles": "pnpm exec tsc -p tsconfig.json && node dist/scripts/generate-svg-comparison.js",
-    "styles": "pnpm run compare:styles > logs/output1.txt 2>&1"
+    "styles": "pnpm run compare:styles > logs/output1.txt 2>&1",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
@@ -56,10 +58,12 @@
     "@types/node": "^22.14.0",
     "@types/node-fetch": "^2.6.12",
     "@vercel/ncc": "^0.38.3",
+    "esbuild": "0.25.2",
     "rimraf": "^6.0.1",
     "ts-loader": "^9.5.2",
     "tsx": "^4.6.2",
     "typescript": "^5.8.3",
+    "vitest": "^3.2.7",
     "webpack": "^5.99.7",
     "webpack-cli": "^6.0.1",
     "webpack-merge": "^6.0.1"

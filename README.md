@@ -97,19 +97,37 @@ A aplicação usa seus dados de contribuição do GitHub para:
 
 Esses níveis são relativos ao padrão de contribuições de cada usuário e calculados automaticamente pelo GitHub, portanto a densidade de elementos no jogo refletirá o perfil único de cada um.
 
-3. Pac-Man navega pela grade usando algoritmos de pathfinding
-4. Fantasmas perseguem o Pac-Man com comportamentos únicos (como no jogo original)
-5. Toda a jogabilidade é gravada e exportada como um SVG animado
+3. Pac-Man navega pela grade com A*, escolhendo o alvo pelo valor dos pontos e pelo perigo previsto de cada fantasma (o peso de cada fator muda conforme o estilo de jogo)
+4. Fantasmas perseguem o Pac-Man com comportamentos únicos (como no jogo original); assustados, viram de costas e fogem com um pouco de aleatoriedade
+5. **Túneis**: a linha do meio tem saídas nas duas bordas. Pac-Man e fantasmas entram por um lado e saem pelo outro (como no arcade), e as bocas do túnel acendem em ciano quando alguém passa. Dentro do túnel os fantasmas andam mais devagar
+6. Toda a jogabilidade é gravada e exportada como um SVG animado
 
 ## 📋 Opções de Configuração
 
-| Opção           | Descrição                               | Padrão         | Valores Possíveis                            |
-|----------------|------------------------------------------|----------------|-----------------------------------------------|
-| `username`     | Nome de usuário do GitHub                | (obrigatório)  | Qualquer nome de usuário válido do GitHub     |
-| `theme`        | Tema de cores                            | `github-dark`  | `github`, `github-dark`, `brasa`              |
-| `outputDirectory` | Pasta de saída do SVG                 | `dist`         | Qualquer string válida para caminho local     |
-| `githubToken`  | Token do GitHub para acesso à API        | `GITHUB_TOKEN` | Token pessoal válido (com permissão de leitura pública) |
-| `playerStyle`  | Estilo do Pacman                         | `oportunista`  | `oportunista`, `agressivo`, `conservador`     |
+### Entradas da GitHub Action
+
+| Entrada            | Descrição                                | Padrão         | Valores Possíveis                             |
+|--------------------|------------------------------------------|----------------|-----------------------------------------------|
+| `github_user_name` | Usuário do GitHub                        | (obrigatório)  | Qualquer nome de usuário válido do GitHub     |
+| `github_token`     | Token do GitHub para acesso à API        | (obrigatório)  | `secrets.GITHUB_TOKEN` ou token pessoal com leitura pública |
+| `theme`            | Tema de cores                            | `github-dark`  | `github`, `github-dark`, `brasa`              |
+| `output_directory` | Pasta de saída dos SVGs                  | `dist`         | Qualquer caminho local válido                 |
+| `player_style`     | Estilo de jogo do Pac-Man                | `oportunista`  | `oportunista`, `agressivo`, `conservador`     |
+
+### Opções da biblioteca (`PacmanRenderer`)
+
+| Opção             | Descrição                                 | Padrão         | Valores Possíveis                             |
+|-------------------|-------------------------------------------|----------------|-----------------------------------------------|
+| `username`        | Nome de usuário do GitHub                 | (obrigatório)  | Qualquer nome de usuário válido do GitHub     |
+| `gameTheme`       | Tema de cores                             | `github`       | `github`, `github-dark`, `brasa`              |
+| `githubSettings.accessToken` | Token do GitHub para acesso à API | —        | Token pessoal válido (com permissão de leitura pública) |
+| `playerStyle`     | Estilo do Pac-Man                         | `oportunista`  | `oportunista`, `agressivo`, `conservador`     |
+| `seed`            | Semente da partida                        | usuário + data (UTC) | Qualquer string — a mesma semente gera a mesma partida |
+| `debug`           | Liga logs de diagnóstico da IA            | `false`        | `true`, `false`                               |
+
+### 🎲 Partida estável durante o dia
+
+Todo sorteio do jogo (fuga dos fantasmas assustados, desempates) usa uma semente formada pelo **usuário + a data em UTC** (ex.: `andreruperto:2026-11-19`). Assim, rodar a Action várias vezes no mesmo dia gera exatamente a mesma animação; no dia seguinte, a partida muda. Para fixar uma partida, passe `seed` na configuração da biblioteca.
 
 ## 🧩 Melhorias Implementadas
 
@@ -142,6 +160,18 @@ Construído com TypeScript e Node.js, o projeto consiste em:
 - `src/`: Lógica principal do jogo e renderização
 - `scripts/`: Ferramentas para gerar SVGs
 - `github-action/`: Integração com GitHub Action
+- `tests/`: Testes com Vitest (regras de comer, túneis, fantasmas, IA e uma partida completa por estilo)
+
+Comandos úteis:
+
+```bash
+pnpm install
+pnpm test                 # roda todos os testes
+pnpm exec tsc --noEmit    # checagem de tipos
+pnpm run build:web        # gera dist/pacman-contribution-graph.min.js
+```
+
+A partida completa (`tests/full-game.test.ts`) grava um SVG por estilo em `outputs/partida-<estilo>.svg` — abra no navegador para conferir a animação.
 
 ## 🙏 Créditos
 
