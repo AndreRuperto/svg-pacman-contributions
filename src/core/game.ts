@@ -4,13 +4,15 @@ import {
   GHOST_NAMES,
   GRID_HEIGHT,
   GRID_WIDTH,
-  PACMAN_DEATH_DURATION
+  PACMAN_DEATH_DURATION,
+  PACMAN_POWERUP_DURATION,
+  POWERUP_FLASH_FRAMES
 } from './constants.js';
 import { GhostsMovement } from '../movement/ghosts-movement.js';
 import { PacmanMovement } from '../movement/pacman-movement.js';
 import { Utils } from '../utils/utils.js';
 import { registerPacmanDeath } from '../core/store.js';
-import { StoreType, GhostName, ContributionLevel, PlayerStyle } from '../types.js';
+import { StoreType, GhostName, ContributionLevel, PlayerStyle, Point2d, Ghost } from '../types.js';
 
 // Constantes de pontuação
 const POINTS_MAP: Record<ContributionLevel, number> = {
@@ -21,7 +23,7 @@ const POINTS_MAP: Record<ContributionLevel, number> = {
   'FOURTH_QUARTILE': 40,
 };
 
-const GHOST_BASE_POINTS = 100;
+const GHOST_BASE_POINTS = 200;
 const BASE_DEATH_PENALTY = 200;
 
 /* ---------- helpers de posicionamento ---------- */
@@ -121,79 +123,119 @@ const pushSnapshot = (store: StoreType) => {
 
 /* ---------- colisões & house ---------- */
 
+const collideWith = (store: StoreType, ghost: Ghost) => {
+  if (store.pacman.powerupRemainingDuration && ghost.scared) {
+    // Calcular pontos por fantasma com base na sequência
+    store.game.combo++;
+    
+    if (store.statistics) {
+      store.statistics.ghostsEaten++;
+    }
+    
+    // Pontuação que dobra a cada fantasma comido em sequência
+    const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, store.game.combo - 1);
+    store.pacman.points += ghostPoints;
+    store.pacman.totalPoints += ghostPoints;
+    
+    if (store.statistics) {
+      store.statistics.totalPoints += ghostPoints;
+      store.statistics.pointsFromGhosts = (store.statistics.pointsFromGhosts || 0) + ghostPoints;
+      
+      // Atualizar recorde de combo
+      store.statistics.highestGhostCombo = Math.max(
+        store.statistics.highestGhostCombo || 0, 
+        store.game.combo
+      );
+    }
+    
+    ghost.originalName = ghost.name;
+    ghost.name = 'eyes';
+    ghost.scared = false;
+    ghost.flashing = false;
+    ghost.target = { x: 26, y: 3 };
+  } else {
+    // Penalidade por morte
+    store.pacman.points = 0;
+    store.pacman.powerupRemainingDuration = 0;
+    store.game.combo = 0; // Resetar combo ao morrer
+    
+    if (store.pacman.deadRemainingDuration === 0) {
+      store.pacman.deadRemainingDuration = PACMAN_DEATH_DURATION;
+      registerPacmanDeath(store);
+      
+      // Obter o estilo diretamente da config
+      const style = store.config.playerStyle || PlayerStyle.OPPORTUNISTIC;
+      
+      // Determinar a penalidade com base no estilo
+      let penalty = BASE_DEATH_PENALTY; // Valor padrão
+      switch (style) {
+        case PlayerStyle.CONSERVATIVE:
+          penalty = 150;
+          break;
+        case PlayerStyle.AGGRESSIVE:
+          penalty = 250;
+          break;
+        case PlayerStyle.OPPORTUNISTIC:
+        default:
+          penalty = 200;
+          break;
+      }
+      
+      store.pacman.totalPoints = Math.max(0, store.pacman.totalPoints - penalty);
+      
+      if (store.statistics) {
+        store.statistics.deaths = (store.statistics.deaths || 0) + 1;
+        store.statistics.totalPoints = Math.max(0, store.statistics.totalPoints - penalty);
+      }
+    }
+  }
+};
+
 const checkCollisions = (store: StoreType) => {
   if (store.pacman.deadRemainingDuration) return;
 
   store.ghosts.forEach(ghost => {
-    // Se o fantasma for olhos, não deve haver colisão
-    if (ghost.name === 'eyes') return;
-    
-    if (ghost.x === store.pacman.x && ghost.y === store.pacman.y) {
-      if (store.pacman.powerupRemainingDuration && ghost.scared) {
-        // Calcular pontos por fantasma com base na sequência
-        store.game.combo++;
-        
-        if (store.statistics) {
-          store.statistics.ghostsEaten++;
-        }
-        
-        // Pontuação que dobra a cada fantasma comido em sequência
-        const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, store.game.combo - 1);
-        store.pacman.points += ghostPoints;
-        store.pacman.totalPoints += ghostPoints;
-        
-        if (store.statistics) {
-          store.statistics.totalPoints += ghostPoints;
-          store.statistics.pointsFromGhosts = (store.statistics.pointsFromGhosts || 0) + ghostPoints;
-          
-          // Atualizar recorde de combo
-          store.statistics.highestGhostCombo = Math.max(
-            store.statistics.highestGhostCombo || 0, 
-            store.game.combo
-          );
-        }
-        
-        ghost.originalName = ghost.name;
-        ghost.name = 'eyes';
-        ghost.scared = false;
-        ghost.target = { x: 26, y: 3 };
-      } else {
-        // Penalidade por morte
-        store.pacman.points = 0;
-        store.pacman.powerupRemainingDuration = 0;
-        store.game.combo = 0; // Resetar combo ao morrer
-        
-        if (store.pacman.deadRemainingDuration === 0) {
-          store.pacman.deadRemainingDuration = PACMAN_DEATH_DURATION;
-          registerPacmanDeath(store);
-          
-          // Obter o estilo diretamente da config
-          const style = store.config.playerStyle || PlayerStyle.OPPORTUNISTIC;
-          
-          // Determinar a penalidade com base no estilo
-          let penalty = BASE_DEATH_PENALTY; // Valor padrão
-          switch (style) {
-            case PlayerStyle.CONSERVATIVE:
-              penalty = 150;
-              break;
-            case PlayerStyle.AGGRESSIVE:
-              penalty = 250;
-              break;
-            case PlayerStyle.OPPORTUNISTIC:
-            default:
-              penalty = 200;
-              break;
-          }
-          
-          store.pacman.totalPoints = Math.max(0, store.pacman.totalPoints - penalty);
-          
-          if (store.statistics) {
-            store.statistics.deaths = (store.statistics.deaths || 0) + 1;
-            store.statistics.totalPoints = Math.max(0, store.statistics.totalPoints - penalty);
-          }
-        }
-      }
-    }
+    // Olhos e fantasmas na casa não colidem
+    if (ghost.name === 'eyes' || ghost.inHouse) return;
+    if (ghost.x === store.pacman.x && ghost.y === store.pacman.y) collideWith(store, ghost);
+  });
+};
+
+const checkSwapCollisions = (store: StoreType, pacPrev: Point2d, ghostsPrev: Point2d[]) => {
+  if (store.pacman.deadRemainingDuration) return;
+  store.ghosts.forEach((g, i) => {
+    const gp = ghostsPrev[i];
+    if (!gp || g.name === 'eyes' || g.inHouse) return;
+    const swapped = gp.x === store.pacman.x && gp.y === store.pacman.y && g.x === pacPrev.x && g.y === pacPrev.y;
+    if (swapped) collideWith(store, g);
+  });
+};
+
+/* ---------- comer ---------- */
+
+const eatCell = (store: StoreType) => {
+  const cell = store.grid[store.pacman.x]?.[store.pacman.y];
+  if (!cell || cell.level === 'NONE') return;
+  const points = POINTS_MAP[cell.level];
+  store.pacman.points += points;
+  store.pacman.totalPoints += points;
+  store.statistics!.totalPoints += points;
+  store.statistics!.pointsFromContributions = (store.statistics!.pointsFromContributions ?? 0) + points;
+  const isPowerUp = cell.level === 'FOURTH_QUARTILE';
+  cell.commitsCount = 0;
+  cell.level = 'NONE';
+  cell.color = Utils.getCurrentTheme(store).intensityColors[0];
+  if (isPowerUp) activatePowerUp(store);
+};
+
+const activatePowerUp = (store: StoreType) => {
+  if (store.pacman.powerupRemainingDuration === 0) store.game.combo = 0;
+  store.pacman.powerupRemainingDuration = PACMAN_POWERUP_DURATION;
+  store.statistics!.powerUpsCollected++;
+  store.ghosts.forEach(g => {
+    if (g.inHouse || g.name === 'eyes') return;
+    g.scared = true;
+    g.flashing = false;
   });
 };
 
@@ -226,9 +268,11 @@ const updateGame = (store: StoreType) => {
 
   if (store.pacman.powerupRemainingDuration > 0) {
     store.pacman.powerupRemainingDuration--;
-    if (store.pacman.powerupRemainingDuration === 0) {
-      store.ghosts.forEach(g => { if (g.name !== 'eyes') g.scared = false; });
-      store.game.combo = 0; // Resetar contador quando o power-up acabar
+    const left = store.pacman.powerupRemainingDuration;
+    store.ghosts.forEach(g => { if (g.scared) g.flashing = left > 0 && left <= POWERUP_FLASH_FRAMES; });
+    if (left === 0) {
+      store.ghosts.forEach(g => { g.scared = false; g.flashing = false; });
+      store.game.combo = 0;
     }
   }
 
@@ -284,45 +328,18 @@ const updateGame = (store: StoreType) => {
   }
 
   /* -------- movimentos -------- */
+  const pacPrev = { x: store.pacman.x, y: store.pacman.y };
   PacmanMovement.movePacman(store);
-
-  const cell = store.grid[store.pacman.x]?.[store.pacman.y];
-  if (cell && cell.commitsCount > 0) {
-    // Calcular pontos com base no nível da célula
-    const cellPoints = POINTS_MAP[cell.level as ContributionLevel] || 0;
-    
-    // Atualizar pontuação do Pac-Man
-    store.pacman.points += cellPoints;
-    store.pacman.totalPoints += cellPoints;
-    
-    // Atualizar estatísticas
-    if (store.statistics) {
-      store.statistics.totalPoints += cellPoints;
-      store.statistics.pointsFromContributions = (store.statistics.pointsFromContributions || 0) + cellPoints;
-    }
-
-    // Se for power-up (FOURTH_QUARTILE)
-    if (cell.level === 'FOURTH_QUARTILE' && store.pacman.powerupRemainingDuration === 0) {
-      if (store.statistics) {
-        store.statistics.powerUpsCollected++;
-      }
-      store.pacman.powerupRemainingDuration = 30;
-      store.ghosts.forEach(g => { if (g.name !== 'eyes') g.scared = true; });
-      store.game.combo = 0; // Resetar contador ao iniciar power-up
-    }
-
-    // Zerar a célula (sempre)
-    cell.commitsCount = 0;
-    cell.level = 'NONE';
-    cell.color = Utils.getCurrentTheme(store).intensityColors[0];
-  }
+  eatCell(store);
 
   checkCollisions(store);
 
+  const ghostsPrev = store.ghosts.map(g => ({ x: g.x, y: g.y }));
   if (store.pacman.deadRemainingDuration === 0) {
     GhostsMovement.moveGhosts(store);
     checkCollisions(store);
   }
+  checkSwapCollisions(store, pacPrev, ghostsPrev);
 
   store.pacmanMouthOpen = !store.pacmanMouthOpen;
 
@@ -341,4 +358,4 @@ const releaseGhostFromHouse = (store: StoreType, name: GhostName) => {
   }
 };
 
-export const Game = { startGame, stopGame, initRound, step: updateGame };
+export const Game = { startGame, stopGame, initRound, step: updateGame, eatCell, checkCollisions, checkSwapCollisions };

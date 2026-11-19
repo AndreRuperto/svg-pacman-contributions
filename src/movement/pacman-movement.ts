@@ -1,7 +1,6 @@
-import { GRID_HEIGHT, GRID_WIDTH, PACMAN_POWERUP_DURATION } from '../core/constants.js';
+import { GRID_HEIGHT, GRID_WIDTH } from '../core/constants.js';
 import { Point2d, StoreType, PlayerStyle } from '../types.js';
 import { MovementUtils } from './movement-utils.js';
-import { Utils } from '../utils/utils.js';
 
 const RECENT_POSITIONS_LIMIT = 5;
 
@@ -64,7 +63,6 @@ function logPacmanBehavior(
         const nextPosition = calculateOptimalPath(store, targetPosition);
         nextPosition ? updatePacmanPosition(store, nextPosition) : makeDesperationMove(store);
 
-        checkAndEatPoint(store);
     } catch (error) {
         console.error('Error in movePacman:', error);
         // If all else fails, don't move
@@ -382,29 +380,6 @@ const updatePacmanPosition = (store: StoreType, position: Point2d) => {
 
 	store.pacman.x = position.x;
 	store.pacman.y = position.y;
-};
-
-const checkAndEatPoint = (store: StoreType) => {
-	const cell = store.grid[store.pacman.x][store.pacman.y];
-	if (cell.level !== 'NONE') {
-	  store.statistics!.totalPoints += cell.commitsCount;
-  
-	  const theme = Utils.getCurrentTheme(store);
-	  if (cell.level === 'FOURTH_QUARTILE') {
-		console.log(`🔥 Power-up ativado na célula [${store.pacman.x}, ${store.pacman.y}] com nível ${cell.level}`);
-		activatePowerUp(store);
-	  }
-  
-	  // "Apaga" ponto da célula
-	  cell.level = 'NONE';
-	  cell.color = theme.intensityColors[0];
-	  cell.commitsCount = 0;
-	}
-  };  
-
-const activatePowerUp = (store: StoreType) => {
-	store.pacman.powerupRemainingDuration = PACMAN_POWERUP_DURATION;
-	store.ghosts.forEach((g) => (g.scared = true));
 };
 
 function getPlayerStyle(): PlayerStyle {

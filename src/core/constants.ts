@@ -18,7 +18,8 @@ export const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oc
 
 export const DELTA_TIME              = 200;
 export const PACMAN_DEATH_DURATION   = 10;
-export const PACMAN_POWERUP_DURATION = 15;
+export const PACMAN_POWERUP_DURATION = 30;
+export const POWERUP_FLASH_FRAMES    = 6;
 
 /* ───────────── Paletas GitHub oficiais ─────────────
    Array de 5 cores: índice 0 = NONE … 4 = FOURTH_QUARTILE             */
