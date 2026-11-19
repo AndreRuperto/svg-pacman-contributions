@@ -35,7 +35,7 @@ export interface Pacman {
   totalPoints: number;
   deadRemainingDuration: number;
   powerupRemainingDuration: number;
-  recentPositions: string[];
+  visitedAt: Record<string, number>;
   target?: Point2d;
 }
 

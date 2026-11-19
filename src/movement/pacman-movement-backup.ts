@@ -1,3 +1,4 @@
+// @ts-nocheck — arquivo legado, removido na Task 11
 import { GRID_HEIGHT, GRID_WIDTH, PACMAN_POWERUP_DURATION } from '../core/constants.js';
 import { Point2d, StoreType, PlayerStyle } from '../types.js';
 import { MovementUtils } from './movement-utils.js';

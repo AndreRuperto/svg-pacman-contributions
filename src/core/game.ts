@@ -38,7 +38,7 @@ const placePacman = (store: StoreType) => {
     totalPoints: 0,
     deadRemainingDuration: 0,
     powerupRemainingDuration: 0,
-    recentPositions: []
+    visitedAt: {}
   };
 };
 
@@ -106,7 +106,7 @@ const resetPacman = (store: StoreType) => {
   store.pacman.y = 5;
   store.pacman.target = undefined;
   store.pacman.direction = 'right';
-  store.pacman.recentPositions = [];
+  store.pacman.visitedAt = {};
 };
 
 export const determineGhostName = (index: number): GhostName => {

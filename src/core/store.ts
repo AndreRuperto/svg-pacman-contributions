@@ -13,7 +13,7 @@ export const Store: StoreType = {
 		totalPoints: 0,
 		deadRemainingDuration: 0,
 		powerupRemainingDuration: 0,
-		recentPositions: []
+		visitedAt: {}
 	},
 	ghosts: [],
 	grid: [],
