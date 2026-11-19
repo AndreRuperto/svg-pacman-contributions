@@ -1,4 +1,4 @@
-// webpack.common.js
+// webpack.common.cjs
 const path = require('path');
 
 module.exports = {

@@ -17,9 +17,9 @@ var __export = (target, all) => {
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    for (let key2 of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key2) && key2 !== except)
+        __defProp(to, key2, { get: () => from[key2], enumerable: !(desc = __getOwnPropDesc(from, key2)) || desc.enumerable });
   }
   return to;
 };
@@ -69,7 +69,7 @@ var require_utils = __commonJS({
 var require_command = __commonJS({
   "node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/command.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc = Object.getOwnPropertyDescriptor(m2, k);
       if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
@@ -78,13 +78,13 @@ var require_command = __commonJS({
         } };
       }
       Object.defineProperty(o, k2, desc);
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -124,16 +124,16 @@ var require_command = __commonJS({
         if (this.properties && Object.keys(this.properties).length > 0) {
           cmdStr += " ";
           let first = true;
-          for (const key in this.properties) {
-            if (this.properties.hasOwnProperty(key)) {
-              const val = this.properties[key];
+          for (const key2 in this.properties) {
+            if (this.properties.hasOwnProperty(key2)) {
+              const val = this.properties[key2];
               if (val) {
                 if (first) {
                   first = false;
                 } else {
                   cmdStr += ",";
                 }
-                cmdStr += `${key}=${escapeProperty(val)}`;
+                cmdStr += `${key2}=${escapeProperty(val)}`;
               }
             }
           }
@@ -155,7 +155,7 @@ var require_command = __commonJS({
 var require_file_command = __commonJS({
   "node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/file-command.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc = Object.getOwnPropertyDescriptor(m2, k);
       if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
@@ -164,13 +164,13 @@ var require_file_command = __commonJS({
         } };
       }
       Object.defineProperty(o, k2, desc);
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -201,16 +201,16 @@ var require_file_command = __commonJS({
       });
     }
     exports2.issueFileCommand = issueFileCommand;
-    function prepareKeyValueMessage(key, value) {
+    function prepareKeyValueMessage(key2, value) {
       const delimiter = `ghadelimiter_${crypto.randomUUID()}`;
       const convertedValue = (0, utils_1.toCommandValue)(value);
-      if (key.includes(delimiter)) {
+      if (key2.includes(delimiter)) {
         throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
       }
       if (convertedValue.includes(delimiter)) {
         throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
       }
-      return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
+      return `${key2}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
     }
     exports2.prepareKeyValueMessage = prepareKeyValueMessage;
   }
@@ -401,7 +401,7 @@ var require_tunnel = __commonJS({
         connectOptions.headers = connectOptions.headers || {};
         connectOptions.headers["Proxy-Authorization"] = "Basic " + new Buffer(connectOptions.proxyAuth).toString("base64");
       }
-      debug("making CONNECT request");
+      debug2("making CONNECT request");
       var connectReq = self2.request(connectOptions);
       connectReq.useChunkedEncodingByDefault = false;
       connectReq.once("response", onResponse);
@@ -421,7 +421,7 @@ var require_tunnel = __commonJS({
         connectReq.removeAllListeners();
         socket.removeAllListeners();
         if (res.statusCode !== 200) {
-          debug(
+          debug2(
             "tunneling socket could not be established, statusCode=%d",
             res.statusCode
           );
@@ -433,7 +433,7 @@ var require_tunnel = __commonJS({
           return;
         }
         if (head.length > 0) {
-          debug("got illegal response body from proxy");
+          debug2("got illegal response body from proxy");
           socket.destroy();
           var error = new Error("got illegal response body from proxy");
           error.code = "ECONNRESET";
@@ -441,13 +441,13 @@ var require_tunnel = __commonJS({
           self2.removeSocket(placeholder);
           return;
         }
-        debug("tunneling connection has established");
+        debug2("tunneling connection has established");
         self2.sockets[self2.sockets.indexOf(placeholder)] = socket;
         return cb(socket);
       }
       function onError(cause) {
         connectReq.removeAllListeners();
-        debug(
+        debug2(
           "tunneling socket could not be established, cause=%s\n",
           cause.message,
           cause.stack
@@ -509,9 +509,9 @@ var require_tunnel = __commonJS({
       }
       return target;
     }
-    var debug;
+    var debug2;
     if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
-      debug = function() {
+      debug2 = function() {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[0] === "string") {
           args[0] = "TUNNEL: " + args[0];
@@ -521,10 +521,10 @@ var require_tunnel = __commonJS({
         console.error.apply(console, args);
       };
     } else {
-      debug = function() {
+      debug2 = function() {
       };
     }
-    exports2.debug = debug;
+    exports2.debug = debug2;
   }
 });
 
@@ -922,9 +922,9 @@ var require_constants = __commonJS({
       "X-XSS-Protection"
     ];
     for (let i2 = 0; i2 < wellknownHeaderNames.length; ++i2) {
-      const key = wellknownHeaderNames[i2];
-      const lowerCasedKey = key.toLowerCase();
-      headerNameLowerCasedRecord[key] = headerNameLowerCasedRecord[lowerCasedKey] = lowerCasedKey;
+      const key2 = wellknownHeaderNames[i2];
+      const lowerCasedKey = key2.toLowerCase();
+      headerNameLowerCasedRecord[key2] = headerNameLowerCasedRecord[lowerCasedKey] = lowerCasedKey;
     }
     Object.setPrototypeOf(headerNameLowerCasedRecord, null);
     module2.exports = {
@@ -1096,18 +1096,18 @@ var require_util = __commonJS({
     function parseHeaders(headers, obj = {}) {
       if (!Array.isArray(headers)) return headers;
       for (let i2 = 0; i2 < headers.length; i2 += 2) {
-        const key = headers[i2].toString().toLowerCase();
-        let val = obj[key];
+        const key2 = headers[i2].toString().toLowerCase();
+        let val = obj[key2];
         if (!val) {
           if (Array.isArray(headers[i2 + 1])) {
-            obj[key] = headers[i2 + 1].map((x2) => x2.toString("utf8"));
+            obj[key2] = headers[i2 + 1].map((x2) => x2.toString("utf8"));
           } else {
-            obj[key] = headers[i2 + 1].toString("utf8");
+            obj[key2] = headers[i2 + 1].toString("utf8");
           }
         } else {
           if (!Array.isArray(val)) {
             val = [val];
-            obj[key] = val;
+            obj[key2] = val;
           }
           val.push(headers[i2 + 1].toString("utf8"));
         }
@@ -1122,15 +1122,15 @@ var require_util = __commonJS({
       let hasContentLength = false;
       let contentDispositionIdx = -1;
       for (let n = 0; n < headers.length; n += 2) {
-        const key = headers[n + 0].toString();
+        const key2 = headers[n + 0].toString();
         const val = headers[n + 1].toString("utf8");
-        if (key.length === 14 && (key === "content-length" || key.toLowerCase() === "content-length")) {
-          ret.push(key, val);
+        if (key2.length === 14 && (key2 === "content-length" || key2.toLowerCase() === "content-length")) {
+          ret.push(key2, val);
           hasContentLength = true;
-        } else if (key.length === 19 && (key === "content-disposition" || key.toLowerCase() === "content-disposition")) {
-          contentDispositionIdx = ret.push(key, val) - 1;
+        } else if (key2.length === 19 && (key2 === "content-disposition" || key2.toLowerCase() === "content-disposition")) {
+          contentDispositionIdx = ret.push(key2, val) - 1;
         } else {
-          ret.push(key, val);
+          ret.push(key2, val);
         }
       }
       if (hasContentLength && contentDispositionIdx !== -1) {
@@ -3184,12 +3184,12 @@ var require_urlencoded = __commonJS({
             p = idxeq + 1;
           } else if (idxamp !== void 0) {
             ++this._fields;
-            let key;
+            let key2;
             const keyTrunc = this._keyTrunc;
             if (idxamp > p) {
-              key = this._key += this.decoder.write(data.toString("binary", p, idxamp));
+              key2 = this._key += this.decoder.write(data.toString("binary", p, idxamp));
             } else {
-              key = this._key;
+              key2 = this._key;
             }
             this._hitLimit = false;
             this._checkingBytes = true;
@@ -3197,10 +3197,10 @@ var require_urlencoded = __commonJS({
             this._bytesKey = 0;
             this._keyTrunc = false;
             this.decoder.reset();
-            if (key.length) {
+            if (key2.length) {
               this.boy.emit(
                 "field",
-                decodeText(key, "binary", this.charset),
+                decodeText(key2, "binary", this.charset),
                 "",
                 keyTrunc,
                 false
@@ -4190,7 +4190,7 @@ var require_util2 = __commonJS({
       const protocol = url.protocol;
       return protocol === "http:" || protocol === "https:";
     }
-    var hasOwn = Object.hasOwn || ((dict, key) => Object.prototype.hasOwnProperty.call(dict, key));
+    var hasOwn = Object.hasOwn || ((dict, key2) => Object.prototype.hasOwnProperty.call(dict, key2));
     module2.exports = {
       isAborted,
       isCancelled,
@@ -4427,19 +4427,19 @@ var require_webidl = __commonJS({
         const result = {};
         if (!types3.isProxy(O)) {
           const keys2 = Object.keys(O);
-          for (const key of keys2) {
-            const typedKey = keyConverter(key);
-            const typedValue = valueConverter(O[key]);
+          for (const key2 of keys2) {
+            const typedKey = keyConverter(key2);
+            const typedValue = valueConverter(O[key2]);
             result[typedKey] = typedValue;
           }
           return result;
         }
         const keys = Reflect.ownKeys(O);
-        for (const key of keys) {
-          const desc = Reflect.getOwnPropertyDescriptor(O, key);
+        for (const key2 of keys) {
+          const desc = Reflect.getOwnPropertyDescriptor(O, key2);
           if (desc?.enumerable) {
-            const typedKey = keyConverter(key);
-            const typedValue = valueConverter(O[key]);
+            const typedKey = keyConverter(key2);
+            const typedValue = valueConverter(O[key2]);
             result[typedKey] = typedValue;
           }
         }
@@ -4470,16 +4470,16 @@ var require_webidl = __commonJS({
           });
         }
         for (const options of converters) {
-          const { key, defaultValue, required, converter } = options;
+          const { key: key2, defaultValue, required, converter } = options;
           if (required === true) {
-            if (!hasOwn(dictionary, key)) {
+            if (!hasOwn(dictionary, key2)) {
               throw webidl.errors.exception({
                 header: "Dictionary",
-                message: `Missing required key "${key}".`
+                message: `Missing required key "${key2}".`
               });
             }
           }
-          let value = dictionary[key];
+          let value = dictionary[key2];
           const hasDefault = hasOwn(options, "defaultValue");
           if (hasDefault && value !== null) {
             value = value ?? defaultValue;
@@ -4492,7 +4492,7 @@ var require_webidl = __commonJS({
                 message: `${value} is not an accepted type. Expected one of ${options.allowedValues.join(", ")}.`
               });
             }
-            dict[key] = value;
+            dict[key2] = value;
           }
         }
         return dict;
@@ -5218,8 +5218,8 @@ var require_formdata = __commonJS({
             "Failed to execute 'forEach' on 'FormData': parameter 1 is not of type 'Function'."
           );
         }
-        for (const [key, value] of this) {
-          callbackFn.apply(thisArg, [value, key, this]);
+        for (const [key2, value] of this) {
+          callbackFn.apply(thisArg, [value, key2, this]);
         }
       }
     };
@@ -5494,7 +5494,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
           const contentType = this.headers.get("Content-Type");
           if (/multipart\/form-data/.test(contentType)) {
             const headers = {};
-            for (const [key, value] of this.headers) headers[key.toLowerCase()] = value;
+            for (const [key2, value] of this.headers) headers[key2.toLowerCase()] = value;
             const responseFormData = new FormData3();
             let busboy;
             try {
@@ -5764,8 +5764,8 @@ var require_request = __commonJS({
         } else if (headers && typeof headers === "object") {
           const keys = Object.keys(headers);
           for (let i2 = 0; i2 < keys.length; i2++) {
-            const key = keys[i2];
-            processHeader(this, key, headers[key]);
+            const key2 = keys[i2];
+            processHeader(this, key2, headers[key2]);
           }
         } else if (headers != null) {
           throw new InvalidArgumentError("headers must be an object or an array");
@@ -5890,8 +5890,8 @@ var require_request = __commonJS({
         }
       }
       // TODO: adjust to support H2
-      addHeader(key, value) {
-        processHeader(this, key, value);
+      addHeader(key2, value) {
+        processHeader(this, key2, value);
         return this;
       }
       static [kHTTP1BuildRequest](origin, opts, handler) {
@@ -5912,8 +5912,8 @@ var require_request = __commonJS({
         } else if (headers && typeof headers === "object") {
           const keys = Object.keys(headers);
           for (let i2 = 0; i2 < keys.length; i2++) {
-            const key = keys[i2];
-            processHeader(request, key, headers[key], true);
+            const key2 = keys[i2];
+            processHeader(request, key2, headers[key2], true);
           }
         } else if (headers != null) {
           throw new InvalidArgumentError("headers must be an object or an array");
@@ -5924,75 +5924,75 @@ var require_request = __commonJS({
         const rawHeaders = raw.split("\r\n");
         const headers = {};
         for (const header of rawHeaders) {
-          const [key, value] = header.split(": ");
+          const [key2, value] = header.split(": ");
           if (value == null || value.length === 0) continue;
-          if (headers[key]) headers[key] += `,${value}`;
-          else headers[key] = value;
+          if (headers[key2]) headers[key2] += `,${value}`;
+          else headers[key2] = value;
         }
         return headers;
       }
     };
-    function processHeaderValue(key, val, skipAppend) {
+    function processHeaderValue(key2, val, skipAppend) {
       if (val && typeof val === "object") {
-        throw new InvalidArgumentError(`invalid ${key} header`);
+        throw new InvalidArgumentError(`invalid ${key2} header`);
       }
       val = val != null ? `${val}` : "";
       if (headerCharRegex.exec(val) !== null) {
-        throw new InvalidArgumentError(`invalid ${key} header`);
+        throw new InvalidArgumentError(`invalid ${key2} header`);
       }
-      return skipAppend ? val : `${key}: ${val}\r
+      return skipAppend ? val : `${key2}: ${val}\r
 `;
     }
-    function processHeader(request, key, val, skipAppend = false) {
+    function processHeader(request, key2, val, skipAppend = false) {
       if (val && (typeof val === "object" && !Array.isArray(val))) {
-        throw new InvalidArgumentError(`invalid ${key} header`);
+        throw new InvalidArgumentError(`invalid ${key2} header`);
       } else if (val === void 0) {
         return;
       }
-      if (request.host === null && key.length === 4 && key.toLowerCase() === "host") {
+      if (request.host === null && key2.length === 4 && key2.toLowerCase() === "host") {
         if (headerCharRegex.exec(val) !== null) {
-          throw new InvalidArgumentError(`invalid ${key} header`);
+          throw new InvalidArgumentError(`invalid ${key2} header`);
         }
         request.host = val;
-      } else if (request.contentLength === null && key.length === 14 && key.toLowerCase() === "content-length") {
+      } else if (request.contentLength === null && key2.length === 14 && key2.toLowerCase() === "content-length") {
         request.contentLength = parseInt(val, 10);
         if (!Number.isFinite(request.contentLength)) {
           throw new InvalidArgumentError("invalid content-length header");
         }
-      } else if (request.contentType === null && key.length === 12 && key.toLowerCase() === "content-type") {
+      } else if (request.contentType === null && key2.length === 12 && key2.toLowerCase() === "content-type") {
         request.contentType = val;
-        if (skipAppend) request.headers[key] = processHeaderValue(key, val, skipAppend);
-        else request.headers += processHeaderValue(key, val);
-      } else if (key.length === 17 && key.toLowerCase() === "transfer-encoding") {
+        if (skipAppend) request.headers[key2] = processHeaderValue(key2, val, skipAppend);
+        else request.headers += processHeaderValue(key2, val);
+      } else if (key2.length === 17 && key2.toLowerCase() === "transfer-encoding") {
         throw new InvalidArgumentError("invalid transfer-encoding header");
-      } else if (key.length === 10 && key.toLowerCase() === "connection") {
+      } else if (key2.length === 10 && key2.toLowerCase() === "connection") {
         const value = typeof val === "string" ? val.toLowerCase() : null;
         if (value !== "close" && value !== "keep-alive") {
           throw new InvalidArgumentError("invalid connection header");
         } else if (value === "close") {
           request.reset = true;
         }
-      } else if (key.length === 10 && key.toLowerCase() === "keep-alive") {
+      } else if (key2.length === 10 && key2.toLowerCase() === "keep-alive") {
         throw new InvalidArgumentError("invalid keep-alive header");
-      } else if (key.length === 7 && key.toLowerCase() === "upgrade") {
+      } else if (key2.length === 7 && key2.toLowerCase() === "upgrade") {
         throw new InvalidArgumentError("invalid upgrade header");
-      } else if (key.length === 6 && key.toLowerCase() === "expect") {
+      } else if (key2.length === 6 && key2.toLowerCase() === "expect") {
         throw new NotSupportedError("expect header not supported");
-      } else if (tokenRegExp.exec(key) === null) {
+      } else if (tokenRegExp.exec(key2) === null) {
         throw new InvalidArgumentError("invalid header key");
       } else {
         if (Array.isArray(val)) {
           for (let i2 = 0; i2 < val.length; i2++) {
             if (skipAppend) {
-              if (request.headers[key]) request.headers[key] += `,${processHeaderValue(key, val[i2], skipAppend)}`;
-              else request.headers[key] = processHeaderValue(key, val[i2], skipAppend);
+              if (request.headers[key2]) request.headers[key2] += `,${processHeaderValue(key2, val[i2], skipAppend)}`;
+              else request.headers[key2] = processHeaderValue(key2, val[i2], skipAppend);
             } else {
-              request.headers += processHeaderValue(key, val[i2]);
+              request.headers += processHeaderValue(key2, val[i2]);
             }
           }
         } else {
-          if (skipAppend) request.headers[key] = processHeaderValue(key, val, skipAppend);
-          else request.headers += processHeaderValue(key, val);
+          if (skipAppend) request.headers[key2] = processHeaderValue(key2, val, skipAppend);
+          else request.headers += processHeaderValue(key2, val);
         }
       }
     }
@@ -6198,13 +6198,13 @@ var require_connect = __commonJS({
         constructor(maxCachedSessions) {
           this._maxCachedSessions = maxCachedSessions;
           this._sessionCache = /* @__PURE__ */ new Map();
-          this._sessionRegistry = new global.FinalizationRegistry((key) => {
+          this._sessionRegistry = new global.FinalizationRegistry((key2) => {
             if (this._sessionCache.size < this._maxCachedSessions) {
               return;
             }
-            const ref = this._sessionCache.get(key);
+            const ref = this._sessionCache.get(key2);
             if (ref !== void 0 && ref.deref() === void 0) {
-              this._sessionCache.delete(key);
+              this._sessionCache.delete(key2);
             }
           });
         }
@@ -6347,10 +6347,10 @@ var require_utils2 = __commonJS({
     exports2.enumToMap = void 0;
     function enumToMap(obj) {
       const res = {};
-      Object.keys(obj).forEach((key) => {
-        const value = obj[key];
+      Object.keys(obj).forEach((key2) => {
+        const value = obj[key2];
         if (typeof value === "number") {
-          res[key] = value;
+          res[key2] = value;
         }
       });
       return res;
@@ -6527,9 +6527,9 @@ var require_constants3 = __commonJS({
     ];
     exports2.METHOD_MAP = utils_1.enumToMap(METHODS);
     exports2.H_METHOD_MAP = {};
-    Object.keys(exports2.METHOD_MAP).forEach((key) => {
-      if (/^H/.test(key)) {
-        exports2.H_METHOD_MAP[key] = exports2.METHOD_MAP[key];
+    Object.keys(exports2.METHOD_MAP).forEach((key2) => {
+      if (/^H/.test(key2)) {
+        exports2.H_METHOD_MAP[key2] = exports2.METHOD_MAP[key2];
       }
     });
     var FINISH;
@@ -6816,9 +6816,9 @@ var require_RedirectHandler = __commonJS({
           }
         }
       } else if (headers && typeof headers === "object") {
-        for (const key of Object.keys(headers)) {
-          if (!shouldRemoveHeader(key, removeContent, unknownOrigin)) {
-            ret.push(key, headers[key]);
+        for (const key2 of Object.keys(headers)) {
+          if (!shouldRemoveHeader(key2, removeContent, unknownOrigin)) {
+            ret.push(key2, headers[key2]);
           }
         }
       } else {
@@ -7468,12 +7468,12 @@ var require_client = __commonJS({
         } else {
           this.headers[len - 1] = Buffer.concat([this.headers[len - 1], buf]);
         }
-        const key = this.headers[len - 2];
-        if (key.length === 10 && key.toString().toLowerCase() === "keep-alive") {
+        const key2 = this.headers[len - 2];
+        if (key2.length === 10 && key2.toString().toLowerCase() === "keep-alive") {
           this.keepAlive += buf.toString();
-        } else if (key.length === 10 && key.toString().toLowerCase() === "connection") {
+        } else if (key2.length === 10 && key2.toString().toLowerCase() === "connection") {
           this.connection += buf.toString();
-        } else if (key.length === 14 && key.toString().toLowerCase() === "content-length") {
+        } else if (key2.length === 14 && key2.toString().toLowerCase() === "content-length") {
           this.contentLength += buf.toString();
         }
         this.trackHeader(buf.length);
@@ -9059,11 +9059,11 @@ var require_dispatcher_weakref = __commonJS({
       constructor(finalizer) {
         this.finalizer = finalizer;
       }
-      register(dispatcher, key) {
+      register(dispatcher, key2) {
         if (dispatcher.on) {
           dispatcher.on("disconnect", () => {
             if (dispatcher[kConnected] === 0 && dispatcher[kSize] === 0) {
-              this.finalizer(key);
+              this.finalizer(key2);
             }
           });
         }
@@ -9130,10 +9130,10 @@ var require_agent = __commonJS({
         this[kClients] = /* @__PURE__ */ new Map();
         this[kFinalizer] = new FinalizationRegistry(
           /* istanbul ignore next: gc is undeterministic */
-          (key) => {
-            const ref = this[kClients].get(key);
+          (key2) => {
+            const ref = this[kClients].get(key2);
             if (ref !== void 0 && ref.deref() === void 0) {
-              this[kClients].delete(key);
+              this[kClients].delete(key2);
             }
           }
         );
@@ -9162,18 +9162,18 @@ var require_agent = __commonJS({
         return ret;
       }
       [kDispatch](opts, handler) {
-        let key;
+        let key2;
         if (opts.origin && (typeof opts.origin === "string" || opts.origin instanceof URL)) {
-          key = String(opts.origin);
+          key2 = String(opts.origin);
         } else {
           throw new InvalidArgumentError("opts.origin must be a non-empty string or URL.");
         }
-        const ref = this[kClients].get(key);
+        const ref = this[kClients].get(key2);
         let dispatcher = ref ? ref.deref() : null;
         if (!dispatcher) {
           dispatcher = this[kFactory](opts.origin, this[kOptions]).on("drain", this[kOnDrain]).on("connect", this[kOnConnect]).on("disconnect", this[kOnDisconnect]).on("connectionError", this[kOnConnectionError]);
-          this[kClients].set(key, new WeakRef2(dispatcher));
-          this[kFinalizer].register(dispatcher, key);
+          this[kClients].set(key2, new WeakRef2(dispatcher));
+          this[kFinalizer].register(dispatcher, key2);
         }
         return dispatcher.dispatch(opts, handler);
       }
@@ -10347,18 +10347,18 @@ var require_mock_utils = __commonJS({
         })
       );
     }
-    function getHeaderByName(headers, key) {
+    function getHeaderByName(headers, key2) {
       if (Array.isArray(headers)) {
         for (let i2 = 0; i2 < headers.length; i2 += 2) {
-          if (headers[i2].toLocaleLowerCase() === key.toLocaleLowerCase()) {
+          if (headers[i2].toLocaleLowerCase() === key2.toLocaleLowerCase()) {
             return headers[i2 + 1];
           }
         }
         return void 0;
       } else if (typeof headers.get === "function") {
-        return headers.get(key);
+        return headers.get(key2);
       } else {
-        return lowerCaseEntries(headers)[key.toLocaleLowerCase()];
+        return lowerCaseEntries(headers)[key2.toLocaleLowerCase()];
       }
     }
     function buildHeadersFromArray(headers) {
@@ -10418,40 +10418,40 @@ var require_mock_utils = __commonJS({
         return data.toString();
       }
     }
-    function getMockDispatch(mockDispatches, key) {
-      const basePath = key.query ? buildURL(key.path, key.query) : key.path;
+    function getMockDispatch(mockDispatches, key2) {
+      const basePath = key2.query ? buildURL(key2.path, key2.query) : key2.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
       let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path2 }) => matchValue(safeUrl(path2), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
-      matchedMockDispatches = matchedMockDispatches.filter(({ method }) => matchValue(method, key.method));
+      matchedMockDispatches = matchedMockDispatches.filter(({ method }) => matchValue(method, key2.method));
       if (matchedMockDispatches.length === 0) {
-        throw new MockNotMatchedError(`Mock dispatch not matched for method '${key.method}'`);
+        throw new MockNotMatchedError(`Mock dispatch not matched for method '${key2.method}'`);
       }
-      matchedMockDispatches = matchedMockDispatches.filter(({ body }) => typeof body !== "undefined" ? matchValue(body, key.body) : true);
+      matchedMockDispatches = matchedMockDispatches.filter(({ body }) => typeof body !== "undefined" ? matchValue(body, key2.body) : true);
       if (matchedMockDispatches.length === 0) {
-        throw new MockNotMatchedError(`Mock dispatch not matched for body '${key.body}'`);
+        throw new MockNotMatchedError(`Mock dispatch not matched for body '${key2.body}'`);
       }
-      matchedMockDispatches = matchedMockDispatches.filter((mockDispatch2) => matchHeaders(mockDispatch2, key.headers));
+      matchedMockDispatches = matchedMockDispatches.filter((mockDispatch2) => matchHeaders(mockDispatch2, key2.headers));
       if (matchedMockDispatches.length === 0) {
-        throw new MockNotMatchedError(`Mock dispatch not matched for headers '${typeof key.headers === "object" ? JSON.stringify(key.headers) : key.headers}'`);
+        throw new MockNotMatchedError(`Mock dispatch not matched for headers '${typeof key2.headers === "object" ? JSON.stringify(key2.headers) : key2.headers}'`);
       }
       return matchedMockDispatches[0];
     }
-    function addMockDispatch(mockDispatches, key, data) {
+    function addMockDispatch(mockDispatches, key2, data) {
       const baseData = { timesInvoked: 0, times: 1, persist: false, consumed: false };
       const replyData = typeof data === "function" ? { callback: data } : { ...data };
-      const newMockDispatch = { ...baseData, ...key, pending: true, data: { error: null, ...replyData } };
+      const newMockDispatch = { ...baseData, ...key2, pending: true, data: { error: null, ...replyData } };
       mockDispatches.push(newMockDispatch);
       return newMockDispatch;
     }
-    function deleteMockDispatch(mockDispatches, key) {
+    function deleteMockDispatch(mockDispatches, key2) {
       const index = mockDispatches.findIndex((dispatch) => {
         if (!dispatch.consumed) {
           return false;
         }
-        return matchKey(dispatch, key);
+        return matchKey(dispatch, key2);
       });
       if (index !== -1) {
         mockDispatches.splice(index, 1);
@@ -10468,9 +10468,9 @@ var require_mock_utils = __commonJS({
       };
     }
     function generateKeyValues(data) {
-      return Object.entries(data).reduce((keyValuePairs, [key, value]) => [
+      return Object.entries(data).reduce((keyValuePairs, [key2, value]) => [
         ...keyValuePairs,
-        Buffer.from(`${key}`),
+        Buffer.from(`${key2}`),
         Array.isArray(value) ? value.map((x2) => Buffer.from(`${x2}`)) : Buffer.from(`${value}`)
       ], []);
     }
@@ -10485,8 +10485,8 @@ var require_mock_utils = __commonJS({
       return Buffer.concat(buffers).toString("utf8");
     }
     function mockDispatch(opts, handler) {
-      const key = buildKey(opts);
-      const mockDispatch2 = getMockDispatch(this[kDispatches], key);
+      const key2 = buildKey(opts);
+      const mockDispatch2 = getMockDispatch(this[kDispatches], key2);
       mockDispatch2.timesInvoked++;
       if (mockDispatch2.data.callback) {
         mockDispatch2.data = { ...mockDispatch2.data, ...mockDispatch2.data.callback(opts) };
@@ -10496,7 +10496,7 @@ var require_mock_utils = __commonJS({
       mockDispatch2.consumed = !persist && timesInvoked >= times;
       mockDispatch2.pending = timesInvoked < times;
       if (error !== null) {
-        deleteMockDispatch(this[kDispatches], key);
+        deleteMockDispatch(this[kDispatches], key2);
         handler.onError(error);
         return true;
       }
@@ -10521,7 +10521,7 @@ var require_mock_utils = __commonJS({
         handler.onHeaders(statusCode, responseHeaders, resume, getStatusText(statusCode));
         handler.onData(Buffer.from(responseData));
         handler.onComplete(responseTrailers);
-        deleteMockDispatch(mockDispatches, key);
+        deleteMockDispatch(mockDispatches, key2);
       }
       function resume() {
       }
@@ -11208,7 +11208,7 @@ var require_proxy_agent = __commonJS({
       return headers;
     }
     function throwIfProxyAuthIsSent(headers) {
-      const existProxyAuth = headers && Object.keys(headers).find((key) => key.toLowerCase() === "proxy-authorization");
+      const existProxyAuth = headers && Object.keys(headers).find((key2) => key2.toLowerCase() === "proxy-authorization");
       if (existProxyAuth) {
         throw new InvalidArgumentError("Proxy-Authorization should be sent in ProxyAgent constructor");
       }
@@ -11887,8 +11887,8 @@ var require_headers = __commonJS({
             "Failed to execute 'forEach' on 'Headers': parameter 1 is not of type 'Function'."
           );
         }
-        for (const [key, value] of this) {
-          callbackFn.apply(thisArg, [value, key, this]);
+        for (const [key2, value] of this) {
+          callbackFn.apply(thisArg, [value, key2, this]);
         }
       }
       [Symbol.for("nodejs.util.inspect.custom")]() {
@@ -12583,8 +12583,8 @@ var require_request2 = __commonJS({
           const headers = init.headers !== void 0 ? init.headers : new HeadersList(headersList);
           headersList.clear();
           if (headers instanceof HeadersList) {
-            for (const [key, val] of headers) {
-              headersList.append(key, val);
+            for (const [key2, val] of headers) {
+              headersList.append(key2, val);
             }
             headersList.cookies = headers.cookies;
           } else {
@@ -13736,7 +13736,7 @@ var require_fetch = __commonJS({
             fetchParams.controller.terminate(e2);
           }
         };
-        requestBody = (async function* () {
+        requestBody = async function* () {
           try {
             for await (const bytes of request.body.stream) {
               yield* processBodyChunk(bytes);
@@ -13745,7 +13745,7 @@ var require_fetch = __commonJS({
           } catch (err) {
             processBodyError(err);
           }
-        })();
+        }();
       }
       try {
         const { body, status, statusText, headersList, socket } = await dispatch({ body: requestBody });
@@ -13883,25 +13883,25 @@ var require_fetch = __commonJS({
               const headers = new Headers2();
               if (Array.isArray(headersList)) {
                 for (let n = 0; n < headersList.length; n += 2) {
-                  const key = headersList[n + 0].toString("latin1");
+                  const key2 = headersList[n + 0].toString("latin1");
                   const val = headersList[n + 1].toString("latin1");
-                  if (key.toLowerCase() === "content-encoding") {
+                  if (key2.toLowerCase() === "content-encoding") {
                     codings = val.toLowerCase().split(",").map((x2) => x2.trim());
-                  } else if (key.toLowerCase() === "location") {
+                  } else if (key2.toLowerCase() === "location") {
                     location = val;
                   }
-                  headers[kHeadersList].append(key, val);
+                  headers[kHeadersList].append(key2, val);
                 }
               } else {
                 const keys = Object.keys(headersList);
-                for (const key of keys) {
-                  const val = headersList[key];
-                  if (key.toLowerCase() === "content-encoding") {
+                for (const key2 of keys) {
+                  const val = headersList[key2];
+                  if (key2.toLowerCase() === "content-encoding") {
                     codings = val.toLowerCase().split(",").map((x2) => x2.trim()).reverse();
-                  } else if (key.toLowerCase() === "location") {
+                  } else if (key2.toLowerCase() === "location") {
                     location = val;
                   }
-                  headers[kHeadersList].append(key, val);
+                  headers[kHeadersList].append(key2, val);
                 }
               }
               this.body = new Readable({ read: resume });
@@ -13967,9 +13967,9 @@ var require_fetch = __commonJS({
               }
               const headers = new Headers2();
               for (let n = 0; n < headersList.length; n += 2) {
-                const key = headersList[n + 0].toString("latin1");
+                const key2 = headersList[n + 0].toString("latin1");
                 const val = headersList[n + 1].toString("latin1");
-                headers[kHeadersList].append(key, val);
+                headers[kHeadersList].append(key2, val);
               }
               resolve({
                 status,
@@ -15629,8 +15629,8 @@ var require_util6 = __commonJS({
         if (!part.includes("=")) {
           throw new Error("Invalid unparsed");
         }
-        const [key, ...value] = part.split("=");
-        out.push(`${key.trim()}=${value.join("=")}`);
+        const [key2, ...value] = part.split("=");
+        out.push(`${key2.trim()}=${value.join("=")}`);
       }
       return out.join("; ");
     }
@@ -16606,8 +16606,8 @@ var require_receiver = __commonJS({
             } else if (this.#info.opcode === opcodes.PING) {
               const body = this.consume(payloadLength);
               if (!this.ws[kReceivedClose]) {
-                const frame2 = new WebsocketFrameSend(body);
-                this.ws[kResponse].socket.write(frame2.createFrame(opcodes.PONG));
+                const frame = new WebsocketFrameSend(body);
+                this.ws[kResponse].socket.write(frame.createFrame(opcodes.PONG));
                 if (channels.ping.hasSubscribers) {
                   channels.ping.publish({
                     payload: body
@@ -16874,19 +16874,19 @@ var require_websocket = __commonJS({
           failWebsocketConnection(this, "Connection was closed before it was established.");
           this[kReadyState] = _WebSocket.CLOSING;
         } else if (!isClosing(this)) {
-          const frame2 = new WebsocketFrameSend();
+          const frame = new WebsocketFrameSend();
           if (code !== void 0 && reason === void 0) {
-            frame2.frameData = Buffer.allocUnsafe(2);
-            frame2.frameData.writeUInt16BE(code, 0);
+            frame.frameData = Buffer.allocUnsafe(2);
+            frame.frameData.writeUInt16BE(code, 0);
           } else if (code !== void 0 && reason !== void 0) {
-            frame2.frameData = Buffer.allocUnsafe(2 + reasonByteLength);
-            frame2.frameData.writeUInt16BE(code, 0);
-            frame2.frameData.write(reason, 2, "utf-8");
+            frame.frameData = Buffer.allocUnsafe(2 + reasonByteLength);
+            frame.frameData.writeUInt16BE(code, 0);
+            frame.frameData.write(reason, 2, "utf-8");
           } else {
-            frame2.frameData = emptyBuffer;
+            frame.frameData = emptyBuffer;
           }
           const socket = this[kResponse].socket;
-          socket.write(frame2.createFrame(opcodes.CLOSE), (err) => {
+          socket.write(frame.createFrame(opcodes.CLOSE), (err) => {
             if (!err) {
               this[kSentClose] = true;
             }
@@ -16913,34 +16913,34 @@ var require_websocket = __commonJS({
         const socket = this[kResponse].socket;
         if (typeof data === "string") {
           const value = Buffer.from(data);
-          const frame2 = new WebsocketFrameSend(value);
-          const buffer = frame2.createFrame(opcodes.TEXT);
+          const frame = new WebsocketFrameSend(value);
+          const buffer = frame.createFrame(opcodes.TEXT);
           this.#bufferedAmount += value.byteLength;
           socket.write(buffer, () => {
             this.#bufferedAmount -= value.byteLength;
           });
         } else if (types3.isArrayBuffer(data)) {
           const value = Buffer.from(data);
-          const frame2 = new WebsocketFrameSend(value);
-          const buffer = frame2.createFrame(opcodes.BINARY);
+          const frame = new WebsocketFrameSend(value);
+          const buffer = frame.createFrame(opcodes.BINARY);
           this.#bufferedAmount += value.byteLength;
           socket.write(buffer, () => {
             this.#bufferedAmount -= value.byteLength;
           });
         } else if (ArrayBuffer.isView(data)) {
           const ab = Buffer.from(data, data.byteOffset, data.byteLength);
-          const frame2 = new WebsocketFrameSend(ab);
-          const buffer = frame2.createFrame(opcodes.BINARY);
+          const frame = new WebsocketFrameSend(ab);
+          const buffer = frame.createFrame(opcodes.BINARY);
           this.#bufferedAmount += ab.byteLength;
           socket.write(buffer, () => {
             this.#bufferedAmount -= ab.byteLength;
           });
         } else if (isBlobLike(data)) {
-          const frame2 = new WebsocketFrameSend();
+          const frame = new WebsocketFrameSend();
           data.arrayBuffer().then((ab) => {
             const value = Buffer.from(ab);
-            frame2.frameData = value;
-            const buffer = frame2.createFrame(opcodes.BINARY);
+            frame.frameData = value;
+            const buffer = frame.createFrame(opcodes.BINARY);
             this.#bufferedAmount += value.byteLength;
             socket.write(buffer, () => {
               this.#bufferedAmount -= value.byteLength;
@@ -17296,7 +17296,7 @@ var require_undici = __commonJS({
 var require_lib = __commonJS({
   "node_modules/.pnpm/@actions+http-client@2.2.3/node_modules/@actions/http-client/lib/index.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc = Object.getOwnPropertyDescriptor(m2, k);
       if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
@@ -17305,13 +17305,13 @@ var require_lib = __commonJS({
         } };
       }
       Object.defineProperty(o, k2, desc);
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -17863,7 +17863,7 @@ var require_lib = __commonJS({
             if (statusCode === HttpCodes.NotFound) {
               resolve(response);
             }
-            function dateTimeDeserializer(key, value) {
+            function dateTimeDeserializer(key2, value) {
               if (typeof value === "string") {
                 const a = new Date(value);
                 if (!isNaN(a.valueOf())) {
@@ -18189,7 +18189,7 @@ var require_summary = __commonJS({
        * @returns {string} content wrapped in HTML element
        */
       wrap(tag, content, attrs = {}) {
-        const htmlAttrs = Object.entries(attrs).map(([key, value]) => ` ${key}="${value}"`).join("");
+        const htmlAttrs = Object.entries(attrs).map(([key2, value]) => ` ${key2}="${value}"`).join("");
         if (!content) {
           return `<${tag}${htmlAttrs}>`;
         }
@@ -18411,7 +18411,7 @@ var require_summary = __commonJS({
 var require_path_utils = __commonJS({
   "node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/path-utils.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc = Object.getOwnPropertyDescriptor(m2, k);
       if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
@@ -18420,13 +18420,13 @@ var require_path_utils = __commonJS({
         } };
       }
       Object.defineProperty(o, k2, desc);
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -18460,18 +18460,18 @@ var require_path_utils = __commonJS({
 var require_io_util = __commonJS({
   "node_modules/.pnpm/@actions+io@1.1.3/node_modules/@actions/io/lib/io-util.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       Object.defineProperty(o, k2, { enumerable: true, get: function() {
         return m2[k];
       } });
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -18633,18 +18633,18 @@ var require_io_util = __commonJS({
 var require_io = __commonJS({
   "node_modules/.pnpm/@actions+io@1.1.3/node_modules/@actions/io/lib/io.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       Object.defineProperty(o, k2, { enumerable: true, get: function() {
         return m2[k];
       } });
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -18881,18 +18881,18 @@ var require_io = __commonJS({
 var require_toolrunner = __commonJS({
   "node_modules/.pnpm/@actions+exec@1.1.1/node_modules/@actions/exec/lib/toolrunner.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       Object.defineProperty(o, k2, { enumerable: true, get: function() {
         return m2[k];
       } });
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -19365,18 +19365,18 @@ var require_toolrunner = __commonJS({
 var require_exec = __commonJS({
   "node_modules/.pnpm/@actions+exec@1.1.1/node_modules/@actions/exec/lib/exec.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       Object.defineProperty(o, k2, { enumerable: true, get: function() {
         return m2[k];
       } });
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -19472,7 +19472,7 @@ var require_exec = __commonJS({
 var require_platform = __commonJS({
   "node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/platform.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc = Object.getOwnPropertyDescriptor(m2, k);
       if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
@@ -19481,13 +19481,13 @@ var require_platform = __commonJS({
         } };
       }
       Object.defineProperty(o, k2, desc);
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -19591,7 +19591,7 @@ var require_platform = __commonJS({
 var require_core = __commonJS({
   "node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/core.js"(exports2) {
     "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m2, k, k2) {
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc = Object.getOwnPropertyDescriptor(m2, k);
       if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
@@ -19600,13 +19600,13 @@ var require_core = __commonJS({
         } };
       }
       Object.defineProperty(o, k2, desc);
-    }) : (function(o, m2, k, k2) {
+    } : function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
       o[k2] = m2[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
+    } : function(o, v) {
       o["default"] = v;
     });
     var __importStar = exports2 && exports2.__importStar || function(mod) {
@@ -19735,10 +19735,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       return process.env["RUNNER_DEBUG"] === "1";
     }
     exports2.isDebug = isDebug;
-    function debug(message) {
+    function debug2(message) {
       (0, command_1.issueCommand)("debug", {}, message);
     }
-    exports2.debug = debug;
+    exports2.debug = debug2;
     function error(message, properties = {}) {
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -19816,21 +19816,24 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
   }
 });
 
-// ../src/core/constants.ts
-var CELL_SIZE, GAP_SIZE, GRID_WIDTH, GRID_HEIGHT, PACMAN_COLOR, PACMAN_COLOR_POWERUP, PACMAN_COLOR_DEAD, DELTA_TIME, PACMAN_DEATH_DURATION, PACMAN_POWERUP_DURATION, GITHUB_LIGHT, GITHUB_DARK, BRASA, GAME_THEMES, GHOSTS, WALLS, setWall;
+// src/core/constants.ts
+var CELL_SIZE, GAP_SIZE, GRID_WIDTH, GRID_HEIGHT, TUNNEL_ROW, isTunnelCell, PACMAN_COLOR, PACMAN_COLOR_POWERUP, PACMAN_COLOR_DEAD, DELTA_TIME, PACMAN_DEATH_DURATION, PACMAN_POWERUP_DURATION, POWERUP_FLASH_FRAMES, GITHUB_LIGHT, GITHUB_DARK, BRASA, GAME_THEMES, GHOSTS, WALLS, setWall;
 var init_constants = __esm({
-  "../src/core/constants.ts"() {
+  "src/core/constants.ts"() {
     "use strict";
     CELL_SIZE = 20;
     GAP_SIZE = 2;
     GRID_WIDTH = 53;
     GRID_HEIGHT = 7;
+    TUNNEL_ROW = 3;
+    isTunnelCell = (x2, y) => y === TUNNEL_ROW && (x2 <= 1 || x2 >= GRID_WIDTH - 2);
     PACMAN_COLOR = "yellow";
     PACMAN_COLOR_POWERUP = "red";
     PACMAN_COLOR_DEAD = "#80808064";
     DELTA_TIME = 200;
     PACMAN_DEATH_DURATION = 10;
-    PACMAN_POWERUP_DURATION = 15;
+    PACMAN_POWERUP_DURATION = 30;
+    POWERUP_FLASH_FRAMES = 6;
     GITHUB_LIGHT = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"];
     GITHUB_DARK = [
       "#161b22",
@@ -19847,20 +19850,26 @@ var init_constants = __esm({
         textColor: "#57606a",
         gridBackground: "#ffffff",
         wallColor: "#000000",
-        intensityColors: GITHUB_LIGHT
+        intensityColors: GITHUB_LIGHT,
+        tunnelColor: "#8c959f",
+        tunnelActiveColor: "#00FFFF"
       },
       "github-dark": {
         textColor: "#8b949e",
         gridBackground: "#0d1117",
         wallColor: "#ffffff",
-        intensityColors: GITHUB_DARK
+        intensityColors: GITHUB_DARK,
+        tunnelColor: "#6e7681",
+        tunnelActiveColor: "#00FFFF"
       },
       /* ---------- Brasa (escuro, em laranja) ---------- */
       brasa: {
         textColor: "#988881",
         gridBackground: "#120F0D",
         wallColor: "#FBFAF9",
-        intensityColors: BRASA
+        intensityColors: BRASA,
+        tunnelColor: "#5C4F49",
+        tunnelActiveColor: "#00FFFF"
       }
     };
     GHOSTS = {
@@ -19916,10 +19925,98 @@ var init_constants = __esm({
   }
 });
 
-// ../src/utils/utils.ts
+// src/movement/movement-utils.ts
+var getValidMoves, calculateDistance, dirOf, opposite, getNeighbors, gridDistance, MovementUtils;
+var init_movement_utils = __esm({
+  "src/movement/movement-utils.ts"() {
+    "use strict";
+    init_constants();
+    getValidMoves = (x2, y) => {
+      const directions = [
+        [-1, 0],
+        // left
+        [1, 0],
+        // right
+        [0, -1],
+        // up
+        [0, 1]
+        // down
+      ];
+      return directions.filter(([dx, dy]) => {
+        const newX = x2 + dx;
+        const newY = y + dy;
+        if (newX < 0 || newX >= GRID_WIDTH || newY < 0 || newY >= GRID_HEIGHT) {
+          return false;
+        }
+        if (dx === -1) {
+          return !WALLS.vertical[x2][y].active;
+        } else if (dx === 1) {
+          return !WALLS.vertical[x2 + 1][y].active;
+        } else if (dy === -1) {
+          return !WALLS.horizontal[x2][y].active;
+        } else if (dy === 1) {
+          return !WALLS.horizontal[x2][y + 1].active;
+        }
+        return true;
+      });
+    };
+    calculateDistance = (x1, y1, x2, y2) => {
+      return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    };
+    dirOf = (dx, dy) => dx > 0 ? "right" : dx < 0 ? "left" : dy > 0 ? "down" : "up";
+    opposite = (d) => ({ right: "left", left: "right", up: "down", down: "up" })[d];
+    getNeighbors = (x2, y) => {
+      const res = getValidMoves(x2, y).map(([dx, dy]) => ({ x: x2 + dx, y: y + dy, direction: dirOf(dx, dy) }));
+      if (y === TUNNEL_ROW && x2 === 0) res.push({ x: GRID_WIDTH - 1, y, direction: "left" });
+      if (y === TUNNEL_ROW && x2 === GRID_WIDTH - 1) res.push({ x: 0, y, direction: "right" });
+      return res;
+    };
+    gridDistance = (a, b) => {
+      const direct = Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+      const viaTunnel = Math.min(a.x, b.x) + 1 + (GRID_WIDTH - 1 - Math.max(a.x, b.x)) + Math.abs(a.y - TUNNEL_ROW) + Math.abs(b.y - TUNNEL_ROW);
+      return Math.min(direct, viaTunnel);
+    };
+    MovementUtils = {
+      getValidMoves,
+      calculateDistance,
+      getNeighbors,
+      gridDistance,
+      opposite,
+      /**
+       * Dijkstra de grade 4-direções.
+       * Retorna o PRÓXIMO passo (não a rota inteira) ou null se não houver.
+       */
+      findNextStepDijkstra(start, target) {
+        if (start.x === target.x && start.y === target.y) return null;
+        const pq = [
+          { ...start, cost: 0, path: [] }
+        ];
+        const visited = /* @__PURE__ */ new Set([`${start.x},${start.y}`]);
+        while (pq.length) {
+          pq.sort((a, b) => a.cost - b.cost);
+          const { x: x2, y, cost, path: path2 } = pq.shift();
+          for (const n of getNeighbors(x2, y)) {
+            const nx = n.x, ny = n.y, key2 = `${nx},${ny}`;
+            if (visited.has(key2)) continue;
+            visited.add(key2);
+            const nextCost = cost + 1;
+            const newPath = [...path2, n];
+            if (nx === target.x && ny === target.y) {
+              return newPath[0] ?? null;
+            }
+            pq.push({ x: nx, y: ny, cost: nextCost, path: newPath });
+          }
+        }
+        return null;
+      }
+    };
+  }
+});
+
+// src/utils/utils.ts
 var import_fs, weeksBetween, truncateToUTCDate, getGitlabContribution, getGithubContribution, getCurrentTheme, levelToIndex, buildGrid, buildMonthLabels, createGridFromData, printArena, printArenaAsHTML, Utils;
 var init_utils = __esm({
-  "../src/utils/utils.ts"() {
+  "src/utils/utils.ts"() {
     "use strict";
     init_constants();
     import_fs = require("fs");
@@ -20126,7 +20223,7 @@ var init_utils = __esm({
   }
 });
 
-// ../src/renderers/svg.ts
+// src/renderers/svg.ts
 function mapGhostStateChanges(store, ghostIndex) {
   const stateChanges = {};
   const allPossibleStates = [
@@ -20150,21 +20247,23 @@ function mapGhostStateChanges(store, ghostIndex) {
     "eyes-down",
     "eyes-left",
     "eyes-right",
-    "scared"
+    "scared",
+    "scared-flash"
   ];
+  const stateOf = (g, frameIndex) => g.scared ? g.flashing && frameIndex % 2 === 1 ? "scared-flash" : "scared" : g.name === "eyes" ? `eyes-${g.direction || "right"}` : `${g.name}-${g.direction || "right"}`;
   allPossibleStates.forEach((state) => {
     stateChanges[state] = [{ time: 0, visible: false }];
   });
-  const initialGhost = store.ghosts[ghostIndex];
+  const initialGhost = store.gameHistory[0]?.ghosts[ghostIndex] ?? store.ghosts[ghostIndex];
   if (!initialGhost) return stateChanges;
-  const initialState = initialGhost.scared ? "scared" : initialGhost.name === "eyes" ? `eyes-${initialGhost.direction || "right"}` : `${initialGhost.name}-${initialGhost.direction || "right"}`;
+  const initialState = stateOf(initialGhost, 0);
   stateChanges[initialState] = [{ time: 0, visible: true }];
   let lastState = initialState;
   store.gameHistory.forEach((state, frameIndex) => {
     if (ghostIndex >= state.ghosts.length) return;
     const ghost = state.ghosts[ghostIndex];
     const currentTime = frameIndex / (store.gameHistory.length - 1);
-    const currentState = ghost.scared ? "scared" : ghost.name === "eyes" ? `eyes-${ghost.direction || "right"}` : `${ghost.name}-${ghost.direction || "right"}`;
+    const currentState = stateOf(ghost, frameIndex);
     if (currentState !== lastState) {
       stateChanges[lastState].push({ time: currentTime, visible: false });
       if (!stateChanges[currentState]) {
@@ -20185,12 +20284,52 @@ function mapGhostStateChanges(store, ghostIndex) {
   });
   return stateChanges;
 }
-var generateAnimatedSVG, generatePacManPath, generatePacManPositions, generatePacManRotations, generatePacManColors, generateCellColorValues, generateGhostPositions, generateGhostsPredefinition, generateChangingValuesAnimation, SVG;
+var toPixel, samePos, isWrap, isTeleport, generatePositionAnimation, generateAnimatedSVG, generatePacManPath, generatePacManRotations, generatePacManColors, generateCellColorValues, generateGhostsPredefinition, generateChangingValuesAnimation, SVG;
 var init_svg = __esm({
-  "../src/renderers/svg.ts"() {
+  "src/renderers/svg.ts"() {
     "use strict";
     init_constants();
+    init_movement_utils();
     init_utils();
+    toPixel = (x2, y) => `${x2 * (CELL_SIZE + GAP_SIZE)},${y * (CELL_SIZE + GAP_SIZE) + 15}`;
+    samePos = (a, b) => a.x === b.x && a.y === b.y;
+    isWrap = (a, b) => a.y === b.y && Math.min(a.x, b.x) === 0 && Math.max(a.x, b.x) === GRID_WIDTH - 1;
+    isTeleport = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) > 1;
+    generatePositionAnimation = (points) => {
+      const n = points.length;
+      if (n === 0) return { keyTimes: "0;1", values: "0,0;0,0" };
+      if (n === 1) {
+        const v = toPixel(points[0].x, points[0].y);
+        return { keyTimes: "0;1", values: `${v};${v}` };
+      }
+      const t2 = (i2) => i2 / (n - 1);
+      const fmt = (v) => Number(v.toFixed(6));
+      const keyTimes = [];
+      const values = [];
+      for (let i2 = 0; i2 < n; i2++) {
+        const p = points[i2];
+        if (i2 > 0 && isWrap(points[i2 - 1], p)) {
+          const prev = points[i2 - 1];
+          const mid = (t2(i2 - 1) + t2(i2)) / 2;
+          const exitX = prev.x === 0 ? -1 : GRID_WIDTH;
+          const enterX = p.x === 0 ? -1 : GRID_WIDTH;
+          keyTimes.push(fmt(mid));
+          values.push(toPixel(exitX, p.y));
+          keyTimes.push(fmt(Math.min(mid + 1e-6, t2(i2))));
+          values.push(toPixel(enterX, p.y));
+        } else if (i2 > 0 && isTeleport(points[i2 - 1], p)) {
+          const prev = points[i2 - 1];
+          keyTimes.push(fmt(Math.max(t2(i2 - 1), t2(i2) - 1e-6)));
+          values.push(toPixel(prev.x, prev.y));
+        }
+        const keep = i2 === 0 || i2 === n - 1 || !samePos(p, points[i2 - 1]) || !samePos(p, points[i2 + 1]);
+        if (keep) {
+          keyTimes.push(fmt(t2(i2)));
+          values.push(toPixel(p.x, p.y));
+        }
+      }
+      return { keyTimes: keyTimes.join(";"), values: values.join(";") };
+    };
     generateAnimatedSVG = (store) => {
       const svgWidth = GRID_WIDTH * (CELL_SIZE + GAP_SIZE);
       const svgHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE) + 50;
@@ -20211,6 +20350,8 @@ var init_svg = __esm({
 	</metadata>`;
       svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
       svg += generateGhostsPredefinition();
+      const arenaHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE);
+      svg += `<defs><clipPath id="arena"><rect x="0" y="15" width="${svgWidth}" height="${arenaHeight}"/></clipPath></defs>`;
       let lastMonth = "";
       for (let y = 0; y < GRID_WIDTH; y++) {
         if (store.monthLabels[y] !== lastMonth) {
@@ -20243,8 +20384,18 @@ var init_svg = __esm({
           }
         }
       }
+      const theme = Utils.getCurrentTheme(store);
+      const mouthColors = (mouthX) => generateChangingValuesAnimation(store, store.gameHistory.map((s2) => MovementUtils.gridDistance(s2.pacman, { x: mouthX, y: TUNNEL_ROW }) <= 3 ? theme.tunnelActiveColor : theme.tunnelColor));
+      const mouthY = TUNNEL_ROW * (CELL_SIZE + GAP_SIZE) + 15;
+      for (const [id, mx, rx] of [["tunnel-left", 0, 0], ["tunnel-right", GRID_WIDTH - 1, (GRID_WIDTH - 1) * (CELL_SIZE + GAP_SIZE) + CELL_SIZE - 3]]) {
+        const a = mouthColors(mx);
+        svg += `<rect id="${id}" x="${rx}" y="${mouthY}" width="3" height="${CELL_SIZE}" rx="1.5" fill="${theme.tunnelColor}">
+		  <animate attributeName="fill" dur="${totalDurationMs}ms" repeatCount="indefinite" keyTimes="${a.keyTimes}" values="${a.values}"/>
+		</rect>`;
+      }
+      svg += `<g clip-path="url(#arena)">`;
       const pacmanColorAnimation = generateChangingValuesAnimation(store, generatePacManColors(store));
-      const pacmanPositionAnimation = generateChangingValuesAnimation(store, generatePacManPositions(store));
+      const pacmanPositionAnimation = generatePositionAnimation(store.gameHistory.map((s2) => s2.pacman));
       const pacmanRotationAnimation = generateChangingValuesAnimation(store, generatePacManRotations(store));
       svg += `<path id="pacman" d="${generatePacManPath(0.55)}" fill="${PACMAN_COLOR}">
 	  <animate attributeName="fill" dur="${totalDurationMs}ms" repeatCount="indefinite"
@@ -20262,7 +20413,7 @@ var init_svg = __esm({
 		values="${generatePacManPath(0.55)};${generatePacManPath(0.05)};${generatePacManPath(0.55)}"/>
 	</path>`;
       store.ghosts.forEach((ghost, index) => {
-        const ghostPositionAnimation = generateChangingValuesAnimation(store, generateGhostPositions(store, index));
+        const ghostPositionAnimation = generatePositionAnimation(store.gameHistory.map((s2) => s2.ghosts[index] ?? { x: 0, y: 0 }));
         svg += `<g id="ghost${index}" transform="translate(0,0)">
 		<animateTransform attributeName="transform" type="translate" 
 		  dur="${totalDurationMs}ms" repeatCount="indefinite"
@@ -20285,6 +20436,7 @@ var init_svg = __esm({
         }
         svg += `</g>`;
       });
+      svg += `</g>`;
       const textColor = Utils.getCurrentTheme(store).textColor;
       svg += `
 	<g transform="translate(0, ${svgHeight - 15})">
@@ -20307,13 +20459,6 @@ var init_svg = __esm({
             L ${radius + radius * Math.cos(startAngle)},${radius + radius * Math.sin(startAngle)}
             A ${radius},${radius} 0 1,1 ${radius + radius * Math.cos(endAngle)},${radius + radius * Math.sin(endAngle)}
             Z`;
-    };
-    generatePacManPositions = (store) => {
-      return store.gameHistory.map((state) => {
-        const x2 = state.pacman.x * (CELL_SIZE + GAP_SIZE);
-        const y = state.pacman.y * (CELL_SIZE + GAP_SIZE) + 15;
-        return `${x2},${y}`;
-      });
     };
     generatePacManRotations = (store) => {
       const pivit = CELL_SIZE / 2;
@@ -20346,17 +20491,6 @@ var init_svg = __esm({
     generateCellColorValues = (store, x2, y) => {
       return store.gameHistory.map((state) => state.grid[x2][y].color);
     };
-    generateGhostPositions = (store, ghostIndex) => {
-      return store.gameHistory.map((state) => {
-        if (ghostIndex >= state.ghosts.length) {
-          return "0,0";
-        }
-        const ghost = state.ghosts[ghostIndex];
-        const x2 = ghost.x * (CELL_SIZE + GAP_SIZE);
-        const y = ghost.y * (CELL_SIZE + GAP_SIZE) + 15;
-        return `${x2},${y}`;
-      });
-    };
     generateGhostsPredefinition = () => {
       let defs = `<defs>`;
       ["blinky", "inky", "pinky", "clyde"].forEach((ghostName) => {
@@ -20374,6 +20508,11 @@ var init_svg = __esm({
       defs += `
     <symbol id="ghost-scared" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
         <image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
+    </symbol>`;
+      defs += `
+    <filter id="flash-white"><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/></filter>
+    <symbol id="ghost-scared-flash" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
+        <image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/>
     </symbol>`;
       ["up", "down", "left", "right"].forEach((direction) => {
         if (GHOSTS["eyes"] && direction in GHOSTS["eyes"]) {
@@ -20439,82 +20578,10 @@ var init_svg = __esm({
   }
 });
 
-// ../src/movement/movement-utils.ts
-var getValidMoves, calculateDistance, MovementUtils;
-var init_movement_utils = __esm({
-  "../src/movement/movement-utils.ts"() {
-    "use strict";
-    init_constants();
-    getValidMoves = (x2, y) => {
-      const directions = [
-        [-1, 0],
-        // left
-        [1, 0],
-        // right
-        [0, -1],
-        // up
-        [0, 1]
-        // down
-      ];
-      return directions.filter(([dx, dy]) => {
-        const newX = x2 + dx;
-        const newY = y + dy;
-        if (newX < 0 || newX >= GRID_WIDTH || newY < 0 || newY >= GRID_HEIGHT) {
-          return false;
-        }
-        if (dx === -1) {
-          return !WALLS.vertical[x2][y].active;
-        } else if (dx === 1) {
-          return !WALLS.vertical[x2 + 1][y].active;
-        } else if (dy === -1) {
-          return !WALLS.horizontal[x2][y].active;
-        } else if (dy === 1) {
-          return !WALLS.horizontal[x2][y + 1].active;
-        }
-        return true;
-      });
-    };
-    calculateDistance = (x1, y1, x2, y2) => {
-      return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-    };
-    MovementUtils = {
-      getValidMoves,
-      calculateDistance,
-      /**
-       * Dijkstra de grade 4-direções.
-       * Retorna o PRÓXIMO passo (não a rota inteira) ou null se não houver.
-       */
-      findNextStepDijkstra(start, target) {
-        if (start.x === target.x && start.y === target.y) return null;
-        const pq = [
-          { ...start, cost: 0, path: [] }
-        ];
-        const visited = /* @__PURE__ */ new Set([`${start.x},${start.y}`]);
-        while (pq.length) {
-          pq.sort((a, b) => a.cost - b.cost);
-          const { x: x2, y, cost, path: path2 } = pq.shift();
-          for (const [dx, dy] of getValidMoves(x2, y)) {
-            const nx = x2 + dx, ny = y + dy, key = `${nx},${ny}`;
-            if (visited.has(key)) continue;
-            visited.add(key);
-            const nextCost = cost + 1;
-            const newPath = [...path2, { x: nx, y: ny }];
-            if (nx === target.x && ny === target.y) {
-              return newPath[0] ?? null;
-            }
-            pq.push({ x: nx, y: ny, cost: nextCost, path: newPath });
-          }
-        }
-        return null;
-      }
-    };
-  }
-});
-
-// ../src/movement/ghosts-movement.ts
-var SCATTER_MODE_DURATION, CHASE_MODE_DURATION, SCATTER_CORNERS, currentMode, modeTimer, dotsRemaining, moveGhosts, countRemainingDots, updateGameMode, reverseDirection, moveGhostInHouse, moveGhostToScatterTarget, moveScaredGhost, getValidMovesWithoutReverse, moveEyesToHome, moveGhostWithPersonality, BFSTargetLocation, calculateGhostTarget, getPacmanDirection, getRandomDestination, GhostsMovement;
+// src/movement/ghosts-movement.ts
+var SCATTER_MODE_DURATION, CHASE_MODE_DURATION, SCATTER_CORNERS, moveGhosts, countRemainingDots, updateGameMode, reverseDirection, moveGhostInHouse, moveGhostToScatterTarget, moveScaredGhost, moveEyesToHome, moveGhostWithPersonality, BFSTargetLocation, calculateGhostTarget, getPacmanDirection, GhostsMovement;
 var init_ghosts_movement = __esm({
-  "../src/movement/ghosts-movement.ts"() {
+  "src/movement/ghosts-movement.ts"() {
     "use strict";
     init_constants();
     init_movement_utils();
@@ -20530,19 +20597,8 @@ var init_ghosts_movement = __esm({
       "clyde": { x: 0, y: GRID_HEIGHT - 1 }
       // Canto inferior esquerdo
     };
-    currentMode = "scatter";
-    modeTimer = 0;
-    dotsRemaining = 0;
     moveGhosts = (store) => {
-      dotsRemaining = countRemainingDots(store);
       updateGameMode(store);
-      store.ghosts.forEach((ghost, i2) => {
-        store.__loggedGhosts = store.__loggedGhosts || /* @__PURE__ */ new Set();
-        const key = `${ghost.name}:${ghost.x},${ghost.y}:${ghost.direction}`;
-        if (!store.__loggedGhosts.has(key)) {
-          store.__loggedGhosts.add(key);
-        }
-      });
       for (const ghost of store.ghosts) {
         if (ghost.inHouse) {
           moveGhostInHouse(ghost, store);
@@ -20557,12 +20613,20 @@ var init_ghosts_movement = __esm({
             ghost.scared = store.pacman.powerupRemainingDuration > 0;
           }
         }
+        if (ghost.name !== "eyes") {
+          let every = 1;
+          if (ghost.scared) every *= 2;
+          if (isTunnelCell(ghost.x, ghost.y)) every *= 2;
+          ghost.moveTick = (ghost.moveTick ?? 0) + 1;
+          if (ghost.moveTick < every) continue;
+          ghost.moveTick = 0;
+        }
         if (ghost.scared) {
           moveScaredGhost(ghost, store);
         } else if (ghost.name === "eyes") {
           moveEyesToHome(ghost, store);
         } else {
-          if (currentMode === "scatter") {
+          if (store.game.mode === "scatter") {
             moveGhostToScatterTarget(ghost, store);
           } else {
             moveGhostWithPersonality(ghost, store);
@@ -20583,11 +20647,11 @@ var init_ghosts_movement = __esm({
     };
     updateGameMode = (store) => {
       if (store.pacman.powerupRemainingDuration > 0) return;
-      modeTimer++;
-      const modeDuration = currentMode === "scatter" ? SCATTER_MODE_DURATION : CHASE_MODE_DURATION;
-      if (modeTimer >= modeDuration * (1e3 / 200)) {
-        currentMode = currentMode === "scatter" ? "chase" : "scatter";
-        modeTimer = 0;
+      store.game.modeTimer++;
+      const modeDuration = store.game.mode === "scatter" ? SCATTER_MODE_DURATION : CHASE_MODE_DURATION;
+      if (store.game.modeTimer >= modeDuration * (1e3 / 200)) {
+        store.game.mode = store.game.mode === "scatter" ? "chase" : "scatter";
+        store.game.modeTimer = 0;
         store.ghosts.forEach((ghost) => {
           if (!ghost.inHouse && ghost.name !== "eyes" && !ghost.scared) {
             reverseDirection(ghost);
@@ -20635,7 +20699,8 @@ var init_ghosts_movement = __esm({
           if (ghost.originalName) {
             ghost.name = ghost.originalName;
             ghost.inHouse = false;
-            ghost.scared = store.pacman.powerupRemainingDuration > 0;
+            ghost.scared = false;
+            ghost.flashing = false;
           }
         }
         return;
@@ -20662,7 +20727,7 @@ var init_ghosts_movement = __esm({
     moveGhostToScatterTarget = (ghost, store) => {
       const target = SCATTER_CORNERS[ghost.name] || SCATTER_CORNERS["blinky"];
       ghost.target = target;
-      const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction);
+      const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction, store.rng);
       if (nextMove) {
         ghost.x = nextMove.x;
         ghost.y = nextMove.y;
@@ -20672,43 +20737,28 @@ var init_ghosts_movement = __esm({
       }
     };
     moveScaredGhost = (ghost, store) => {
-      if (!ghost.target || ghost.x === ghost.target.x && ghost.y === ghost.target.y) {
-        ghost.target = getRandomDestination(ghost.x, ghost.y);
-      }
-      const validMoves = getValidMovesWithoutReverse(ghost);
-      if (validMoves.length === 0) return;
-      const dx = ghost.target.x - ghost.x;
-      const dy = ghost.target.y - ghost.y;
-      let possibleMoves = validMoves;
-      if (Math.random() < 0.5) {
-      } else {
-        const goodMoves = validMoves.filter((move) => {
-          const moveX2 = move[0];
-          const moveY2 = move[1];
-          return dx > 0 && moveX2 > 0 || dx < 0 && moveX2 < 0 || dy > 0 && moveY2 > 0 || dy < 0 && moveY2 < 0;
-        });
-        if (goodMoves.length > 0) {
-          possibleMoves = goodMoves;
-        }
-      }
-      const [moveX, moveY] = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-      if (store.pacman.powerupRemainingDuration && Math.random() < 0.6) return;
-      if (moveX > 0) ghost.direction = "right";
-      else if (moveX < 0) ghost.direction = "left";
-      else if (moveY > 0) ghost.direction = "down";
-      else if (moveY < 0) ghost.direction = "up";
-      ghost.x += moveX;
-      ghost.y += moveY;
-    };
-    getValidMovesWithoutReverse = (ghost) => {
-      const validMoves = MovementUtils.getValidMoves(ghost.x, ghost.y);
-      return validMoves.filter((move) => {
-        const [dx, dy] = move;
-        if (ghost.direction === "right" && dx < 0 || ghost.direction === "left" && dx > 0 || ghost.direction === "up" && dy > 0 || ghost.direction === "down" && dy < 0) {
-          return false;
-        }
-        return true;
+      const all = MovementUtils.getNeighbors(ghost.x, ghost.y);
+      const forward = all.filter((n) => n.direction !== MovementUtils.opposite(ghost.direction));
+      const choices = forward.length ? forward : all;
+      if (!choices.length) return;
+      const weights = choices.map((n) => {
+        const flee = MovementUtils.gridDistance(n, store.pacman);
+        const deadEnd = MovementUtils.getNeighbors(n.x, n.y).length <= 1 ? 4 : 0;
+        const noise = store.rng() * 3;
+        const w = Math.max(0.1, flee - deadEnd + noise);
+        return w * w;
       });
+      const total = weights.reduce((a, b) => a + b, 0);
+      let r2 = store.rng() * total;
+      let idx = 0;
+      for (; idx < weights.length - 1; idx++) {
+        r2 -= weights[idx];
+        if (r2 <= 0) break;
+      }
+      const next = choices[idx];
+      ghost.x = next.x;
+      ghost.y = next.y;
+      ghost.direction = next.direction;
     };
     moveEyesToHome = (ghost, store) => {
       const respawnPosition = { x: 26, y: 3 };
@@ -20724,12 +20774,7 @@ var init_ghosts_movement = __esm({
         respawnPosition
       );
       if (nextMove) {
-        const dx = nextMove.x - ghost.x;
-        const dy = nextMove.y - ghost.y;
-        if (dx > 0) ghost.direction = "right";
-        else if (dx < 0) ghost.direction = "left";
-        else if (dy > 0) ghost.direction = "down";
-        else if (dy < 0) ghost.direction = "up";
+        if (nextMove.direction) ghost.direction = nextMove.direction;
         ghost.x = nextMove.x;
         ghost.y = nextMove.y;
       } else {
@@ -20738,7 +20783,8 @@ var init_ghosts_movement = __esm({
           ghost.y,
           respawnPosition.x,
           respawnPosition.y,
-          ghost.direction
+          ghost.direction,
+          store.rng
         );
         if (alternativeMove) {
           ghost.x = alternativeMove.x;
@@ -20756,7 +20802,7 @@ var init_ghosts_movement = __esm({
       }
       const target = calculateGhostTarget(ghost, store);
       ghost.target = target;
-      const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction);
+      const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction, store.rng);
       if (nextMove) {
         ghost.x = nextMove.x;
         ghost.y = nextMove.y;
@@ -20765,7 +20811,7 @@ var init_ghosts_movement = __esm({
         }
       }
     };
-    BFSTargetLocation = (startX, startY, targetX, targetY, currentDirection) => {
+    BFSTargetLocation = (startX, startY, targetX, targetY, currentDirection, rng) => {
       if (startX === targetX && startY === targetY) return null;
       const queue = [
         { x: startX, y: startY, path: [], direction: currentDirection || "right" }
@@ -20775,27 +20821,16 @@ var init_ghosts_movement = __esm({
       while (queue.length > 0) {
         const current = queue.shift();
         const { x: x2, y, path: path2, direction } = current;
-        const validMoves2 = MovementUtils.getValidMoves(x2, y);
-        const filteredMoves = validMoves2.filter((move) => {
-          const [dx, dy] = move;
-          if (!direction) return true;
-          if (direction === "right" && dx < 0 || direction === "left" && dx > 0 || direction === "up" && dy > 0 || direction === "down" && dy < 0) {
-            return validMoves2.length === 1;
-          }
-          return true;
-        });
-        for (const [dx, dy] of filteredMoves) {
-          const newX = x2 + dx;
-          const newY = y + dy;
-          const key = `${newX},${newY}`;
-          if (visited.has(key)) continue;
-          visited.add(key);
-          let newDirection;
-          if (dx > 0) newDirection = "right";
-          else if (dx < 0) newDirection = "left";
-          else if (dy > 0) newDirection = "down";
-          else if (dy < 0) newDirection = "up";
-          else newDirection = direction;
+        const neighbors2 = MovementUtils.getNeighbors(x2, y);
+        const back = MovementUtils.opposite(direction);
+        const filteredMoves = neighbors2.length === 1 ? neighbors2 : neighbors2.filter((n) => n.direction !== back);
+        for (const n of filteredMoves) {
+          const newX = n.x;
+          const newY = n.y;
+          const key2 = `${newX},${newY}`;
+          if (visited.has(key2)) continue;
+          visited.add(key2);
+          const newDirection = n.direction;
           const pathNode = {
             x: newX,
             y: newY,
@@ -20812,19 +20847,9 @@ var init_ghosts_movement = __esm({
           queue.push({ x: newX, y: newY, path: newPath, direction: newDirection });
         }
       }
-      const validMoves = MovementUtils.getValidMoves(startX, startY);
-      if (validMoves.length > 0) {
-        const [dx, dy] = validMoves[Math.floor(Math.random() * validMoves.length)];
-        let direction = currentDirection;
-        if (dx > 0) direction = "right";
-        else if (dx < 0) direction = "left";
-        else if (dy > 0) direction = "down";
-        else if (dy < 0) direction = "up";
-        return {
-          x: startX + dx,
-          y: startY + dy,
-          direction
-        };
+      const neighbors = MovementUtils.getNeighbors(startX, startY);
+      if (neighbors.length > 0) {
+        return neighbors[Math.floor(rng() * neighbors.length)];
       }
       return null;
     };
@@ -20834,6 +20859,7 @@ var init_ghosts_movement = __esm({
       let speedMultiplier = 1;
       if (ghost.name === "blinky") {
         const totalDots = GRID_WIDTH * GRID_HEIGHT;
+        const dotsRemaining = countRemainingDots(store);
         const dotsEaten = totalDots - dotsRemaining;
         const percentageEaten = dotsEaten / totalDots;
         if (percentageEaten > 0.7) {
@@ -20842,7 +20868,7 @@ var init_ghosts_movement = __esm({
         if (percentageEaten > 0.9) {
           speedMultiplier = 1.4;
         }
-        if (Math.random() < 0.8 * speedMultiplier) {
+        if (store.rng() < 0.8 * speedMultiplier) {
           return { x: pacman.x, y: pacman.y };
         }
       }
@@ -20909,361 +20935,291 @@ var init_ghosts_movement = __esm({
           return [0, 0];
       }
     };
-    getRandomDestination = (x2, y) => {
-      const maxDistance = 8;
-      const randomX = x2 + Math.floor(Math.random() * (2 * maxDistance + 1)) - maxDistance;
-      const randomY = y + Math.floor(Math.random() * (2 * maxDistance + 1)) - maxDistance;
-      return {
-        x: Math.max(0, Math.min(randomX, GRID_WIDTH - 1)),
-        y: Math.max(0, Math.min(randomY, GRID_HEIGHT - 1))
-      };
-    };
-    GhostsMovement = {
-      moveGhosts
-    };
+    GhostsMovement = { moveGhosts, moveScaredGhost };
   }
 });
 
-// ../src/types.ts
+// src/types.ts
 var init_types = __esm({
-  "../src/types.ts"() {
+  "src/types.ts"() {
     "use strict";
   }
 });
 
-// ../src/movement/pacman-movement.ts
-function logPacmanBehavior(dangerNearby, chosenPath, safetyScore, pointScore, playerStyle) {
-  if (dangerNearby) {
-    if (Math.abs(safetyScore) > pointScore) {
-      console.log("\u{1F7E2} Pac-Man agiu como Conservador: fugiu do perigo");
-    } else {
-      console.log("\u{1F534} Pac-Man agiu como Agressivo: arriscou perto de fantasma!");
-    }
-  } else {
-    if (pointScore > Math.abs(safetyScore) * 2) {
-      console.log("\u{1F7E0} Pac-Man agiu como Oportunista: buscou pontos em \xE1rea segura");
-    } else if (Math.abs(safetyScore) > pointScore * 2) {
-      console.log("\u{1F7E2} Pac-Man agiu como Conservador: jogou com cautela mesmo sem perigo");
-    } else {
-      console.log("\u{1F7E0} Pac-Man equilibrando seguran\xE7a e pontua\xE7\xE3o (comportamento padr\xE3o)");
-    }
-  }
-}
-function buildPredictiveDanger(store, horizon = 4) {
-  const map = /* @__PURE__ */ new Map();
-  store.ghosts.forEach((g) => {
-    if (g.scared) return;
-    const frontier = [{ x: g.x, y: g.y, d: 0 }];
-    for (const node of frontier) {
-      const key = `${node.x},${node.y}`;
-      const danger = Math.max(0, 15 - node.d * 4);
-      map.set(key, Math.max(map.get(key) ?? 0, danger));
-      if (node.d < horizon) {
-        MovementUtils.getValidMoves(node.x, node.y).forEach(([dx, dy]) => frontier.push({ x: node.x + dx, y: node.y + dy, d: node.d + 1 }));
+// src/utils/min-heap.ts
+var MinHeap;
+var init_min_heap = __esm({
+  "src/utils/min-heap.ts"() {
+    "use strict";
+    MinHeap = class {
+      constructor() {
+        this.items = [];
       }
-    }
-  });
-  return map;
-}
-function getPlayerStyle() {
-  const style = process.env.PLAYER_STYLE?.toLowerCase();
-  const map = {
-    conservador: "conservador" /* CONSERVATIVE */,
-    agressivo: "agressivo" /* AGGRESSIVE */,
-    oportunista: "oportunista" /* OPPORTUNISTIC */
-  };
-  return map[style ?? ""] ?? "oportunista" /* OPPORTUNISTIC */;
-}
-var RECENT_POSITIONS_LIMIT, movePacman, findClosestScaredGhost, findOptimalTarget, calculateOptimalPath, createDangerMap, makeDesperationMove, updatePacmanPosition, checkAndEatPoint, activatePowerUp, PacmanMovement;
+      get size() {
+        return this.items.length;
+      }
+      push(key2, value) {
+        const a = this.items;
+        a.push({ key: key2, value });
+        let i2 = a.length - 1;
+        while (i2 > 0) {
+          const p = i2 - 1 >> 1;
+          if (a[p].key <= a[i2].key) break;
+          [a[p], a[i2]] = [a[i2], a[p]];
+          i2 = p;
+        }
+      }
+      pop() {
+        const a = this.items;
+        if (!a.length) return void 0;
+        const top = a[0].value;
+        const last = a.pop();
+        if (a.length) {
+          a[0] = last;
+          let i2 = 0;
+          for (; ; ) {
+            const l = 2 * i2 + 1, r2 = l + 1;
+            let m2 = i2;
+            if (l < a.length && a[l].key < a[m2].key) m2 = l;
+            if (r2 < a.length && a[r2].key < a[m2].key) m2 = r2;
+            if (m2 === i2) break;
+            [a[m2], a[i2]] = [a[i2], a[m2]];
+            i2 = m2;
+          }
+        }
+        return top;
+      }
+    };
+  }
+});
+
+// src/movement/pacman-movement.ts
+var STYLE_PROFILES, LEVEL_VALUE, DANGER_BASE, DANGER_DECAY, REVISIT_MAX, REVISIT_DECAY_FRAMES, key, getPlayerStyle, debug, dangerFactor, distanceMap, buildDangerMap, revisitPenalty, aStarNextStep, closestDangerousGhost, dynamicWeights, chooseTarget, safestNeighbor, updatePacmanPosition, movePacman, PacmanMovement;
 var init_pacman_movement = __esm({
-  "../src/movement/pacman-movement.ts"() {
+  "src/movement/pacman-movement.ts"() {
     "use strict";
     init_constants();
     init_types();
     init_movement_utils();
-    init_utils();
-    RECENT_POSITIONS_LIMIT = 5;
-    movePacman = (store) => {
-      if (store.pacman.deadRemainingDuration) return;
-      const hasPowerup = !!store.pacman.powerupRemainingDuration;
-      const scaredGhosts = store.ghosts.filter((ghost) => ghost.scared);
-      let targetPosition;
-      try {
-        if (hasPowerup && scaredGhosts.length > 0) {
-          const ghostPosition = findClosestScaredGhost(store);
-          targetPosition = ghostPosition ?? findOptimalTarget(store);
-        } else if (store.pacman.target) {
-          if (store.pacman.x === store.pacman.target.x && store.pacman.y === store.pacman.target.y) {
-            targetPosition = findOptimalTarget(store);
-            store.pacman.target = targetPosition;
-          } else {
-            targetPosition = store.pacman.target;
-          }
-        } else {
-          targetPosition = findOptimalTarget(store);
-          store.pacman.target = targetPosition;
-        }
-        if (!targetPosition) {
-          console.log("\u26A0\uFE0F No valid target found, using current position as target");
-          targetPosition = { x: store.pacman.x, y: store.pacman.y };
-        }
-        const nextPosition = calculateOptimalPath(store, targetPosition);
-        nextPosition ? updatePacmanPosition(store, nextPosition) : makeDesperationMove(store);
-        checkAndEatPoint(store);
-      } catch (error) {
-        console.error("Error in movePacman:", error);
-      }
+    init_min_heap();
+    STYLE_PROFILES = {
+      ["conservador" /* CONSERVATIVE */]: { safety: 3, points: 0.3, horizon: 4, powerupRange: 3 },
+      ["oportunista" /* OPPORTUNISTIC */]: { safety: 1.2, points: 0.9, horizon: 3, powerupRange: 5 },
+      ["agressivo" /* AGGRESSIVE */]: { safety: 0.4, points: 2.5, horizon: 1, powerupRange: 8 }
     };
-    findClosestScaredGhost = (store) => {
-      const scaredGhosts = store.ghosts.filter((g) => g.scared);
-      if (scaredGhosts.length === 0) return null;
-      return scaredGhosts.reduce(
-        (closest, ghost) => {
-          const distance = MovementUtils.calculateDistance(ghost.x, ghost.y, store.pacman.x, store.pacman.y);
-          return distance < closest.distance ? { x: ghost.x, y: ghost.y, distance } : closest;
-        },
-        { x: store.pacman.x, y: store.pacman.y, distance: Infinity }
-      );
+    LEVEL_VALUE = {
+      NONE: 0,
+      FIRST_QUARTILE: 10,
+      SECOND_QUARTILE: 20,
+      THIRD_QUARTILE: 30,
+      FOURTH_QUARTILE: 40
     };
-    findOptimalTarget = (store) => {
-      const potentialTargets = [];
-      const CRITICAL_DISTANCE = 5;
-      const dangerousGhostNearby = store.ghosts.some((ghost) => {
-        if (ghost.scared) return false;
-        const distance = MovementUtils.calculateDistance(ghost.x, ghost.y, store.pacman.x, store.pacman.y);
-        return distance <= CRITICAL_DISTANCE;
-      });
-      for (let x2 = 0; x2 < GRID_WIDTH; x2++) {
-        for (let y = 0; y < GRID_HEIGHT; y++) {
-          const cell = store.grid[x2][y];
-          if (cell.level !== "NONE") {
-            if (cell.level === "FOURTH_QUARTILE") {
-              console.log(`\u{1F50D} Power-up found at (${x2}, ${y}). Dangerous ghost nearby? ${dangerousGhostNearby}`);
-              if (!dangerousGhostNearby) {
-                console.log(`\u26A0\uFE0F Skipping power-up at (${x2}, ${y}) - no nearby threat`);
-                continue;
-              }
-            }
-            const distance = MovementUtils.calculateDistance(x2, y, store.pacman.x, store.pacman.y);
-            const value = cell.commitsCount / (distance + 1);
-            potentialTargets.push({ x: x2, y, value });
+    DANGER_BASE = 15;
+    DANGER_DECAY = 4;
+    REVISIT_MAX = 50;
+    REVISIT_DECAY_FRAMES = 50;
+    key = (x2, y) => `${x2},${y}`;
+    getPlayerStyle = (store) => store.config.playerStyle ?? "oportunista" /* OPPORTUNISTIC */;
+    debug = (store, ...args) => {
+      if (store.config.debug) console.log(...args);
+    };
+    dangerFactor = (g) => g.name === "eyes" || g.inHouse && !g.justReleasedFromHouse ? 0 : !g.scared ? 1 : g.flashing ? 0.5 : 0;
+    distanceMap = (from) => {
+      const dist = /* @__PURE__ */ new Map([[key(from.x, from.y), 0]]);
+      const queue = [{ x: from.x, y: from.y }];
+      for (let i2 = 0; i2 < queue.length; i2++) {
+        const cur = queue[i2];
+        const d = dist.get(key(cur.x, cur.y));
+        for (const n of MovementUtils.getNeighbors(cur.x, cur.y)) {
+          const k = key(n.x, n.y);
+          if (!dist.has(k)) {
+            dist.set(k, d + 1);
+            queue.push(n);
           }
         }
       }
-      potentialTargets.sort((a, b) => b.value - a.value);
-      if (potentialTargets.length === 0) {
-        return { x: store.pacman.x, y: store.pacman.y, value: 0 };
-      }
-      return potentialTargets[0];
+      return dist;
     };
-    calculateOptimalPath = (store, target) => {
-      const queue = [
-        { x: store.pacman.x, y: store.pacman.y, path: [], score: 0 }
-      ];
-      const visited = /* @__PURE__ */ new Set([`${store.pacman.x},${store.pacman.y}`]);
-      const playerStyle = getPlayerStyle();
-      const dangerMap = playerStyle === "agressivo" /* AGGRESSIVE */ ? createDangerMap(store) : buildPredictiveDanger(store);
-      const maxDangerValue = 15;
-      let safetyWeight = 0.5;
-      let pointWeight = 0.5;
-      switch (playerStyle) {
-        case "conservador" /* CONSERVATIVE */:
-          safetyWeight = 3;
-          pointWeight = 0.3;
-          break;
-        case "agressivo" /* AGGRESSIVE */:
-          safetyWeight = 0.4;
-          pointWeight = 2.5;
-          break;
-        case "oportunista" /* OPPORTUNISTIC */:
-        default:
-          safetyWeight = 1.2;
-          pointWeight = 0.9;
-          break;
-      }
-      let closestGhostDistance = Infinity;
-      store.ghosts.forEach((ghost) => {
-        if (!ghost.scared) {
-          const dist = MovementUtils.calculateDistance(
-            store.pacman.x,
-            store.pacman.y,
-            ghost.x,
-            ghost.y
-          );
-          closestGhostDistance = Math.min(closestGhostDistance, dist);
-        }
-      });
-      const dangerThreshold = playerStyle === "conservador" /* CONSERVATIVE */ ? 5 : 7;
-      const dangerNearby = closestGhostDistance < dangerThreshold;
-      if (playerStyle === "conservador" /* CONSERVATIVE */ && dangerNearby) {
-        safetyWeight *= 5;
-      }
-      if (playerStyle === "oportunista" /* OPPORTUNISTIC */ && dangerNearby) {
-        safetyWeight *= 2;
-      }
-      while (queue.length > 0) {
-        queue.sort((a, b) => b.score - a.score);
-        const current = queue.shift();
-        const { x: x2, y, path: path2 } = current;
-        if (x2 === target.x && y === target.y) {
-          if (path2.length > 0) {
-            let totalSafetyScore = 0;
-            let totalPointScore = 0;
-            path2.forEach((point) => {
-              const key = `${point.x},${point.y}`;
-              const danger = dangerMap.get(key) || 0;
-              const points = store.grid[point.x][point.y].commitsCount;
-              totalSafetyScore -= danger * safetyWeight;
-              totalPointScore += points * pointWeight;
-            });
-            logPacmanBehavior(
-              dangerNearby,
-              path2,
-              totalSafetyScore,
-              totalPointScore,
-              playerStyle
-            );
-            store.moveCounter = (store.moveCounter || 0) + 1;
-            if (store.moveCounter % 10 === 0) {
-            }
-            return path2[0];
+    buildDangerMap = (store, horizon) => {
+      const map = /* @__PURE__ */ new Map();
+      const bump = (k, v) => {
+        if (v > (map.get(k) ?? 0)) map.set(k, v);
+      };
+      for (const g of store.ghosts) {
+        const f3 = dangerFactor(g);
+        if (!f3) continue;
+        const seen = /* @__PURE__ */ new Map([[key(g.x, g.y), 0]]);
+        const queue = [{ x: g.x, y: g.y }];
+        bump(key(g.x, g.y), f3 * DANGER_BASE);
+        for (let i2 = 0; i2 < queue.length; i2++) {
+          const cur = queue[i2];
+          const d = seen.get(key(cur.x, cur.y));
+          if (d >= horizon) continue;
+          for (const n of MovementUtils.getNeighbors(cur.x, cur.y)) {
+            const k = key(n.x, n.y);
+            if (seen.has(k)) continue;
+            const nd = d + 1;
+            seen.set(k, nd);
+            queue.push(n);
+            const ahead = d === 0 && n.direction === g.direction;
+            bump(k, f3 * Math.max(0, DANGER_BASE - (ahead ? 0 : nd * DANGER_DECAY)));
           }
-          return null;
         }
-        for (const [dx, dy] of MovementUtils.getValidMoves(x2, y)) {
-          const newX = x2 + dx;
-          const newY = y + dy;
-          const key = `${newX},${newY}`;
-          if (!visited.has(key)) {
-            const newPath = [...path2, { x: newX, y: newY }];
-            const danger = dangerMap.get(key) || 0;
-            const pointValue = store.grid[newX][newY].commitsCount;
-            const distanceToTarget = MovementUtils.calculateDistance(newX, newY, target.x, target.y);
-            const revisitPenalty = store.pacman.recentPositions?.includes(key) ? 100 + danger * 2 : 0;
-            let safetyScore, pointScore, finalScore;
-            if (playerStyle === "conservador" /* CONSERVATIVE */) {
-              safetyScore = (maxDangerValue - danger) * safetyWeight;
-              if (danger >= 5) {
-                safetyScore -= 100;
-              } else {
-                safetyScore += 50;
-              }
-              pointScore = pointValue * pointWeight;
-              const distanceScore = -distanceToTarget / 10;
-              finalScore = safetyScore * 5 + pointScore + distanceScore - revisitPenalty;
-            } else {
-              safetyScore = (maxDangerValue - danger) * safetyWeight;
-              pointScore = pointValue * pointWeight;
-              const distanceScore = -distanceToTarget / 10;
-              finalScore = safetyScore + pointScore + distanceScore - revisitPenalty;
-            }
-            queue.push({
-              x: newX,
-              y: newY,
-              path: newPath,
-              score: finalScore
-            });
-            visited.add(key);
+      }
+      return map;
+    };
+    revisitPenalty = (visitedFrame, frame) => visitedFrame === void 0 ? 0 : REVISIT_MAX * Math.max(0, 1 - (frame - visitedFrame) / REVISIT_DECAY_FRAMES);
+    aStarNextStep = (start, goal, danger, safety, revisit) => {
+      if (start.x === goal.x && start.y === goal.y) return null;
+      const startK = key(start.x, start.y), goalK = key(goal.x, goal.y);
+      const g = /* @__PURE__ */ new Map([[startK, 0]]);
+      const parent = /* @__PURE__ */ new Map();
+      const open = new MinHeap();
+      open.push(MovementUtils.gridDistance(start, goal), { x: start.x, y: start.y, k: startK });
+      const closed = /* @__PURE__ */ new Set();
+      while (open.size) {
+        const cur = open.pop();
+        if (closed.has(cur.k)) continue;
+        closed.add(cur.k);
+        if (cur.k === goalK) {
+          let k = goalK;
+          let step = parent.get(k);
+          while (step.k !== startK) {
+            k = step.k;
+            step = parent.get(k);
+          }
+          return step.step;
+        }
+        for (const n of MovementUtils.getNeighbors(cur.x, cur.y)) {
+          const nk = key(n.x, n.y);
+          if (closed.has(nk)) continue;
+          const cost = g.get(cur.k) + 1 + (danger.get(nk) ?? 0) * safety + revisit(nk);
+          if (cost < (g.get(nk) ?? Infinity)) {
+            g.set(nk, cost);
+            parent.set(nk, { k: cur.k, step: n });
+            open.push(cost + MovementUtils.gridDistance(n, goal), { x: n.x, y: n.y, k: nk });
           }
         }
       }
       return null;
     };
-    createDangerMap = (store) => {
-      const map = /* @__PURE__ */ new Map();
-      const hasPowerup = !!store.pacman.powerupRemainingDuration;
-      store.ghosts.forEach((ghost) => {
-        if (ghost.scared) return;
-        for (let dx = -5; dx <= 5; dx++) {
-          for (let dy = -5; dy <= 5; dy++) {
-            const x2 = ghost.x + dx;
-            const y = ghost.y + dy;
-            if (x2 >= 0 && x2 < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
-              const key = `${x2},${y}`;
-              const distance = Math.abs(dx) + Math.abs(dy);
-              const value = 15 - distance;
-              if (value > 0) {
-                const current = map.get(key) || 0;
-                map.set(key, Math.max(current, value));
-              }
-            }
+    closestDangerousGhost = (store) => {
+      let best = Infinity;
+      for (const g of store.ghosts) if (dangerFactor(g) === 1) best = Math.min(best, MovementUtils.gridDistance(g, store.pacman));
+      return best;
+    };
+    dynamicWeights = (store, p) => {
+      let safety = p.safety, points = p.points;
+      const closest = closestDangerousGhost(store);
+      if (closest <= 3) safety *= 3;
+      else if (closest <= 6) safety *= 1.5;
+      if (store.pacman.powerupRemainingDuration > POWERUP_FLASH_FRAMES) safety *= 0.2;
+      let left = 0;
+      for (let x2 = 0; x2 < GRID_WIDTH; x2++) for (let y = 0; y < GRID_HEIGHT; y++) if (store.grid[x2][y].level !== "NONE") left++;
+      if (left <= 10) points *= 2;
+      return { safety, points };
+    };
+    chooseTarget = (store, dist, danger, p, w) => {
+      const left = store.pacman.powerupRemainingDuration;
+      if (left > POWERUP_FLASH_FRAMES) {
+        let best2 = null, bestD = Infinity;
+        for (const g of store.ghosts) {
+          if (!g.scared || g.inHouse || g.name === "eyes") continue;
+          const d = dist.get(key(g.x, g.y));
+          if (d !== void 0 && d < left && d < bestD) {
+            best2 = { x: g.x, y: g.y };
+            bestD = d;
           }
         }
-      });
-      if (hasPowerup) {
-        for (const [key, value] of map.entries()) {
-          map.set(key, value / 5);
+        if (best2) return best2;
+      }
+      const t2 = store.pacman.target;
+      if (t2 && store.grid[t2.x]?.[t2.y]?.level !== "NONE" && dist.has(key(t2.x, t2.y)) && (danger.get(key(t2.x, t2.y)) ?? 0) < 8) return t2;
+      const threat = closestDangerousGhost(store);
+      let best = null, bestScore = -Infinity;
+      for (let x2 = 0; x2 < GRID_WIDTH; x2++) {
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+          const cell = store.grid[x2][y];
+          if (cell.level === "NONE") continue;
+          const d = dist.get(key(x2, y));
+          if (!d) continue;
+          let value = cell.level === "FOURTH_QUARTILE" ? threat <= p.powerupRange ? 200 : 1 : LEVEL_VALUE[cell.level];
+          value += 5 * MovementUtils.getNeighbors(x2, y).filter((n) => store.grid[n.x][n.y].level !== "NONE").length;
+          const score = value * w.points / d - (danger.get(key(x2, y)) ?? 0) * w.safety * 0.5;
+          if (score > bestScore) {
+            bestScore = score;
+            best = { x: x2, y };
+          }
         }
       }
-      return map;
+      store.pacman.target = best ?? void 0;
+      return best;
     };
-    makeDesperationMove = (store) => {
-      const validMoves = MovementUtils.getValidMoves(store.pacman.x, store.pacman.y);
-      if (validMoves.length === 0) return;
-      const safest = validMoves.reduce(
-        (best, [dx, dy]) => {
-          const newX = store.pacman.x + dx;
-          const newY = store.pacman.y + dy;
-          let minDist = Infinity;
-          store.ghosts.forEach((ghost) => {
-            if (!ghost.scared) {
-              const dist = MovementUtils.calculateDistance(ghost.x, ghost.y, newX, newY);
-              minDist = Math.min(minDist, dist);
-            }
-          });
-          return minDist > best.distance ? { dx, dy, distance: minDist } : best;
-        },
-        { dx: 0, dy: 0, distance: -Infinity }
-      );
-      updatePacmanPosition(store, {
-        x: store.pacman.x + safest.dx,
-        y: store.pacman.y + safest.dy
-      });
+    safestNeighbor = (store, danger) => MovementUtils.getNeighbors(store.pacman.x, store.pacman.y).sort((a, b) => (danger.get(key(a.x, a.y)) ?? 0) - (danger.get(key(b.x, b.y)) ?? 0))[0] ?? null;
+    updatePacmanPosition = (store, step, frame) => {
+      store.pacman.visitedAt[key(store.pacman.x, store.pacman.y)] = frame;
+      store.pacman.x = step.x;
+      store.pacman.y = step.y;
+      store.pacman.direction = step.direction;
     };
-    updatePacmanPosition = (store, position) => {
-      store.pacman.recentPositions ||= [];
-      store.pacman.recentPositions.push(`${position.x},${position.y}`);
-      if (store.pacman.recentPositions.length > RECENT_POSITIONS_LIMIT) {
-        store.pacman.recentPositions.shift();
+    movePacman = (store) => {
+      if (store.pacman.deadRemainingDuration) return;
+      store.pacman.visitedAt ||= {};
+      const profile = STYLE_PROFILES[getPlayerStyle(store)];
+      const weights = dynamicWeights(store, profile);
+      const danger = buildDangerMap(store, profile.horizon);
+      const dist = distanceMap(store.pacman);
+      const target = chooseTarget(store, dist, danger, profile, weights);
+      const frame = store.frameCount;
+      const lethal = /* @__PURE__ */ new Set();
+      for (const g of store.ghosts) if (dangerFactor(g) === 1) {
+        lethal.add(key(g.x, g.y));
+        for (const n of MovementUtils.getNeighbors(g.x, g.y)) if (n.direction === g.direction) lethal.add(key(n.x, n.y));
       }
-      const dx = position.x - store.pacman.x;
-      const dy = position.y - store.pacman.y;
-      store.pacman.direction = dx > 0 ? "right" : dx < 0 ? "left" : dy > 0 ? "down" : dy < 0 ? "up" : store.pacman.direction;
-      store.pacman.x = position.x;
-      store.pacman.y = position.y;
+      const revisit = (k) => lethal.has(k) ? Infinity : revisitPenalty(store.pacman.visitedAt[k], frame);
+      const step = target && aStarNextStep(store.pacman, target, danger, weights.safety, revisit) || safestNeighbor(store, danger);
+      if (step) updatePacmanPosition(store, step, frame);
+      debug(store, `[pacman] f=${frame} alvo=${target ? key(target.x, target.y) : "-"} passo=${step ? key(step.x, step.y) : "-"}`);
     };
-    checkAndEatPoint = (store) => {
-      const cell = store.grid[store.pacman.x][store.pacman.y];
-      if (cell.level !== "NONE") {
-        store.statistics.totalPoints += cell.commitsCount;
-        const theme = Utils.getCurrentTheme(store);
-        if (cell.level === "FOURTH_QUARTILE") {
-          console.log(`\u{1F525} Power-up ativado na c\xE9lula [${store.pacman.x}, ${store.pacman.y}] com n\xEDvel ${cell.level}`);
-          activatePowerUp(store);
-        }
-        cell.level = "NONE";
-        cell.color = theme.intensityColors[0];
-        cell.commitsCount = 0;
-      }
-    };
-    activatePowerUp = (store) => {
-      store.pacman.powerupRemainingDuration = PACMAN_POWERUP_DURATION;
-      store.ghosts.forEach((g) => g.scared = true);
-    };
-    PacmanMovement = {
-      movePacman
-    };
+    PacmanMovement = { movePacman };
   }
 });
 
-// ../src/core/store.ts
+// src/utils/rng.ts
+var hashSeed, createRng, defaultSeed;
+var init_rng = __esm({
+  "src/utils/rng.ts"() {
+    "use strict";
+    hashSeed = (seed) => {
+      let h2 = 2166136261 >>> 0;
+      for (let i2 = 0; i2 < seed.length; i2++) {
+        h2 ^= seed.charCodeAt(i2);
+        h2 = Math.imul(h2, 16777619);
+      }
+      return h2 >>> 0;
+    };
+    createRng = (seed) => {
+      let a = hashSeed(seed);
+      return () => {
+        a = a + 1831565813 | 0;
+        let t2 = Math.imul(a ^ a >>> 15, 1 | a);
+        t2 = t2 + Math.imul(t2 ^ t2 >>> 7, 61 | t2) ^ t2;
+        return ((t2 ^ t2 >>> 14) >>> 0) / 4294967296;
+      };
+    };
+    defaultSeed = (username, date = /* @__PURE__ */ new Date()) => `${username}:${date.toISOString().slice(0, 10)}`;
+  }
+});
+
+// src/core/store.ts
 function registerPacmanDeath(store) {
   store.deathCount = (store.deathCount || 0) + 1;
 }
 var Store;
 var init_store = __esm({
-  "../src/core/store.ts"() {
+  "src/core/store.ts"() {
     "use strict";
+    init_rng();
     Store = {
       frameCount: 0,
       contributions: [],
@@ -21275,7 +21231,7 @@ var init_store = __esm({
         totalPoints: 0,
         deadRemainingDuration: 0,
         powerupRemainingDuration: 0,
-        recentPositions: []
+        visitedAt: {}
       },
       ghosts: [],
       grid: [],
@@ -21285,25 +21241,28 @@ var init_store = __esm({
       // ← corrigido: number, conforme a tipagem de StoreType
       gameHistory: [],
       config: void 0,
-      useGithubThemeColor: true
+      useGithubThemeColor: true,
       // ← nova flag para usar cor real da API
+      rng: createRng("padrao"),
+      // substituído em start() pela semente do usuário
+      game: { frame: 0, combo: 0, mode: "scatter", modeTimer: 0 }
     };
   }
 });
 
-// ../src/core/game.ts
-var frame, POINTS_MAP, GHOST_BASE_POINTS, BASE_DEATH_PENALTY, ghostsEatenInCurrentPowerUp, placePacman, placeGhosts, stopGame, startGame, resetPacman, determineGhostName, pushSnapshot, checkCollisions, updateGame, releaseGhostFromHouse, Game;
+// src/core/game.ts
+var POINTS_MAP, MAX_FRAMES, GHOST_BASE_POINTS, BASE_DEATH_PENALTY, placePacman, placeGhosts, stopGame, initRound, startGame, resetPacman, determineGhostName, pushSnapshot, collideWith, checkCollisions, checkSwapCollisions, eatCell, activatePowerUp, updateGame, releaseGhostFromHouse, Game;
 var init_game = __esm({
-  "../src/core/game.ts"() {
+  "src/core/game.ts"() {
     "use strict";
     init_svg();
     init_constants();
     init_ghosts_movement();
     init_pacman_movement();
+    init_movement_utils();
     init_utils();
     init_store();
     init_types();
-    frame = 0;
     POINTS_MAP = {
       "NONE": 0,
       "FIRST_QUARTILE": 10,
@@ -21311,9 +21270,9 @@ var init_game = __esm({
       "THIRD_QUARTILE": 30,
       "FOURTH_QUARTILE": 40
     };
-    GHOST_BASE_POINTS = 100;
+    MAX_FRAMES = 6e3;
+    GHOST_BASE_POINTS = 200;
     BASE_DEATH_PENALTY = 200;
-    ghostsEatenInCurrentPowerUp = 0;
     placePacman = (store) => {
       store.pacman = {
         x: 0,
@@ -21323,7 +21282,7 @@ var init_game = __esm({
         totalPoints: 0,
         deadRemainingDuration: 0,
         powerupRemainingDuration: 0,
-        recentPositions: []
+        visitedAt: {}
       };
     };
     placeGhosts = (store) => {
@@ -21348,11 +21307,10 @@ var init_game = __esm({
     stopGame = async (store) => {
       clearInterval(store.gameInterval);
     };
-    startGame = async (store) => {
+    initRound = (store) => {
       store.frameCount = 0;
       store.gameHistory = [];
-      store.ghosts.forEach((g) => g.scared = false);
-      ghostsEatenInCurrentPowerUp = 0;
+      store.game = { frame: 0, combo: 0, mode: "scatter", modeTimer: 0 };
       store.statistics = {
         totalPoints: 0,
         ghostsEaten: 0,
@@ -21364,34 +21322,36 @@ var init_game = __esm({
         pointsFromContributions: 0,
         pointsFromGhosts: 0
       };
+      placePacman(store);
+      placeGhosts(store);
+    };
+    startGame = async (store) => {
       store.grid = Utils.createGridFromData(store);
+      initRound(store);
       const remainingCells = () => store.grid.some((row) => row.some((cell) => cell.commitsCount > 0));
-      if (remainingCells()) {
-        placePacman(store);
-        placeGhosts(store);
-      }
       if (store.config.outputFormat === "svg") {
-        while (remainingCells()) {
-          if (frame === 10) releaseGhostFromHouse(store, "pinky");
-          if (frame === 20) releaseGhostFromHouse(store, "inky");
-          if (frame === 30) releaseGhostFromHouse(store, "clyde");
-          await updateGame(store);
-          frame++;
+        while (remainingCells() && store.frameCount < MAX_FRAMES) updateGame(store);
+        if (remainingCells()) {
+          console.warn(`Partida interrompida em ${MAX_FRAMES} frames; c\xE9lulas restantes foram limpas.`);
+          const empty = Utils.getCurrentTheme(store).intensityColors[0];
+          store.grid.forEach((col) => col.forEach((c) => {
+            c.commitsCount = 0;
+            c.level = "NONE";
+            c.color = empty;
+          }));
         }
-        await updateGame(store);
+        updateGame(store);
       } else {
-        setTimeout(() => releaseGhostFromHouse(store, "pinky"), 3e3);
-        setTimeout(() => releaseGhostFromHouse(store, "inky"), 6e3);
-        setTimeout(() => releaseGhostFromHouse(store, "clyde"), 9e3);
         clearInterval(store.gameInterval);
         store.gameInterval = setInterval(() => updateGame(store), DELTA_TIME);
       }
     };
     resetPacman = (store) => {
-      store.pacman.x = 27;
-      store.pacman.y = 7;
+      store.pacman.x = 26;
+      store.pacman.y = 5;
+      store.pacman.target = void 0;
       store.pacman.direction = "right";
-      store.pacman.recentPositions = [];
+      store.pacman.visitedAt = {};
     };
     determineGhostName = (index) => {
       const names = ["blinky", "inky", "pinky", "clyde"];
@@ -21404,83 +21364,135 @@ var init_game = __esm({
         grid: store.grid.map((row) => row.map((col) => ({ ...col })))
       });
     };
+    collideWith = (store, ghost) => {
+      if (store.pacman.powerupRemainingDuration && ghost.scared) {
+        store.game.combo++;
+        if (store.statistics) {
+          store.statistics.ghostsEaten++;
+        }
+        const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, store.game.combo - 1);
+        store.pacman.points += ghostPoints;
+        store.pacman.totalPoints += ghostPoints;
+        if (store.statistics) {
+          store.statistics.totalPoints += ghostPoints;
+          store.statistics.pointsFromGhosts = (store.statistics.pointsFromGhosts || 0) + ghostPoints;
+          store.statistics.highestGhostCombo = Math.max(
+            store.statistics.highestGhostCombo || 0,
+            store.game.combo
+          );
+        }
+        ghost.originalName = ghost.name;
+        ghost.name = "eyes";
+        ghost.scared = false;
+        ghost.flashing = false;
+        ghost.target = { x: 26, y: 3 };
+      } else {
+        store.pacman.points = 0;
+        store.pacman.powerupRemainingDuration = 0;
+        store.ghosts.forEach((g) => {
+          g.scared = false;
+          g.flashing = false;
+        });
+        store.game.combo = 0;
+        if (store.pacman.deadRemainingDuration === 0) {
+          store.pacman.deadRemainingDuration = PACMAN_DEATH_DURATION;
+          registerPacmanDeath(store);
+          const style = store.config.playerStyle || "oportunista" /* OPPORTUNISTIC */;
+          let penalty = BASE_DEATH_PENALTY;
+          switch (style) {
+            case "conservador" /* CONSERVATIVE */:
+              penalty = 150;
+              break;
+            case "agressivo" /* AGGRESSIVE */:
+              penalty = 250;
+              break;
+            case "oportunista" /* OPPORTUNISTIC */:
+            default:
+              penalty = 200;
+              break;
+          }
+          store.pacman.totalPoints = Math.max(0, store.pacman.totalPoints - penalty);
+          if (store.statistics) {
+            store.statistics.deaths = (store.statistics.deaths || 0) + 1;
+            store.statistics.totalPoints = Math.max(0, store.statistics.totalPoints - penalty);
+          }
+        }
+      }
+    };
     checkCollisions = (store) => {
       if (store.pacman.deadRemainingDuration) return;
       store.ghosts.forEach((ghost) => {
-        if (ghost.name === "eyes") return;
-        if (ghost.x === store.pacman.x && ghost.y === store.pacman.y) {
-          if (store.pacman.powerupRemainingDuration && ghost.scared) {
-            ghostsEatenInCurrentPowerUp++;
-            if (store.statistics) {
-              store.statistics.ghostsEaten++;
-            }
-            const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, ghostsEatenInCurrentPowerUp - 1);
-            store.pacman.points += ghostPoints;
-            store.pacman.totalPoints += ghostPoints;
-            if (store.statistics) {
-              store.statistics.totalPoints += ghostPoints;
-              store.statistics.pointsFromGhosts = (store.statistics.pointsFromGhosts || 0) + ghostPoints;
-              store.statistics.highestGhostCombo = Math.max(
-                store.statistics.highestGhostCombo || 0,
-                ghostsEatenInCurrentPowerUp
-              );
-            }
-            ghost.originalName = ghost.name;
-            ghost.name = "eyes";
-            ghost.scared = false;
-            ghost.target = { x: 26, y: 3 };
-          } else {
-            store.pacman.points = 0;
-            store.pacman.powerupRemainingDuration = 0;
-            ghostsEatenInCurrentPowerUp = 0;
-            if (store.pacman.deadRemainingDuration === 0) {
-              store.pacman.deadRemainingDuration = PACMAN_DEATH_DURATION;
-              registerPacmanDeath(store);
-              const style = store.config.playerStyle || "oportunista" /* OPPORTUNISTIC */;
-              let penalty = BASE_DEATH_PENALTY;
-              switch (style) {
-                case "conservador" /* CONSERVATIVE */:
-                  penalty = 150;
-                  break;
-                case "agressivo" /* AGGRESSIVE */:
-                  penalty = 250;
-                  break;
-                case "oportunista" /* OPPORTUNISTIC */:
-                default:
-                  penalty = 200;
-                  break;
-              }
-              store.pacman.totalPoints = Math.max(0, store.pacman.totalPoints - penalty);
-              if (store.statistics) {
-                store.statistics.deaths = (store.statistics.deaths || 0) + 1;
-                store.statistics.totalPoints = Math.max(0, store.statistics.totalPoints - penalty);
-              }
-            }
-          }
-        }
+        if (ghost.name === "eyes" || ghost.inHouse) return;
+        if (ghost.x === store.pacman.x && ghost.y === store.pacman.y) collideWith(store, ghost);
       });
     };
-    updateGame = async (store) => {
+    checkSwapCollisions = (store, pacPrev, ghostsPrev) => {
+      if (store.pacman.deadRemainingDuration) return;
+      store.ghosts.forEach((g, i2) => {
+        const gp = ghostsPrev[i2];
+        if (!gp || g.name === "eyes" || g.inHouse) return;
+        const swapped = gp.x === store.pacman.x && gp.y === store.pacman.y && g.x === pacPrev.x && g.y === pacPrev.y;
+        if (swapped) collideWith(store, g);
+      });
+    };
+    eatCell = (store) => {
+      const cell = store.grid[store.pacman.x]?.[store.pacman.y];
+      if (!cell || cell.level === "NONE") return;
+      const points = POINTS_MAP[cell.level];
+      store.pacman.points += points;
+      store.pacman.totalPoints += points;
+      store.statistics.totalPoints += points;
+      store.statistics.pointsFromContributions = (store.statistics.pointsFromContributions ?? 0) + points;
+      const isPowerUp = cell.level === "FOURTH_QUARTILE";
+      cell.commitsCount = 0;
+      cell.level = "NONE";
+      cell.color = Utils.getCurrentTheme(store).intensityColors[0];
+      if (isPowerUp) activatePowerUp(store);
+    };
+    activatePowerUp = (store) => {
+      if (store.pacman.powerupRemainingDuration === 0) store.game.combo = 0;
+      store.pacman.powerupRemainingDuration = PACMAN_POWERUP_DURATION;
+      store.statistics.powerUpsCollected++;
+      store.ghosts.forEach((g) => {
+        if (g.inHouse || g.name === "eyes") return;
+        if (!g.scared) g.direction = MovementUtils.opposite(g.direction);
+        g.scared = true;
+        g.flashing = false;
+      });
+    };
+    updateGame = (store) => {
       store.frameCount++;
       if (store.frameCount % store.config.gameSpeed !== 0) {
         pushSnapshot(store);
         return;
       }
+      const f3 = store.game.frame;
+      if (f3 === 10) releaseGhostFromHouse(store, "pinky");
+      if (f3 === 20) releaseGhostFromHouse(store, "inky");
+      if (f3 === 30) releaseGhostFromHouse(store, "clyde");
+      store.game.frame++;
       if (store.pacman.deadRemainingDuration > 0) {
         store.pacman.deadRemainingDuration--;
         if (store.pacman.deadRemainingDuration === 0) {
           resetPacman(store);
           placeGhosts(store);
-          frame = 0;
+          store.game.frame = 0;
+          pushSnapshot(store);
+          return;
         }
       }
       if (store.pacman.powerupRemainingDuration > 0) {
         store.pacman.powerupRemainingDuration--;
-        if (store.pacman.powerupRemainingDuration === 0) {
+        const left = store.pacman.powerupRemainingDuration;
+        store.ghosts.forEach((g) => {
+          if (g.scared) g.flashing = left > 0 && left <= POWERUP_FLASH_FRAMES;
+        });
+        if (left === 0) {
           store.ghosts.forEach((g) => {
-            if (g.name !== "eyes") g.scared = false;
+            g.scared = false;
+            g.flashing = false;
           });
-          ghostsEatenInCurrentPowerUp = 0;
+          store.game.combo = 0;
         }
       }
       store.ghosts.forEach((ghost) => {
@@ -21490,7 +21502,8 @@ var init_game = __esm({
             ghost.name = ghost.originalName || determineGhostName(store.ghosts.indexOf(ghost));
             ghost.inHouse = false;
             ghost.isRespawning = false;
-            ghost.scared = store.pacman.powerupRemainingDuration > 0;
+            ghost.scared = false;
+            ghost.flashing = false;
             ghost.justReleasedFromHouse = true;
             ghost.confusionFrames = 30;
           }
@@ -21520,35 +21533,16 @@ var init_game = __esm({
         store.config.gameOverCallback();
         return;
       }
+      const pacPrev = { x: store.pacman.x, y: store.pacman.y };
       PacmanMovement.movePacman(store);
-      const cell = store.grid[store.pacman.x]?.[store.pacman.y];
-      if (cell && cell.commitsCount > 0) {
-        const cellPoints = POINTS_MAP[cell.level] || 0;
-        store.pacman.points += cellPoints;
-        store.pacman.totalPoints += cellPoints;
-        if (store.statistics) {
-          store.statistics.totalPoints += cellPoints;
-          store.statistics.pointsFromContributions = (store.statistics.pointsFromContributions || 0) + cellPoints;
-        }
-        if (cell.level === "FOURTH_QUARTILE" && store.pacman.powerupRemainingDuration === 0) {
-          if (store.statistics) {
-            store.statistics.powerUpsCollected++;
-          }
-          store.pacman.powerupRemainingDuration = 30;
-          store.ghosts.forEach((g) => {
-            if (g.name !== "eyes") g.scared = true;
-          });
-          ghostsEatenInCurrentPowerUp = 0;
-        }
-        cell.commitsCount = 0;
-        cell.level = "NONE";
-        cell.color = Utils.getCurrentTheme(store).intensityColors[0];
-      }
+      eatCell(store);
       checkCollisions(store);
+      const ghostsPrev = store.ghosts.map((g) => ({ x: g.x, y: g.y }));
       if (store.pacman.deadRemainingDuration === 0) {
         GhostsMovement.moveGhosts(store);
         checkCollisions(store);
       }
+      checkSwapCollisions(store, pacPrev, ghostsPrev);
       store.pacmanMouthOpen = !store.pacmanMouthOpen;
       pushSnapshot(store);
     };
@@ -21562,14 +21556,14 @@ var init_game = __esm({
         ghost.confusionFrames = 30;
       }
     };
-    Game = { startGame, stopGame };
+    Game = { startGame, stopGame, initRound, step: updateGame, eatCell, checkCollisions, checkSwapCollisions };
   }
 });
 
-// ../src/utils/grid.ts
+// src/utils/grid.ts
 var setSymmetricWall, buildWalls, Grid;
 var init_grid = __esm({
-  "../src/utils/grid.ts"() {
+  "src/utils/grid.ts"() {
     "use strict";
     init_constants();
     setSymmetricWall = (x2, y, direction, sym, lineId) => {
@@ -21668,7 +21662,7 @@ var init_grid = __esm({
   }
 });
 
-// ../node_modules/.pnpm/data-uri-to-buffer@4.0.1/node_modules/data-uri-to-buffer/dist/index.js
+// node_modules/.pnpm/data-uri-to-buffer@4.0.1/node_modules/data-uri-to-buffer/dist/index.js
 function dataUriToBuffer(uri) {
   if (!/^data:/i.test(uri)) {
     throw new TypeError('`uri` does not appear to be a Data URI (must begin with "data:")');
@@ -21707,17 +21701,17 @@ function dataUriToBuffer(uri) {
 }
 var dist_default;
 var init_dist = __esm({
-  "../node_modules/.pnpm/data-uri-to-buffer@4.0.1/node_modules/data-uri-to-buffer/dist/index.js"() {
+  "node_modules/.pnpm/data-uri-to-buffer@4.0.1/node_modules/data-uri-to-buffer/dist/index.js"() {
     dist_default = dataUriToBuffer;
   }
 });
 
-// ../node_modules/.pnpm/web-streams-polyfill@3.3.3/node_modules/web-streams-polyfill/dist/ponyfill.es2018.js
+// node_modules/.pnpm/web-streams-polyfill@3.3.3/node_modules/web-streams-polyfill/dist/ponyfill.es2018.js
 var require_ponyfill_es2018 = __commonJS({
-  "../node_modules/.pnpm/web-streams-polyfill@3.3.3/node_modules/web-streams-polyfill/dist/ponyfill.es2018.js"(exports2, module2) {
+  "node_modules/.pnpm/web-streams-polyfill@3.3.3/node_modules/web-streams-polyfill/dist/ponyfill.es2018.js"(exports2, module2) {
     (function(global2, factory) {
       typeof exports2 === "object" && typeof module2 !== "undefined" ? factory(exports2) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, factory(global2.WebStreamsPolyfill = {}));
-    })(exports2, (function(exports3) {
+    })(exports2, function(exports3) {
       "use strict";
       function noop2() {
         return void 0;
@@ -22322,9 +22316,9 @@ var require_ponyfill_es2018 = __commonJS({
         const syncIterable = {
           [Symbol.iterator]: () => syncIteratorRecord.iterator
         };
-        const asyncIterator = (async function* () {
+        const asyncIterator = async function* () {
           return yield* syncIterable;
-        })();
+        }();
         const nextMethod = asyncIterator.next;
         return { iterator: asyncIterator, nextMethod, done: false };
       }
@@ -25983,13 +25977,13 @@ var require_ponyfill_es2018 = __commonJS({
       exports3.WritableStream = WritableStream;
       exports3.WritableStreamDefaultController = WritableStreamDefaultController;
       exports3.WritableStreamDefaultWriter = WritableStreamDefaultWriter;
-    }));
+    });
   }
 });
 
-// ../node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/streams.cjs
+// node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/streams.cjs
 var require_streams = __commonJS({
-  "../node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/streams.cjs"() {
+  "node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/streams.cjs"() {
     var POOL_SIZE2 = 65536;
     if (!globalThis.ReadableStream) {
       try {
@@ -26033,7 +26027,7 @@ var require_streams = __commonJS({
   }
 });
 
-// ../node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/index.js
+// node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/index.js
 async function* toIterator(parts, clone2 = true) {
   for (const part of parts) {
     if ("stream" in part) {
@@ -26070,7 +26064,7 @@ async function* toIterator(parts, clone2 = true) {
 }
 var import_streams, POOL_SIZE, _Blob, Blob3, fetch_blob_default;
 var init_fetch_blob = __esm({
-  "../node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/index.js"() {
+  "node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/index.js"() {
     import_streams = __toESM(require_streams(), 1);
     POOL_SIZE = 65536;
     _Blob = class Blob2 {
@@ -26237,10 +26231,10 @@ var init_fetch_blob = __esm({
   }
 });
 
-// ../node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/file.js
+// node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/file.js
 var _File, File2, file_default;
 var init_file = __esm({
-  "../node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/file.js"() {
+  "node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/file.js"() {
     init_fetch_blob();
     _File = class File extends fetch_blob_default {
       #lastModified = 0;
@@ -26281,7 +26275,7 @@ var init_file = __esm({
   }
 });
 
-// ../node_modules/.pnpm/formdata-polyfill@4.0.10/node_modules/formdata-polyfill/esm.min.js
+// node_modules/.pnpm/formdata-polyfill@4.0.10/node_modules/formdata-polyfill/esm.min.js
 function formDataToBlob(F2, B = fetch_blob_default) {
   var b = `${r()}${r()}`.replace(/\./g, "").slice(-28).padStart(32, "-"), c = [], p = `--${b}\r
 Content-Disposition: form-data; name="`;
@@ -26297,7 +26291,7 @@ Content-Type: ${v.type || "application/octet-stream"}\r
 }
 var t, i, h, r, m, f, e, x, FormData;
 var init_esm_min = __esm({
-  "../node_modules/.pnpm/formdata-polyfill@4.0.10/node_modules/formdata-polyfill/esm.min.js"() {
+  "node_modules/.pnpm/formdata-polyfill@4.0.10/node_modules/formdata-polyfill/esm.min.js"() {
     init_fetch_blob();
     init_file();
     ({ toStringTag: t, iterator: i, hasInstance: h } = Symbol);
@@ -26378,10 +26372,10 @@ var init_esm_min = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/base.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/base.js
 var FetchBaseError;
 var init_base = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/base.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/base.js"() {
     FetchBaseError = class extends Error {
       constructor(message, type) {
         super(message);
@@ -26398,10 +26392,10 @@ var init_base = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/fetch-error.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/fetch-error.js
 var FetchError;
 var init_fetch_error = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/fetch-error.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/fetch-error.js"() {
     init_base();
     FetchError = class extends FetchBaseError {
       /**
@@ -26420,10 +26414,10 @@ var init_fetch_error = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/is.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/is.js
 var NAME, isURLSearchParameters, isBlob, isAbortSignal, isDomainOrSubdomain, isSameProtocol;
 var init_is = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/is.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/is.js"() {
     NAME = Symbol.toStringTag;
     isURLSearchParameters = (object) => {
       return typeof object === "object" && typeof object.append === "function" && typeof object.delete === "function" && typeof object.get === "function" && typeof object.getAll === "function" && typeof object.has === "function" && typeof object.set === "function" && typeof object.sort === "function" && object[NAME] === "URLSearchParams";
@@ -26447,9 +26441,9 @@ var init_is = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-domexception@1.0.0/node_modules/node-domexception/index.js
+// node_modules/.pnpm/node-domexception@1.0.0/node_modules/node-domexception/index.js
 var require_node_domexception = __commonJS({
-  "../node_modules/.pnpm/node-domexception@1.0.0/node_modules/node-domexception/index.js"(exports2, module2) {
+  "node_modules/.pnpm/node-domexception@1.0.0/node_modules/node-domexception/index.js"(exports2, module2) {
     if (!globalThis.DOMException) {
       try {
         const { MessageChannel } = require("worker_threads"), port = new MessageChannel().port1, ab = new ArrayBuffer();
@@ -26462,10 +26456,10 @@ var require_node_domexception = __commonJS({
   }
 });
 
-// ../node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/from.js
+// node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/from.js
 var import_node_fs, import_node_domexception, stat;
 var init_from = __esm({
-  "../node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/from.js"() {
+  "node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/from.js"() {
     import_node_fs = require("node:fs");
     import_node_domexception = __toESM(require_node_domexception(), 1);
     init_file();
@@ -26474,7 +26468,7 @@ var init_from = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/multipart-parser.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/multipart-parser.js
 var multipart_parser_exports = {};
 __export(multipart_parser_exports, {
   toFormData: () => toFormData
@@ -26568,7 +26562,7 @@ async function toFormData(Body2, ct) {
 }
 var s, S, f2, F, LF, CR, SPACE, HYPHEN, COLON, A, Z, lower, noop, MultipartParser;
 var init_multipart_parser = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/multipart-parser.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/multipart-parser.js"() {
     init_from();
     init_esm_min();
     s = 0;
@@ -26836,7 +26830,7 @@ var init_multipart_parser = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/body.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/body.js
 async function consumeBody(data) {
   if (data[INTERNALS].disturbed) {
     throw new TypeError(`body used already for: ${data.url}`);
@@ -26883,7 +26877,7 @@ async function consumeBody(data) {
 }
 var import_node_stream, import_node_util, import_node_buffer, pipeline, INTERNALS, Body, clone, getNonSpecFormDataBoundary, extractContentType, getTotalBytes, writeToStream;
 var init_body = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/body.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/body.js"() {
     import_node_stream = __toESM(require("node:stream"), 1);
     import_node_util = require("node:util");
     import_node_buffer = require("node:buffer");
@@ -27094,7 +27088,7 @@ var init_body = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/headers.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/headers.js
 function fromRawHeaders(headers = []) {
   return new Headers(
     headers.reduce((result, value, index, array) => {
@@ -27115,7 +27109,7 @@ function fromRawHeaders(headers = []) {
 }
 var import_node_util2, import_node_http, validateHeaderName, validateHeaderValue, Headers;
 var init_headers = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/headers.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/headers.js"() {
     import_node_util2 = require("node:util");
     import_node_http = __toESM(require("node:http"), 1);
     validateHeaderName = typeof import_node_http.default.validateHeaderName === "function" ? import_node_http.default.validateHeaderName : (name) => {
@@ -27255,8 +27249,8 @@ var init_headers = __esm({
        * @returns {Record<string, string[]>}
        */
       raw() {
-        return [...this.keys()].reduce((result, key) => {
-          result[key] = this.getAll(key);
+        return [...this.keys()].reduce((result, key2) => {
+          result[key2] = this.getAll(key2);
           return result;
         }, {});
       }
@@ -27264,12 +27258,12 @@ var init_headers = __esm({
        * For better console.log(headers) and also to convert Headers into Node.js Request compatible format
        */
       [Symbol.for("nodejs.util.inspect.custom")]() {
-        return [...this.keys()].reduce((result, key) => {
-          const values = this.getAll(key);
-          if (key === "host") {
-            result[key] = values[0];
+        return [...this.keys()].reduce((result, key2) => {
+          const values = this.getAll(key2);
+          if (key2 === "host") {
+            result[key2] = values[0];
           } else {
-            result[key] = values.length > 1 ? values : values[0];
+            result[key2] = values.length > 1 ? values : values[0];
           }
           return result;
         }, {});
@@ -27285,10 +27279,10 @@ var init_headers = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/is-redirect.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/is-redirect.js
 var redirectStatus, isRedirect;
 var init_is_redirect = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/is-redirect.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/is-redirect.js"() {
     redirectStatus = /* @__PURE__ */ new Set([301, 302, 303, 307, 308]);
     isRedirect = (code) => {
       return redirectStatus.has(code);
@@ -27296,10 +27290,10 @@ var init_is_redirect = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/response.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/response.js
 var INTERNALS2, Response;
 var init_response = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/response.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/response.js"() {
     init_headers();
     init_body();
     init_is_redirect();
@@ -27422,10 +27416,10 @@ var init_response = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/get-search.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/get-search.js
 var getSearch;
 var init_get_search = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/get-search.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/get-search.js"() {
     getSearch = (parsedURL) => {
       if (parsedURL.search) {
         return parsedURL.search;
@@ -27437,7 +27431,7 @@ var init_get_search = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/referrer.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/referrer.js
 function stripURLForUseAsAReferrer(url, originOnly = false) {
   if (url == null) {
     return "no-referrer";
@@ -27565,7 +27559,7 @@ function parseReferrerPolicyFromHeader(headers) {
 }
 var import_node_net, ReferrerPolicy, DEFAULT_REFERRER_POLICY;
 var init_referrer = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/referrer.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/utils/referrer.js"() {
     import_node_net = require("node:net");
     ReferrerPolicy = /* @__PURE__ */ new Set([
       "",
@@ -27582,10 +27576,10 @@ var init_referrer = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/request.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/request.js
 var import_node_url, import_node_util3, INTERNALS3, isRequest, doBadDataWarn, Request, getNodeRequestOptions;
 var init_request = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/request.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/request.js"() {
     import_node_url = require("node:url");
     import_node_util3 = require("node:util");
     init_headers();
@@ -27787,10 +27781,10 @@ var init_request = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/abort-error.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/abort-error.js
 var AbortError;
 var init_abort_error = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/abort-error.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/errors/abort-error.js"() {
     init_base();
     AbortError = class extends FetchBaseError {
       constructor(message, type = "aborted") {
@@ -27800,7 +27794,7 @@ var init_abort_error = __esm({
   }
 });
 
-// ../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js
+// node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js
 async function fetch2(url, options_) {
   return new Promise((resolve, reject) => {
     const request = new Request(url, options_);
@@ -28064,7 +28058,7 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 }
 var import_node_http2, import_node_https, import_node_zlib, import_node_stream2, import_node_buffer2, supportedSchemas;
 var init_src = __esm({
-  "../node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js"() {
     import_node_http2 = __toESM(require("node:http"), 1);
     import_node_https = __toESM(require("node:https"), 1);
     import_node_zlib = __toESM(require("node:zlib"), 1);
@@ -28086,7 +28080,7 @@ var init_src = __esm({
   }
 });
 
-// ../src/providers/github-contributions.ts
+// src/providers/github-contributions.ts
 async function fetchGithubContributionsGraphQL(store, username, token) {
   const query = (
     /* GraphQL */
@@ -28135,27 +28129,28 @@ async function fetchGithubContributionsGraphQL(store, username, token) {
   });
 }
 var init_github_contributions = __esm({
-  "../src/providers/github-contributions.ts"() {
+  "src/providers/github-contributions.ts"() {
     "use strict";
     init_src();
     init_utils();
   }
 });
 
-// ../src/index.ts
+// src/index.ts
 var src_exports = {};
 __export(src_exports, {
   PacmanRenderer: () => PacmanRenderer
 });
 var PacmanRenderer;
 var init_src2 = __esm({
-  "../src/index.ts"() {
+  "src/index.ts"() {
     "use strict";
     init_game();
     init_grid();
     init_store();
     init_utils();
     init_github_contributions();
+    init_rng();
     PacmanRenderer = class {
       constructor(conf) {
         this.conf = { ...conf };
@@ -28177,6 +28172,7 @@ var init_src2 = __esm({
         };
         this.store = JSON.parse(JSON.stringify(Store));
         this.store.config = { ...defaultConfig, ...this.conf };
+        this.store.rng = createRng(this.store.config.seed ?? defaultSeed(this.store.config.username));
         switch (this.store.config.platform) {
           case "github":
             if (this.store.config.githubSettings?.accessToken) {
@@ -28211,7 +28207,7 @@ var init_src2 = __esm({
   }
 });
 
-// src/index.js
+// github-action/src/index.js
 var core = require_core();
 var fs2 = require("fs");
 var path = require("path");
@@ -28226,7 +28222,7 @@ async function generateSvg(username, token, theme, playerStyle) {
       outputFormat: "svg",
       gameSpeed: 1,
       githubSettings: { accessToken: token },
-      playerStyle: "oportunista",
+      playerStyle,
       svgCallback: (svg) => {
         generatedSvg = svg;
       },
@@ -28262,7 +28258,6 @@ run();
 /*! Bundled license information:
 
 undici/lib/fetch/body.js:
-formdata-polyfill/esm.min.js:
   (*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> *)
 
 undici/lib/websocket/frame.js:
@@ -28279,6 +28274,9 @@ web-streams-polyfill/dist/ponyfill.es2018.js:
 
 fetch-blob/index.js:
   (*! fetch-blob. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> *)
+
+formdata-polyfill/esm.min.js:
+  (*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> *)
 
 node-domexception/index.js:
   (*! node-domexception. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> *)
