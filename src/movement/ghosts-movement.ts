@@ -15,17 +15,6 @@ const SCATTER_CORNERS: Record<string, Point2d> = {
 const moveGhosts = (store: StoreType) => {
     // Atualizar o modo de jogo (scatter ou chase)
     updateGameMode(store);
-    
-    // Log de diagnóstico para rastrear o movimento dos fantasmas
-    store.ghosts.forEach((ghost, i) => {
-        // Use uma estrutura de conjunto para evitar logs duplicados
-        store.__loggedGhosts = store.__loggedGhosts || new Set();
-        const key = `${ghost.name}:${ghost.x},${ghost.y}:${ghost.direction}`;
-        if (!store.__loggedGhosts.has(key)) {
-            // console.log(`Ghost ${ghost.name} at (${ghost.x},${ghost.y}) moving ${ghost.direction}`);
-            store.__loggedGhosts.add(key);
-        }
-    });
 
     for (const ghost of store.ghosts) {
         // Lógica especial para fantasmas dentro da casa

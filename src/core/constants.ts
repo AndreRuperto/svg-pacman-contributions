@@ -130,16 +130,3 @@ export const WALLS: {
 	  }
 	}
   };
-
-export const hasWall = (x: number, y: number, direction: 'up' | 'down' | 'left' | 'right'): boolean => {
-	switch (direction) {
-		case 'up':
-			return WALLS.horizontal[x][y].active;
-		case 'down':
-			return WALLS.horizontal[x + 1][y].active;
-		case 'left':
-			return WALLS.vertical[x][y].active;
-		case 'right':
-			return WALLS.vertical[x][y + 1].active;
-	}
-};
