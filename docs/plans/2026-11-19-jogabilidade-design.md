@@ -24,7 +24,7 @@ Cobre os itens 4, 6, 7, 8, 9 e 10 do `TODO2.TXT`, mais bugs encontrados na leitu
   - assusta só fantasmas fora da casa e que não são `eyes`.
 - **Combo** 200 → 400 → 800 → 1600; zera quando o power-up acaba ou o Pac-Man morre.
 - **Piscar**: nos últimos 6 frames os fantasmas assustados alternam visual (estado novo `flashing` no snapshot/renderer).
-- **Correções**: renascimento em `(27, 3)`; estilo vindo de `store.config.playerStyle`; Action repassa `player_style`.
+- **Correções**: renascimento em `(26, 5)` (logo abaixo da casa dos fantasmas, que ocupa x 25–27, y 2–3); estilo vindo de `store.config.playerStyle`; Action repassa `player_style`.
 - **RNG com semente**: mulberry32 em `src/utils/rng.ts`, instância em `store.rng`. Semente padrão = hash de `username + data (AAAA-MM-DD)`; `config.seed` opcional sobrepõe.
 - **Testes**: Vitest (`pnpm test`).
 
