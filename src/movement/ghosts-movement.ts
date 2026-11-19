@@ -141,7 +141,8 @@ const moveGhostInHouse = (ghost: Ghost, store: StoreType) => {
             if (ghost.originalName) {
                 ghost.name = ghost.originalName;
                 ghost.inHouse = false;
-                ghost.scared = store.pacman.powerupRemainingDuration > 0;
+                ghost.scared = false;
+                ghost.flashing = false;
                 // console.log(`Ghost respawned as ${ghost.name}`);
             }
         }

@@ -101,8 +101,8 @@ const startGame = async (store: StoreType) => {
 /* ---------- utilidades ---------- */
 
 const resetPacman = (store: StoreType) => {
-  store.pacman.x = 27;
-  store.pacman.y = 7;
+  store.pacman.x = 26;
+  store.pacman.y = 5;
   store.pacman.direction = 'right';
   store.pacman.recentPositions = [];
 };
@@ -263,6 +263,8 @@ const updateGame = (store: StoreType) => {
       resetPacman(store);
       placeGhosts(store);
       store.game.frame = 0;
+      pushSnapshot(store); // quadro do renascimento: todos parados na posição inicial
+      return;
     }
   }
 
@@ -284,7 +286,8 @@ const updateGame = (store: StoreType) => {
         ghost.name = ghost.originalName || determineGhostName(store.ghosts.indexOf(ghost));
         ghost.inHouse = false;
         ghost.isRespawning = false;
-        ghost.scared = store.pacman.powerupRemainingDuration > 0;
+        ghost.scared = false;
+        ghost.flashing = false;
         ghost.justReleasedFromHouse = true;
         ghost.confusionFrames = 30;
       }

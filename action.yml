@@ -17,6 +17,10 @@ inputs:
     description: 'Pasta de saída dos SVGs'
     required: false
     default: 'dist'
+  player_style:
+    description: 'Estilo do Pac-Man (oportunista, conservador, agressivo)'
+    required: false
+    default: 'oportunista'
 
 runs:
   using: node20

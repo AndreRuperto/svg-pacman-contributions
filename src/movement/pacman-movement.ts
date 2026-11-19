@@ -128,7 +128,7 @@ const calculateOptimalPath = (store: StoreType, target: Point2d) => {
 	  { x: store.pacman.x, y: store.pacman.y, path: [], score: 0 }
 	];
 	const visited = new Set<string>([`${store.pacman.x},${store.pacman.y}`]);
-	const playerStyle = getPlayerStyle();
+	const playerStyle = getPlayerStyle(store);
 	const dangerMap =
 		playerStyle === PlayerStyle.AGGRESSIVE
 			? createDangerMap(store)                 // agressivo continua só posição atual
@@ -382,16 +382,8 @@ const updatePacmanPosition = (store: StoreType, position: Point2d) => {
 	store.pacman.y = position.y;
 };
 
-function getPlayerStyle(): PlayerStyle {
-	const style = process.env.PLAYER_STYLE?.toLowerCase();
-	const map: Record<string, PlayerStyle> = {
-		conservador: PlayerStyle.CONSERVATIVE,
-		agressivo: PlayerStyle.AGGRESSIVE,
-		oportunista: PlayerStyle.OPPORTUNISTIC,
-	};
-
-	return map[style ?? ''] ?? PlayerStyle.OPPORTUNISTIC;
-};
+export const getPlayerStyle = (store: StoreType): PlayerStyle =>
+	store.config.playerStyle ?? PlayerStyle.OPPORTUNISTIC;
 
 export const PacmanMovement = {
 	movePacman
