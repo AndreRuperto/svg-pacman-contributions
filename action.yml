@@ -10,7 +10,7 @@ inputs:
     description: 'Token GitHub'
     required: true
   theme:
-    description: 'Tema (github, github-dark, gitlab, gitlab-dark)'
+    description: 'Tema (github, github-dark, brasa)'
     required: false
     default: 'github-dark'
   output_directory:

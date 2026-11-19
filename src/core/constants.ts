@@ -24,6 +24,8 @@ export const PACMAN_POWERUP_DURATION = 15;
    Array de 5 cores: índice 0 = NONE … 4 = FOURTH_QUARTILE             */
 const GITHUB_LIGHT = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
 const GITHUB_DARK  = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'/*'#FD0000'*/];
+/* Carvão → laranja Brasa, a paleta do portfólio andreruperto.dev */
+const BRASA        = ['#1A1614', '#5C2D0F', '#994B19', '#CC6521', '#FF7E29'];
 
 /* ───────────── Temas do jogo ───────────── */
 export const GAME_THEMES: { [key in ThemeKeys]: GameTheme } = {
@@ -39,6 +41,13 @@ export const GAME_THEMES: { [key in ThemeKeys]: GameTheme } = {
     gridBackground: '#0d1117',
     wallColor:      '#ffffff',
     intensityColors: GITHUB_DARK
+  },
+  /* ---------- Brasa (escuro, em laranja) ---------- */
+  brasa: {
+    textColor:      '#988881',
+    gridBackground: '#120F0D',
+    wallColor:      '#FBFAF9',
+    intensityColors: BRASA
   }
 };
 

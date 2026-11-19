@@ -106,7 +106,7 @@ Esses níveis são relativos ao padrão de contribuições de cada usuário e ca
 | Opção           | Descrição                               | Padrão         | Valores Possíveis                            |
 |----------------|------------------------------------------|----------------|-----------------------------------------------|
 | `username`     | Nome de usuário do GitHub                | (obrigatório)  | Qualquer nome de usuário válido do GitHub     |
-| `theme`        | Tema de cores                            | `github-dark`  | `github`, `github-dark`                       |
+| `theme`        | Tema de cores                            | `github-dark`  | `github`, `github-dark`, `brasa`              |
 | `outputDirectory` | Pasta de saída do SVG                 | `dist`         | Qualquer string válida para caminho local     |
 | `githubToken`  | Token do GitHub para acesso à API        | `GITHUB_TOKEN` | Token pessoal válido (com permissão de leitura pública) |
 | `playerStyle`  | Estilo do Pacman                         | `oportunista`  | `oportunista`, `agressivo`, `conservador`     |
