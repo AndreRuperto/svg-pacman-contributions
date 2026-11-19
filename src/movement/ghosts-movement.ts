@@ -208,52 +208,31 @@ const moveGhostToScatterTarget = (ghost: Ghost, store: StoreType) => {
     }
 };
 
-// When scared, ghosts move randomly but with some intelligence
+/** Foge do Pac-Man com ruído: maioria das vezes se afasta, às vezes hesita. */
 const moveScaredGhost = (ghost: Ghost, store: StoreType) => {
-    // Verificar se já tem um alvo ou se já chegou no alvo atual
-    if (!ghost.target || (ghost.x === ghost.target.x && ghost.y === ghost.target.y)) {
-        ghost.target = getRandomDestination(ghost.x, ghost.y, store.rng);
+    const all = MovementUtils.getNeighbors(ghost.x, ghost.y);
+    const forward = all.filter(n => n.direction !== MovementUtils.opposite(ghost.direction));
+    const choices = forward.length ? forward : all;
+    if (!choices.length) return;
+
+    const weights = choices.map(n => {
+        const flee = MovementUtils.gridDistance(n, store.pacman);
+        const deadEnd = MovementUtils.getNeighbors(n.x, n.y).length <= 1 ? 4 : 0;
+        const noise = store.rng() * 3;
+        const w = Math.max(0.1, flee - deadEnd + noise);
+        return w * w; // acentua a preferência pela fuga
+    });
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = store.rng() * total;
+    let idx = 0;
+    for (; idx < weights.length - 1; idx++) {
+        r -= weights[idx];
+        if (r <= 0) break;
     }
-
-    const validMoves = getNeighborsWithoutReverse(ghost);
-    if (validMoves.length === 0) return;
-
-    // Move toward target but with some randomness to appear "scared"
-    const dx = ghost.target.x - ghost.x;
-    const dy = ghost.target.y - ghost.y;
-
-    // Filter moves that generally go toward the target but with randomness
-    let possibleMoves = validMoves;
-    
-    // 50% de chance de escolher um movimento aleatório completamente
-    if (store.rng() < 0.5) {
-        // Escolhe qualquer movimento válido
-    } else {
-        // Tenta escolher um movimento que vá na direção do alvo
-        const goodMoves = validMoves.filter(({ direction }) =>
-            (dx > 0 && direction === 'right') || (dx < 0 && direction === 'left') ||
-            (dy > 0 && direction === 'down') || (dy < 0 && direction === 'up'));
-        
-        // Se houver movimentos "bons", use-os
-        if (goodMoves.length > 0) {
-            possibleMoves = goodMoves;
-        }
-    }
-
-    // Choose a random move from the possible moves
-    const move = possibleMoves[Math.floor(store.rng() * possibleMoves.length)];
-
-    ghost.direction = move.direction;
-    ghost.x = move.x;
-    ghost.y = move.y;
-};
-
-// Vizinhos (com túnel) que não sejam reversão da direção atual
-const getNeighborsWithoutReverse = (ghost: Ghost) => {
-    const neighbors = MovementUtils.getNeighbors(ghost.x, ghost.y);
-    if (!ghost.direction) return neighbors;
-    const back = MovementUtils.opposite(ghost.direction);
-    return neighbors.filter(n => n.direction !== back);
+    const next = choices[idx];
+    ghost.x = next.x;
+    ghost.y = next.y;
+    ghost.direction = next.direction;
 };
 
 // Movimento especial para olhos voltarem para casa
@@ -531,17 +510,4 @@ const getPacmanDirection = (store: StoreType): [number, number] => {
     }
 };
 
-// Obter um destino aleatório para fantasmas assustados
-const getRandomDestination = (x: number, y: number, rng: () => number) => {
-    const maxDistance = 8;
-    const randomX = x + Math.floor(rng() * (2 * maxDistance + 1)) - maxDistance;
-    const randomY = y + Math.floor(rng() * (2 * maxDistance + 1)) - maxDistance;
-    return {
-        x: Math.max(0, Math.min(randomX, GRID_WIDTH - 1)),
-        y: Math.max(0, Math.min(randomY, GRID_HEIGHT - 1))
-    };
-};
-
-export const GhostsMovement = {
-    moveGhosts
-};
+export const GhostsMovement = { moveGhosts, moveScaredGhost };
