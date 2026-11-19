@@ -3,13 +3,13 @@ import { ContributionLevel, Ghost, PlayerStyle, Point2d, StoreType } from '../ty
 import { MovementUtils } from './movement-utils.js';
 import { MinHeap } from '../utils/min-heap.js';
 
-type Profile = { safety: number; points: number; horizon: number; powerupRange: number };
+type Profile = { safety: number; points: number; horizon: number; powerupRange: number; stickyDanger: number };
 
 /** Pesos-base de cada estilo (os mesmos de antes) + horizonte de perigo e quando o power-up vale a pena. */
 export const STYLE_PROFILES: Record<PlayerStyle, Profile> = {
-  [PlayerStyle.CONSERVATIVE]:  { safety: 3.0, points: 0.3, horizon: 4, powerupRange: 3 },
-  [PlayerStyle.OPPORTUNISTIC]: { safety: 1.2, points: 0.9, horizon: 3, powerupRange: 5 },
-  [PlayerStyle.AGGRESSIVE]:    { safety: 0.4, points: 2.5, horizon: 1, powerupRange: 8 }
+  [PlayerStyle.CONSERVATIVE]:  { safety: 3.0, points: 0.3, horizon: 4, powerupRange: 3, stickyDanger: 4 },
+  [PlayerStyle.OPPORTUNISTIC]: { safety: 1.2, points: 0.9, horizon: 3, powerupRange: 5, stickyDanger: 8 },
+  [PlayerStyle.AGGRESSIVE]:    { safety: 0.4, points: 2.5, horizon: 1, powerupRange: 8, stickyDanger: 12 }
 };
 
 const LEVEL_VALUE: Record<ContributionLevel, number> = {
@@ -142,12 +142,17 @@ const chooseTarget = (
     if (best) return best;
   }
 
-  // 2) Manter o alvo atual enquanto ainda tem ponto e não ficou perigoso.
+  // 2) Manter o alvo atual enquanto ainda tem ponto e não ficou perigoso para o estilo,
+  //    a menos que um fantasma tenha chegado perto e haja power-up para pegar.
+  const threat = closestDangerousGhost(store);
+  const wantsPowerUp = threat <= p.powerupRange && store.grid.some(col => col.some(c => c.level === 'FOURTH_QUARTILE'));
   const t = store.pacman.target;
-  if (t && store.grid[t.x]?.[t.y]?.level !== 'NONE' && dist.has(key(t.x, t.y)) && (danger.get(key(t.x, t.y)) ?? 0) < 8) return t;
+  const tCell = t && store.grid[t.x]?.[t.y];
+  if (t && tCell && tCell.level !== 'NONE' && dist.has(key(t.x, t.y))
+      && (danger.get(key(t.x, t.y)) ?? 0) < p.stickyDanger
+      && (!wantsPowerUp || tCell.level === 'FOURTH_QUARTILE')) return t;
 
   // 3) Melhor célula por valor ÷ passos reais.
-  const threat = closestDangerousGhost(store);
   let best: Point2d | null = null, bestScore = -Infinity;
   for (let x = 0; x < GRID_WIDTH; x++) {
     for (let y = 0; y < GRID_HEIGHT; y++) {
@@ -165,10 +170,14 @@ const chooseTarget = (
   return best;
 };
 
-/** Sem alvo/rota: vizinho com menos perigo. */
-const safestNeighbor = (store: StoreType, danger: Map<string, number>) =>
-  MovementUtils.getNeighbors(store.pacman.x, store.pacman.y)
-    .sort((a, b) => (danger.get(key(a.x, a.y)) ?? 0) - (danger.get(key(b.x, b.y)) ?? 0))[0] ?? null;
+/** Sem alvo/rota: vizinho com menos perigo, evitando casas letais e recém-visitadas. */
+const safestNeighbor = (store: StoreType, danger: Map<string, number>, lethal: Set<string>, frame: number) => {
+  const cost = (n: Point2d) => {
+    const k = key(n.x, n.y);
+    return (lethal.has(k) ? 1000 : 0) + (danger.get(k) ?? 0) + revisitPenalty(store.pacman.visitedAt?.[k], frame);
+  };
+  return MovementUtils.getNeighbors(store.pacman.x, store.pacman.y).sort((a, b) => cost(a) - cost(b))[0] ?? null;
+};
 
 const updatePacmanPosition = (store: StoreType, step: Required<Point2d>, frame: number) => {
   store.pacman.visitedAt[key(store.pacman.x, store.pacman.y)] = frame;
@@ -193,10 +202,10 @@ const movePacman = (store: StoreType) => {
     for (const n of MovementUtils.getNeighbors(g.x, g.y)) if (n.direction === g.direction) lethal.add(key(n.x, n.y));
   }
   const revisit = (k: string) => lethal.has(k) ? Infinity : revisitPenalty(store.pacman.visitedAt[k], frame);
-  const step = (target && aStarNextStep(store.pacman, target, danger, weights.safety, revisit)) || safestNeighbor(store, danger);
+  const step = (target && aStarNextStep(store.pacman, target, danger, weights.safety, revisit)) || safestNeighbor(store, danger, lethal, frame);
   if (step) updatePacmanPosition(store, step, frame);
   debug(store, `[pacman] f=${frame} alvo=${target ? key(target.x, target.y) : '-'} passo=${step ? key(step.x, step.y) : '-'}`);
 };
 
-export const PacmanAI = { distanceMap, buildDangerMap, aStarNextStep, revisitPenalty, chooseTarget, dynamicWeights };
+export const PacmanAI = { distanceMap, buildDangerMap, aStarNextStep, revisitPenalty, chooseTarget, dynamicWeights, safestNeighbor };
 export const PacmanMovement = { movePacman };
