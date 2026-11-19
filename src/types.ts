@@ -119,7 +119,7 @@ export interface Config {
 }
 
 /* ───────────────────────── Temas ──────────────────────────────────── */
-export type ThemeKeys = 'github' | 'github-dark';
+export type ThemeKeys = 'github' | 'github-dark' | 'brasa';
 
 export interface GameTheme {
   textColor: string;

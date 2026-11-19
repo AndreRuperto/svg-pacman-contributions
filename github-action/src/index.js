@@ -40,7 +40,9 @@ async function run() {
 
     console.log(`🟡 Gerando SVG para o tema: ${selectedTheme}`);
     const svg = await generateSvg(username, token, selectedTheme, playerStyle);
-    const fileName = `pacman-contribution-graph${selectedTheme === 'github-dark' ? '-dark' : ''}.svg`;
+    // github → sem sufixo; github-dark → -dark (nomes antigos mantidos); demais temas → -<tema>
+    const sufixo = { github: '', 'github-dark': '-dark' }[selectedTheme] ?? `-${selectedTheme}`;
+    const fileName = `pacman-contribution-graph${sufixo}.svg`;
     const fullPath = path.join(outputDir, fileName);
     fs.writeFileSync(fullPath, svg);
     console.log(`✅ SVG salvo em: ${fullPath}`);
