@@ -55,6 +55,8 @@ export interface Ghost {
   immunityFrames?: number;
   justReleasedFromHouse?: boolean;
   confusionFrames?: number;
+  flashing?: boolean;   // power-up acabando
+  moveTick?: number;    // contador para andar mais devagar
 }
 
 /* ───────────────────────── Grid & Store ───────────────────────────── */
@@ -78,6 +80,13 @@ export interface GameStatistics {
   pointsFromPowerUps?: number;
 }
 
+export interface GameState {
+  frame: number;                 // frames desde o início da rodada (libera fantasmas)
+  combo: number;                 // fantasmas comidos no power-up atual
+  mode: 'scatter' | 'chase';
+  modeTimer: number;
+}
+
 export interface StoreType {
 	frameCount: number;
 	contributions: Contribution[];
@@ -98,6 +107,8 @@ export interface StoreType {
   moveCounter?: number;
   deathCount?: number;
   statistics?: GameStatistics;
+  rng: () => number;
+  game: GameState;
 }  
 
 /* ───────────────────────── Configuração ───────────────────────────── */
@@ -116,6 +127,8 @@ export interface Config {
   };
   playerStyle?: PlayerStyle;
   joinRanking?: boolean;
+  seed?: string;     // sobrepõe a semente padrão (usuário + dia)
+  debug?: boolean;   // liga logs de diagnóstico
 }
 
 /* ───────────────────────── Temas ──────────────────────────────────── */

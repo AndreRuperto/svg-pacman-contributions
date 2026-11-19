@@ -12,8 +12,6 @@ import { Utils } from '../utils/utils.js';
 import { registerPacmanDeath } from '../core/store.js';
 import { StoreType, GhostName, ContributionLevel, PlayerStyle } from '../types.js';
 
-let frame = 0;
-
 // Constantes de pontuação
 const POINTS_MAP: Record<ContributionLevel, number> = {
   'NONE': 0,
@@ -25,9 +23,6 @@ const POINTS_MAP: Record<ContributionLevel, number> = {
 
 const GHOST_BASE_POINTS = 100;
 const BASE_DEATH_PENALTY = 200;
-
-// Contador para acompanhar fantasmas comidos durante um power-up
-let ghostsEatenInCurrentPowerUp = 0;
 
 /* ---------- helpers de posicionamento ---------- */
 
@@ -75,55 +70,27 @@ const stopGame = async (store: StoreType) => {
   clearInterval(store.gameInterval as number);
 };
 
-const startGame = async (store: StoreType) => {
+const initRound = (store: StoreType) => {
   store.frameCount = 0;
-  store.gameHistory = [];             // mantém limpeza
-  store.ghosts.forEach(g => (g.scared = false));
-  
-  // Reiniciar contadores de estatísticas
-  ghostsEatenInCurrentPowerUp = 0;
-  
-  // Inicializar estatísticas no store
+  store.gameHistory = [];
+  store.game = { frame: 0, combo: 0, mode: 'scatter', modeTimer: 0 };
   store.statistics = {
-    totalPoints: 0,
-    ghostsEaten: 0,
-    deaths: 0,
-    powerUpsCollected: 0,
-    highestGhostCombo: 0,
-    efficiencyMultiplier: 0,
-    timeBonus: 0,
-    pointsFromContributions: 0,
-    pointsFromGhosts: 0
+    totalPoints: 0, ghostsEaten: 0, deaths: 0, powerUpsCollected: 0,
+    highestGhostCombo: 0, efficiencyMultiplier: 0, timeBonus: 0,
+    pointsFromContributions: 0, pointsFromGhosts: 0
   };
+  placePacman(store);
+  placeGhosts(store);
+};
 
+const startGame = async (store: StoreType) => {
   store.grid = Utils.createGridFromData(store);
-
-  const remainingCells = () =>
-    store.grid.some(row => row.some(cell => cell.commitsCount > 0));
-
-  if (remainingCells()) {
-    placePacman(store);
-    placeGhosts(store);
-  }
-
+  initRound(store);
+  const remainingCells = () => store.grid.some(row => row.some(cell => cell.commitsCount > 0));
   if (store.config.outputFormat === 'svg') {
-    while (remainingCells()) {
-      // libera fantasmas
-      if (frame === 10) releaseGhostFromHouse(store, 'pinky');
-      if (frame === 20) releaseGhostFromHouse(store, 'inky');
-      if (frame === 30) releaseGhostFromHouse(store, 'clyde');
-
-      await updateGame(store);
-      frame++;
-    }
-    // snapshot final
-    await updateGame(store);
+    while (remainingCells()) updateGame(store);
+    updateGame(store); // snapshot final + callbacks
   } else {
-    // canvas
-    setTimeout(() => releaseGhostFromHouse(store, 'pinky'), 3000);
-    setTimeout(() => releaseGhostFromHouse(store, 'inky'),  6000);
-    setTimeout(() => releaseGhostFromHouse(store, 'clyde'), 9000);
-
     clearInterval(store.gameInterval as number);
     store.gameInterval = setInterval(() => updateGame(store), DELTA_TIME) as unknown as number;
   }
@@ -164,14 +131,14 @@ const checkCollisions = (store: StoreType) => {
     if (ghost.x === store.pacman.x && ghost.y === store.pacman.y) {
       if (store.pacman.powerupRemainingDuration && ghost.scared) {
         // Calcular pontos por fantasma com base na sequência
-        ghostsEatenInCurrentPowerUp++;
+        store.game.combo++;
         
         if (store.statistics) {
           store.statistics.ghostsEaten++;
         }
         
         // Pontuação que dobra a cada fantasma comido em sequência
-        const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, ghostsEatenInCurrentPowerUp - 1);
+        const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, store.game.combo - 1);
         store.pacman.points += ghostPoints;
         store.pacman.totalPoints += ghostPoints;
         
@@ -182,7 +149,7 @@ const checkCollisions = (store: StoreType) => {
           // Atualizar recorde de combo
           store.statistics.highestGhostCombo = Math.max(
             store.statistics.highestGhostCombo || 0, 
-            ghostsEatenInCurrentPowerUp
+            store.game.combo
           );
         }
         
@@ -194,7 +161,7 @@ const checkCollisions = (store: StoreType) => {
         // Penalidade por morte
         store.pacman.points = 0;
         store.pacman.powerupRemainingDuration = 0;
-        ghostsEatenInCurrentPowerUp = 0; // Resetar combo ao morrer
+        store.game.combo = 0; // Resetar combo ao morrer
         
         if (store.pacman.deadRemainingDuration === 0) {
           store.pacman.deadRemainingDuration = PACMAN_DEATH_DURATION;
@@ -232,7 +199,7 @@ const checkCollisions = (store: StoreType) => {
 
 /* ---------- update por frame ---------- */
 
-const updateGame = async (store: StoreType) => {
+const updateGame = (store: StoreType) => {
   store.frameCount++;
 
   /* ---- FRAME-SKIP restaurado ---- */
@@ -241,13 +208,19 @@ const updateGame = async (store: StoreType) => {
     return;
   }
 
+  const f = store.game.frame;
+  if (f === 10) releaseGhostFromHouse(store, 'pinky');
+  if (f === 20) releaseGhostFromHouse(store, 'inky');
+  if (f === 30) releaseGhostFromHouse(store, 'clyde');
+  store.game.frame++;
+
   /* -------- timers pacman -------- */
   if (store.pacman.deadRemainingDuration > 0) {
     store.pacman.deadRemainingDuration--;
     if (store.pacman.deadRemainingDuration === 0) {
       resetPacman(store);
       placeGhosts(store);
-      frame = 0;
+      store.game.frame = 0;
     }
   }
 
@@ -255,7 +228,7 @@ const updateGame = async (store: StoreType) => {
     store.pacman.powerupRemainingDuration--;
     if (store.pacman.powerupRemainingDuration === 0) {
       store.ghosts.forEach(g => { if (g.name !== 'eyes') g.scared = false; });
-      ghostsEatenInCurrentPowerUp = 0; // Resetar contador quando o power-up acabar
+      store.game.combo = 0; // Resetar contador quando o power-up acabar
     }
   }
 
@@ -335,7 +308,7 @@ const updateGame = async (store: StoreType) => {
       }
       store.pacman.powerupRemainingDuration = 30;
       store.ghosts.forEach(g => { if (g.name !== 'eyes') g.scared = true; });
-      ghostsEatenInCurrentPowerUp = 0; // Resetar contador ao iniciar power-up
+      store.game.combo = 0; // Resetar contador ao iniciar power-up
     }
 
     // Zerar a célula (sempre)
@@ -368,8 +341,4 @@ const releaseGhostFromHouse = (store: StoreType, name: GhostName) => {
   }
 };
 
-export function resetFrame() {
-  frame = 0;
-}
-
-export const Game = { startGame, stopGame };
+export const Game = { startGame, stopGame, initRound, step: updateGame };

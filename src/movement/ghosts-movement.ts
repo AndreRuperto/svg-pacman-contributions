@@ -12,16 +12,7 @@ const SCATTER_CORNERS: Record<string, Point2d> = {
     'clyde': { x: 0, y: GRID_HEIGHT - 1 }          // Canto inferior esquerdo
 };
 
-// Estado global dos modos de jogo
-let currentMode = 'scatter';
-let modeTimer = 0;
-let currentLevel = 1;
-let dotsRemaining = 0;
-
 const moveGhosts = (store: StoreType) => {
-    // Calcular o número total de pontos restantes para definir o comportamento
-    dotsRemaining = countRemainingDots(store);
-    
     // Atualizar o modo de jogo (scatter ou chase)
     updateGameMode(store);
     
@@ -62,7 +53,7 @@ const moveGhosts = (store: StoreType) => {
             moveEyesToHome(ghost, store);
         } else {
             // Escolher o comportamento baseado no modo atual
-            if (currentMode === 'scatter') {
+            if (store.game.mode === 'scatter') {
                 moveGhostToScatterTarget(ghost, store);
             } else {
                 moveGhostWithPersonality(ghost, store);
@@ -90,15 +81,15 @@ const updateGameMode = (store: StoreType) => {
     if (store.pacman.powerupRemainingDuration > 0) return;
     
     // Incrementar o timer do modo atual
-    modeTimer++;
+    store.game.modeTimer++;
     
     // Verificar se é hora de mudar o modo
-    const modeDuration = currentMode === 'scatter' ? SCATTER_MODE_DURATION : CHASE_MODE_DURATION;
+    const modeDuration = store.game.mode === 'scatter' ? SCATTER_MODE_DURATION : CHASE_MODE_DURATION;
     
-    if (modeTimer >= modeDuration * (1000 / 200)) { // Convertendo para frames (assumindo 200ms por frame)
+    if (store.game.modeTimer >= modeDuration * (1000 / 200)) { // Convertendo para frames (assumindo 200ms por frame)
         // Alternar entre scatter e chase
-        currentMode = currentMode === 'scatter' ? 'chase' : 'scatter';
-        modeTimer = 0;
+        store.game.mode = store.game.mode === 'scatter' ? 'chase' : 'scatter';
+        store.game.modeTimer = 0;
         
         // Reverter a direção dos fantasmas quando mudar o modo
         store.ghosts.forEach(ghost => {
@@ -195,7 +186,7 @@ const moveGhostToScatterTarget = (ghost: Ghost, store: StoreType) => {
     const target = SCATTER_CORNERS[ghost.name] || SCATTER_CORNERS['blinky'];
     ghost.target = target;
     
-    const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction);
+    const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction, store.rng);
     if (nextMove) {
         ghost.x = nextMove.x;
         ghost.y = nextMove.y;
@@ -210,7 +201,7 @@ const moveGhostToScatterTarget = (ghost: Ghost, store: StoreType) => {
 const moveScaredGhost = (ghost: Ghost, store: StoreType) => {
     // Verificar se já tem um alvo ou se já chegou no alvo atual
     if (!ghost.target || (ghost.x === ghost.target.x && ghost.y === ghost.target.y)) {
-        ghost.target = getRandomDestination(ghost.x, ghost.y);
+        ghost.target = getRandomDestination(ghost.x, ghost.y, store.rng);
     }
 
     const validMoves = getValidMovesWithoutReverse(ghost);
@@ -224,7 +215,7 @@ const moveScaredGhost = (ghost: Ghost, store: StoreType) => {
     let possibleMoves = validMoves;
     
     // 50% de chance de escolher um movimento aleatório completamente
-    if (Math.random() < 0.5) {
+    if (store.rng() < 0.5) {
         // Escolhe qualquer movimento válido
     } else {
         // Tenta escolher um movimento que vá na direção do alvo
@@ -242,10 +233,10 @@ const moveScaredGhost = (ghost: Ghost, store: StoreType) => {
     }
 
     // Choose a random move from the possible moves
-    const [moveX, moveY] = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+    const [moveX, moveY] = possibleMoves[Math.floor(store.rng() * possibleMoves.length)];
 
     // Se Pacman tem power-up, fantasmas se movem mais devagar (60% mais lentos)
-    if (store.pacman.powerupRemainingDuration && Math.random() < 0.6) return;
+    if (store.pacman.powerupRemainingDuration && store.rng() < 0.6) return;
 
     // Atualizar a direção do fantasma com base no movimento
     if (moveX > 0) ghost.direction = 'right';
@@ -319,7 +310,8 @@ const moveEyesToHome = (ghost: Ghost, store: StoreType) => {
         const alternativeMove = BFSTargetLocation(
             ghost.x, ghost.y, 
             respawnPosition.x, respawnPosition.y, 
-            ghost.direction as 'right' | 'left' | 'up' | 'down'
+            ghost.direction as 'right' | 'left' | 'up' | 'down',
+            store.rng
         );
         
         if (alternativeMove) {
@@ -348,7 +340,7 @@ const moveGhostWithPersonality = (ghost: Ghost, store: StoreType) => {
     ghost.target = target;
 
     // Encontra o próximo movimento usando BFS, respeitando regras de não-reversão
-    const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction);
+    const nextMove = BFSTargetLocation(ghost.x, ghost.y, target.x, target.y, ghost.direction, store.rng);
     if (nextMove) {
         ghost.x = nextMove.x;
         ghost.y = nextMove.y;
@@ -365,7 +357,8 @@ const BFSTargetLocation = (
     startY: number, 
     targetX: number, 
     targetY: number, 
-    currentDirection?: 'right' | 'left' | 'up' | 'down'
+    currentDirection: 'right' | 'left' | 'up' | 'down' | undefined,
+    rng: () => number
 ): { x: number; y: number; direction?: 'right' | 'left' | 'up' | 'down' } | null => {
     // Se já estamos no alvo, não precisa se mover
     if (startX === targetX && startY === targetY) return null;
@@ -457,7 +450,7 @@ const BFSTargetLocation = (
     const validMoves = MovementUtils.getValidMoves(startX, startY);
     if (validMoves.length > 0) {
         // Escolher um movimento aleatório se não encontrarmos caminho
-        const [dx, dy] = validMoves[Math.floor(Math.random() * validMoves.length)];
+        const [dx, dy] = validMoves[Math.floor(rng() * validMoves.length)];
         let direction: 'right' | 'left' | 'up' | 'down' = currentDirection as 'right' | 'left' | 'up' | 'down';
         
         if (dx > 0) direction = 'right';
@@ -486,6 +479,7 @@ const calculateGhostTarget = (ghost: Ghost, store: StoreType): Point2d => {
     if (ghost.name === 'blinky') {
         // Quando há poucos pontos restantes, Blinky fica mais rápido ("Elroy mode")
         const totalDots = GRID_WIDTH * GRID_HEIGHT;
+        const dotsRemaining = countRemainingDots(store);
         const dotsEaten = totalDots - dotsRemaining;
         const percentageEaten = dotsEaten / totalDots;
         
@@ -497,7 +491,7 @@ const calculateGhostTarget = (ghost: Ghost, store: StoreType): Point2d => {
         }
         
         // Aplicar o multiplicador de velocidade se estiver perseguindo o Pac-Man
-        if (Math.random() < 0.8 * speedMultiplier) {
+        if (store.rng() < 0.8 * speedMultiplier) {
             // Blinky mira diretamente no Pac-Man
             return { x: pacman.x, y: pacman.y };
         }
@@ -591,10 +585,10 @@ const getPacmanDirection = (store: StoreType): [number, number] => {
 };
 
 // Obter um destino aleatório para fantasmas assustados
-const getRandomDestination = (x: number, y: number) => {
+const getRandomDestination = (x: number, y: number, rng: () => number) => {
     const maxDistance = 8;
-    const randomX = x + Math.floor(Math.random() * (2 * maxDistance + 1)) - maxDistance;
-    const randomY = y + Math.floor(Math.random() * (2 * maxDistance + 1)) - maxDistance;
+    const randomX = x + Math.floor(rng() * (2 * maxDistance + 1)) - maxDistance;
+    const randomY = y + Math.floor(rng() * (2 * maxDistance + 1)) - maxDistance;
     return {
         x: Math.max(0, Math.min(randomX, GRID_WIDTH - 1)),
         y: Math.max(0, Math.min(randomY, GRID_HEIGHT - 1))

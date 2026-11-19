@@ -4,6 +4,7 @@ import { Store } from './core/store.js';
 import { Config, StoreType } from './types.js';
 import { Utils } from './utils/utils.js';
 import { fetchGithubContributionsGraphQL } from './providers/github-contributions.js';
+import { createRng, defaultSeed } from './utils/rng.js';
 
 export class PacmanRenderer {
   store!: StoreType;
@@ -31,6 +32,7 @@ export class PacmanRenderer {
     // Reinicializa o store a cada chamada de start()
     this.store = JSON.parse(JSON.stringify(Store));
     this.store.config = { ...defaultConfig, ...this.conf };
+    this.store.rng = createRng(this.store.config.seed ?? defaultSeed(this.store.config.username));
 
     switch (this.store.config.platform) {
       case 'github':
