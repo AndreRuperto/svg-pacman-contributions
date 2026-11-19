@@ -158,6 +158,7 @@ const collideWith = (store: StoreType, ghost: Ghost) => {
     // Penalidade por morte
     store.pacman.points = 0;
     store.pacman.powerupRemainingDuration = 0;
+    store.ghosts.forEach(g => { g.scared = false; g.flashing = false; });
     store.game.combo = 0; // Resetar combo ao morrer
     
     if (store.pacman.deadRemainingDuration === 0) {
