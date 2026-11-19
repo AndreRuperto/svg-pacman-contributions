@@ -1,4 +1,4 @@
-import { GRID_HEIGHT, GRID_WIDTH } from '../core/constants.js';
+import { GRID_HEIGHT, GRID_WIDTH, isTunnelCell } from '../core/constants.js';
 import { Ghost, Point2d, StoreType } from '../types.js';
 import { MovementUtils } from './movement-utils.js';
 
@@ -44,6 +44,16 @@ const moveGhosts = (store: StoreType) => {
                 ghost.scared = store.pacman.powerupRemainingDuration > 0;
                 // console.log(`Ghost ${ghost.name} immunity ended, scared: ${ghost.scared}`);
             }
+        }
+
+        // Velocidade: assustado e túnel andam a cada 2 frames (acumulam)
+        if (ghost.name !== 'eyes') {
+            let every = 1;
+            if (ghost.scared) every *= 2;
+            if (isTunnelCell(ghost.x, ghost.y)) every *= 2;
+            ghost.moveTick = (ghost.moveTick ?? 0) + 1;
+            if (ghost.moveTick < every) continue;
+            ghost.moveTick = 0;
         }
 
         // Lógica principal de movimento
@@ -232,9 +242,6 @@ const moveScaredGhost = (ghost: Ghost, store: StoreType) => {
 
     // Choose a random move from the possible moves
     const move = possibleMoves[Math.floor(store.rng() * possibleMoves.length)];
-
-    // Se Pacman tem power-up, fantasmas se movem mais devagar (60% mais lentos)
-    if (store.pacman.powerupRemainingDuration && store.rng() < 0.6) return;
 
     ghost.direction = move.direction;
     ghost.x = move.x;

@@ -10,6 +10,7 @@ import {
 } from './constants.js';
 import { GhostsMovement } from '../movement/ghosts-movement.js';
 import { PacmanMovement } from '../movement/pacman-movement.js';
+import { MovementUtils } from '../movement/movement-utils.js';
 import { Utils } from '../utils/utils.js';
 import { registerPacmanDeath } from '../core/store.js';
 import { StoreType, GhostName, ContributionLevel, PlayerStyle, Point2d, Ghost } from '../types.js';
@@ -236,6 +237,7 @@ const activatePowerUp = (store: StoreType) => {
   store.statistics!.powerUpsCollected++;
   store.ghosts.forEach(g => {
     if (g.inHouse || g.name === 'eyes') return;
+    if (!g.scared) g.direction = MovementUtils.opposite(g.direction);
     g.scared = true;
     g.flashing = false;
   });
