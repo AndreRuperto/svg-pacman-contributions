@@ -1,4 +1,4 @@
-import { GRID_HEIGHT, GRID_WIDTH, WALLS } from '../core/constants.js';
+import { GRID_HEIGHT, GRID_WIDTH, TUNNEL_ROW, WALLS } from '../core/constants.js';
 import { Point2d } from '../types.js';
 
 // Check for walls and grid edges
@@ -35,11 +35,38 @@ const calculateDistance = (x1: number, y1: number, x2: number, y2: number): numb
 	return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 };
 
-/* …importações ficam iguais… */
+type Dir = 'right' | 'left' | 'up' | 'down';
+
+const dirOf = (dx: number, dy: number): Dir =>
+	dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up';
+
+const opposite = (d: Dir): Dir =>
+	({ right: 'left', left: 'right', up: 'down', down: 'up' } as const)[d];
+
+/** Vizinhos alcançáveis, já com o salto do túnel e a direção do passo. */
+const getNeighbors = (x: number, y: number): Required<Point2d>[] => {
+	const res: Required<Point2d>[] = getValidMoves(x, y).map(([dx, dy]) => ({ x: x + dx, y: y + dy, direction: dirOf(dx, dy) }));
+	if (y === TUNNEL_ROW && x === 0) res.push({ x: GRID_WIDTH - 1, y, direction: 'left' });
+	if (y === TUNNEL_ROW && x === GRID_WIDTH - 1) res.push({ x: 0, y, direction: 'right' });
+	return res;
+};
+
+/** Manhattan considerando o atalho do túnel. Nunca superestima (serve de heurística do A*). */
+const gridDistance = (a: { x: number; y: number }, b: { x: number; y: number }): number => {
+	const direct = Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+	const viaTunnel =
+		Math.min(a.x, b.x) + 1 + (GRID_WIDTH - 1 - Math.max(a.x, b.x)) +
+		Math.abs(a.y - TUNNEL_ROW) + Math.abs(b.y - TUNNEL_ROW);
+	return Math.min(direct, viaTunnel);
+};
+
 
 export const MovementUtils = {
 	getValidMoves,
 	calculateDistance,
+	getNeighbors,
+	gridDistance,
+	opposite,
 
 	/**
 	 * Dijkstra de grade 4-direções.
@@ -60,13 +87,13 @@ export const MovementUtils = {
 			pq.sort((a,b)=>a.cost-b.cost);
 			const {x,y,cost,path} = pq.shift()!;
 
-			for (const [dx,dy] of getValidMoves(x,y)) {
-				const nx = x+dx, ny = y+dy, key = `${nx},${ny}`;
+			for (const n of getNeighbors(x,y)) {
+				const nx = n.x, ny = n.y, key = `${nx},${ny}`;
 				if (visited.has(key)) continue;
 				visited.add(key);
 
 				const nextCost = cost + 1;           // custo unitário
-				const newPath  = [...path,{x:nx,y:ny}];
+				const newPath  = [...path,n];
 
 				if (nx === target.x && ny === target.y) {
 					return newPath[0] ?? null;

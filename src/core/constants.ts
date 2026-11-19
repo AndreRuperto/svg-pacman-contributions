@@ -6,6 +6,11 @@ export const GAP_SIZE   = 2;
 export const GRID_WIDTH = 53;   // 52 semanas + semana corrente
 export const GRID_HEIGHT = 7;   // dom … sáb
 
+export const TUNNEL_ROW = 3;
+/** Células de "boca" do túnel (fantasmas andam mais devagar aqui). */
+export const isTunnelCell = (x: number, y: number) =>
+  y === TUNNEL_ROW && (x <= 1 || x >= GRID_WIDTH - 2);
+
 export const GHOST_HOUSE_COLOR = 'yellow';
 
 export const PACMAN_COLOR          = 'yellow';
