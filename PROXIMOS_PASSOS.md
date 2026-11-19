@@ -73,7 +73,7 @@ pnpm test                               # todos os testes
 pnpm test tests/full-game.test.ts       # partida completa + SVGs em outputs/
 pnpm exec tsc --noEmit                  # tipos
 pnpm run build:web                      # dist/pacman-contribution-graph.min.js
-# build da Action (mesmo formato do artefato commitado):
-node node_modules/.pnpm/esbuild@0.25.2/node_modules/esbuild/bin/esbuild github-action/src/index.js --bundle --platform=node --target=node20 --outfile=github-action/dist/index.js
+pnpm run build:action                   # github-action/dist/index.js (esbuild)
+pnpm preview                            # preview local do SVG
 node github-action/dist/index.js        # deve parar pedindo github_user_name
 ```
