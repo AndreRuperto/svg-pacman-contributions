@@ -103,6 +103,7 @@ const startGame = async (store: StoreType) => {
 const resetPacman = (store: StoreType) => {
   store.pacman.x = 26;
   store.pacman.y = 5;
+  store.pacman.target = undefined;
   store.pacman.direction = 'right';
   store.pacman.recentPositions = [];
 };
