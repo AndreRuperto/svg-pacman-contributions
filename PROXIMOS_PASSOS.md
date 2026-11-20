@@ -34,6 +34,11 @@ Também: a Action rodou de verdade no repositório do perfil (`AndreRuperto/Andr
 - [ ] Opcional: SVG responsivo (`viewBox` + largura 100%) e acessibilidade (`<title>`/`aria-label` no SVG, `prefers-reduced-motion`), itens 41–42 do `TODO2.TXT`.
 - [ ] Opcional: itens restantes do `TODO2.TXT` (sistema de replay, modo de comparação lado a lado, validação de entrada da Action, retry na API do GitHub).
 
+## Problemas conhecidos
+
+- **Animação do site pode divergir da partida salva.** `/api/partida` joga o dia de novo com as contribuições de *agora* (o GitHub pode ter mudado a janela daquele dia), então pontos, mortes ou fantasmas podem não bater com o que o cron gravou. Hoje o `web` só registra um `console.warn` com login e data quando isso acontece. Correção futura:
+  - [ ] guardar as contribuições da janela (ou um hash delas) na partida, e desenhar a animação a partir delas.
+
 ## Decisões tomadas
 
 - Estado do jogo em `store.game` e sorteios só via `store.rng`: mesma semente, mesma partida; a animação só muda de um dia para o outro.

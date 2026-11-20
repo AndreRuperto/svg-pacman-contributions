@@ -1,7 +1,16 @@
 import { describe, it, expect } from 'vitest';
+import type { Partida } from '../../src/runner.js';
 import { JOGADORES_URL } from '../../site/src/cron.js';
 import type { Jogador } from '../../site/src/jogadores.js';
-import { JOGADORES_LOCAL, aparar, configDoAmbiente, listaRecarregavel } from '../../site/src/web.js';
+import {
+  JOGADORES_LOCAL,
+  aparar,
+  conferirDivergencia,
+  configDoAmbiente,
+  listaRecarregavel,
+  main,
+  primeiraCarga
+} from '../../site/src/web.js';
 
 describe('configDoAmbiente', () => {
   it('padrões', () => {
@@ -77,5 +86,66 @@ describe('aparar', () => {
       { login: 'novo', desde: '2026-11-18' }
     ]);
     expect(lista[0].desde).toBe('2025-01-01');
+  });
+});
+
+describe('primeiraCarga', () => {
+  const a: Jogador[] = [{ login: 'a', desde: '2026-01-01' }];
+  const falhaAte = (n: number) => {
+    let chamadas = 0;
+    return async () => {
+      chamadas++;
+      if (chamadas <= n) throw new Error(`falha ${chamadas}`);
+      return a;
+    };
+  };
+
+  it('tenta de novo com 5 s, 15 s e 30 s até conseguir', async () => {
+    const esperas: number[] = [];
+    const lista = listaRecarregavel(falhaAte(2), () => {});
+    const ok = await primeiraCarga(lista, { dormir: async (ms) => void esperas.push(ms) });
+    expect(ok).toBe(true);
+    expect(esperas).toEqual([5_000, 15_000]);
+    expect(lista.atual()).toEqual(a);
+  });
+
+  it('desiste depois de três novas tentativas', async () => {
+    const esperas: number[] = [];
+    const lista = listaRecarregavel(falhaAte(99), () => {});
+    expect(await primeiraCarga(lista, { dormir: async (ms) => void esperas.push(ms) })).toBe(false);
+    expect(esperas).toEqual([5_000, 15_000, 30_000]);
+    expect(lista.atual()).toEqual([]);
+  });
+
+  it('sem espera quando a primeira carga funciona', async () => {
+    const esperas: number[] = [];
+    const lista = listaRecarregavel(falhaAte(0), () => {});
+    expect(await primeiraCarga(lista, { dormir: async (ms) => void esperas.push(ms) })).toBe(true);
+    expect(esperas).toEqual([]);
+  });
+});
+
+describe('conferirDivergencia', () => {
+  const base = { pontos: 900, mortes: 1, fantasmas: 2 } as Partida;
+  it('avisa com login e data quando os números mudam', () => {
+    const avisos: string[] = [];
+    conferirDivergencia('bia', '2026-11-19', base, { ...base, pontos: 950 }, (m) => avisos.push(m));
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]).toContain('bia');
+    expect(avisos[0]).toContain('2026-11-19');
+    expect(avisos[0]).toContain('900');
+    expect(avisos[0]).toContain('950');
+  });
+  it('fica quieto quando bate ou quando não há partida salva', () => {
+    const avisos: string[] = [];
+    conferirDivergencia('bia', '2026-11-19', base, { ...base }, (m) => avisos.push(m));
+    conferirDivergencia('bia', '2026-11-19', undefined, base, (m) => avisos.push(m));
+    expect(avisos).toEqual([]);
+  });
+});
+
+describe('main', () => {
+  it('com DATABASE_URL e sem GITHUB_TOKEN, recusa subir', async () => {
+    await expect(main({ DATABASE_URL: 'postgres://ninguem@127.0.0.1:1/x' })).rejects.toThrow(/GITHUB_TOKEN/);
   });
 });

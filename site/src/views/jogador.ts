@@ -26,14 +26,33 @@ const B = 30;
 const W = 640;
 const H = 220;
 
-/** Teto "redondo" para o eixo: 9123 → 10000, 1240 → 1500. */
+/** Teto "redondo" e múltiplo de 4, para as 5 linhas de grade caírem em inteiros: 9123 → 10000, 1240 → 1500. */
 function tetoRedondo(max: number): number {
   if (max <= 0) return 100;
-  const passo = 10 ** Math.floor(Math.log10(max)) / 2;
-  return Math.ceil(max / passo) * passo;
+  const passo = Math.max(1, 10 ** Math.floor(Math.log10(max)) / 2);
+  return Math.ceil(Math.ceil(max / passo) * passo / 4) * 4;
 }
 
 const n1 = (v: number) => Math.round(v * 10) / 10;
+
+/** Agrupa as partidas (em ordem crescente) em trechos de dias seguidos. */
+function trechosSeguidos(partidas: PartidaSalva[]): PartidaSalva[][] {
+  const trechos: PartidaSalva[][] = [];
+  for (const p of partidas) {
+    const atual = trechos.at(-1);
+    if (atual && addDays(atual[atual.length - 1].data, 1) === p.data) atual.push(p);
+    else trechos.push([p]);
+  }
+  return trechos;
+}
+
+function resumoGrafico(pontos: PartidaSalva[]): string {
+  const maior = pontos.reduce((a, b) => (b.pontos > a.pontos ? b : a));
+  const menor = pontos.reduce((a, b) => (b.pontos < a.pontos ? b : a));
+  const ultimo = pontos[pontos.length - 1];
+  const v = (p: PartidaSalva) => `${inteiro(p.pontos)} em ${dataExtenso(p.data)}`;
+  return `${plural(pontos.length, 'partida', 'partidas')} no período. Maior: ${v(maior)}; menor: ${v(menor)}; último: ${v(ultimo)}.`;
+}
 
 function grafico(partidas: PartidaSalva[], inicio: string, fim: string, media: number | null): Html {
   const pontos = partidas.filter((p) => p.data >= inicio && p.data <= fim).sort((a, b) => a.data.localeCompare(b.data));
@@ -45,8 +64,10 @@ function grafico(partidas: PartidaSalva[], inicio: string, fim: string, media: n
   const dia = (d: string) => (Date.parse(`${d}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86_400_000;
   const x = (d: string) => n1(L + (dia(d) / (DIAS_GRAFICO - 1)) * larg);
   const y = (v: number) => n1(T + alt - (v / teto) * alt);
-  const linhas = [0, 0.25, 0.5, 0.75, 1].map((f) => teto * f);
+  const linhas = [0, 1, 2, 3, 4].map((i) => (teto / 4) * i);
   const rotulo = `Pontos por dia, de ${dataExtenso(inicio)} a ${dataExtenso(fim)}`;
+  // Dias sem partida quebram a linha; um dia isolado fica só com o ponto.
+  const trechos = trechosSeguidos(pontos).filter((t) => t.length > 1);
 
   return html`<svg class="grafico" viewBox="0 0 ${W} ${H}" role="img" aria-label="${rotulo}" xmlns="http://www.w3.org/2000/svg">
   <g font-family="JetBrains Mono, monospace" font-size="11" fill="#9AA3B2">
@@ -60,11 +81,14 @@ function grafico(partidas: PartidaSalva[], inicio: string, fim: string, media: n
   ${media !== null
     ? html`<line x1="${L}" x2="${W - R}" y1="${y(media)}" y2="${y(media)}" stroke="#00E5FF" stroke-width="1.5" stroke-dasharray="6 4"/>`
     : ''}
-  <polyline fill="none" stroke="#FFD23F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="${pontos
-    .map((p) => `${x(p.data)},${y(p.pontos)}`)
-    .join(' ')}"/>
+  ${trechos.map(
+    (t) => html`<polyline fill="none" stroke="#FFD23F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="${t
+      .map((p) => `${x(p.data)},${y(p.pontos)}`)
+      .join(' ')}"/>`
+  )}
   ${pontos.map((p) => html`<circle cx="${x(p.data)}" cy="${y(p.pontos)}" r="3" fill="#FFD23F"/>`)}
 </svg>
+<p class="sr">${resumoGrafico(pontos)}</p>
 <ul class="legenda" aria-hidden="true">
   <li><span class="traco traco-pontos"></span>Pontos</li>
   ${media !== null ? html`<li><span class="traco traco-media"></span>Média 30 dias</li>` : ''}

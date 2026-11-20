@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createApp, type AppDeps } from '../../site/src/app.js';
 import { addDays } from '../../site/src/datas.js';
+import { RateLimiter } from '../../site/src/ratelimit.js';
 import { MemoryRepo } from '../../site/src/repo.js';
 import type { Jogador } from '../../site/src/jogadores.js';
 import type { Partida } from '../../src/runner.js';
@@ -88,6 +89,15 @@ describe('layout', () => {
   });
 });
 
+describe('favicon', () => {
+  it('204 sem passar pelo limite', async () => {
+    const { app } = await montar({ deps: { rateLimiterJson: new RateLimiter({ limite: 0, janelaMs: 60_000 }) } });
+    const res = await app.request('/favicon.ico');
+    expect(res.status).toBe(204);
+    expect((await app.request('/')).status).toBe(429);
+  });
+});
+
 describe('GET /', () => {
   it('abas e períodos são links com aria-current no ativo', async () => {
     const { app } = await montar();
@@ -117,6 +127,7 @@ describe('GET /', () => {
     const { app } = await montar();
     const { html } = await pagina(app, '/');
     expect(html).toContain('<th scope="col">');
+    expect(html).toMatch(/<th scope="row"[^>]*><a class="jogador" href="\/jogador\/bia"/);
     expect(html.indexOf('href="/jogador/bia"')).toBeLessThan(html.indexOf('href="/jogador/AndreRuperto"'));
     expect(html).toContain('https://github.com/bia.png?size=56');
     expect(html).toContain('1 fantasma · 5 mortes · 3m 01s');
@@ -161,6 +172,25 @@ describe('GET /jogador/:login', () => {
     expect(html).toContain('<polyline');
     expect(html).toMatch(/<h1[^>]*>AndreRuperto<\/h1>/);
     expect(html).toContain('no ranking desde 1 jan. 2026 · 3 partidas');
+  });
+
+  it('grade com valores inteiros, linha quebrada onde faltam dias e resumo para leitor de tela', async () => {
+    const { app } = await montar({
+      partidas: [
+        p('bia', HOJE, 1203),
+        p('bia', addDays(HOJE, -1), 900),
+        p('bia', addDays(HOJE, -5), 333),
+        p('bia', addDays(HOJE, -6), 400)
+      ]
+    });
+    const { html } = await pagina(app, '/jogador/bia');
+    const svg = html.slice(html.indexOf('<svg'), html.indexOf('</svg>'));
+    expect(svg.match(/<polyline/g)).toHaveLength(2);
+    const rotulos = [...svg.matchAll(/<text[^>]*text-anchor="end">([\d.]+)<\/text>/g)].map((m) => Number(m[1].replace(/\./g, '')));
+    expect(rotulos).toHaveLength(5);
+    for (const r of rotulos) expect(Number.isInteger(r)).toBe(true);
+    expect(Math.max(...rotulos) % 4).toBe(0);
+    expect(html).toMatch(/<p class="sr">[^<]*Maior: 1\.203 em 20 nov\. 2026[^<]*menor: 333 em 15 nov\. 2026[^<]*último: 1\.203 em 20 nov\. 2026/);
   });
 
   it('cada partida tem o link do dia', async () => {
@@ -238,11 +268,21 @@ describe('GET /jogador/:login/:data', () => {
   it('dia anterior e seguinte com aria-label', async () => {
     const { app } = await montar();
     const meio = (await pagina(app, '/jogador/AndreRuperto/2026-11-19')).html;
-    expect(meio).toMatch(/<a [^>]*href="\/jogador\/AndreRuperto\/2026-11-15"[^>]*aria-label="Dia anterior"/);
-    expect(meio).toMatch(/<a [^>]*href="\/jogador\/AndreRuperto\/2026-11-20"[^>]*aria-label="Dia seguinte"/);
+    expect(meio).toMatch(/<a [^>]*href="\/jogador\/AndreRuperto\/2026-11-15"[^>]*aria-label="Dia anterior, 15 nov\. 2026"/);
+    expect(meio).toMatch(/<a [^>]*href="\/jogador\/AndreRuperto\/2026-11-20"[^>]*aria-label="Dia seguinte, 20 nov\. 2026"/);
+    expect(meio).toContain('<h1><span class="sr">AndreRuperto, </span>19 nov. 2026</h1>');
     const ultimo = (await pagina(app, `/jogador/AndreRuperto/${HOJE}`)).html;
-    expect(ultimo).not.toMatch(/<a [^>]*aria-label="Dia seguinte"/);
-    expect(ultimo).toMatch(/<a [^>]*aria-label="Dia anterior"/);
+    expect(ultimo).not.toMatch(/<a [^>]*aria-label="Dia seguinte/);
+    expect(ultimo).toMatch(/<a [^>]*aria-label="Dia anterior, 19 nov\. 2026"/);
+  });
+
+  it('sem como desenhar, troca a imagem por um aviso', async () => {
+    const { app } = await montar({ deps: { podeDesenhar: false } });
+    const { res, html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}`);
+    expect(res.status).toBe(200);
+    expect(html).not.toContain('/api/partida/');
+    expect(html).toContain('A animação não está disponível neste servidor.');
+    expect(html).toContain('Pontos');
   });
 
   it('placar e link do publicado', async () => {

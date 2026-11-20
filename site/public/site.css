@@ -171,6 +171,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
 .tabela th, .tabela td { padding: var(--esp-3); border-bottom: 1px solid var(--fio); text-align: left; }
 .tabela th { color: var(--apoio); font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
 .tabela .num { text-align: right; font-family: var(--mono); }
+.tabela th[scope="row"] { color: var(--texto); font-size: inherit; font-weight: 600; text-transform: none; letter-spacing: normal; }
 .tabela th.num { font-family: var(--corpo); }
 .tabela td.ativo { font-weight: 700; color: var(--texto); }
 .tabela td { font-variant-numeric: tabular-nums; }

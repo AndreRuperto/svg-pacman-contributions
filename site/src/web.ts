@@ -2,13 +2,13 @@
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { serve } from '@hono/node-server';
 import { fetchContributionsWindow } from '../../src/providers/github-contributions.js';
-import { playDay } from '../../src/runner.js';
-import { createApp } from './app.js';
+import { playDay, type Partida } from '../../src/runner.js';
+import { SemRender, createApp } from './app.js';
 import { JOGADORES_URL, fetchComTimeout, runCron } from './cron.js';
 import { addDays, ultimoDiaCompleto } from './datas.js';
 import { loadJogadores, type Jogador, type LoadOptions } from './jogadores.js';
 import { listPublished } from './publicados.js';
-import { MemoryRepo, type PartidaRepo } from './repo.js';
+import { MemoryRepo, type PartidaRepo, type PartidaSalva } from './repo.js';
 import { PgRepo } from './repo-pg.js';
 
 /** A lista de jogadores é relida a cada 10 minutos. */
@@ -69,6 +69,47 @@ export function listaRecarregavel(carregar: () => Promise<Jogador[]>, log: (m: s
   };
 }
 
+/** Esperas entre as novas tentativas da primeira carga da lista. */
+export const ESPERAS_PRIMEIRA_CARGA = [5_000, 15_000, 30_000];
+
+const dormirDeVerdade = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/**
+ * Primeira carga da lista: se falhar, tenta de novo depois de 5 s, 15 s e 30 s.
+ * Devolve `false` se nenhuma tentativa funcionou (a lista continua vazia).
+ */
+export async function primeiraCarga(
+  lista: { recarregar: () => Promise<boolean> },
+  { esperas = ESPERAS_PRIMEIRA_CARGA, dormir = dormirDeVerdade }: { esperas?: number[]; dormir?: (ms: number) => Promise<void> } = {}
+): Promise<boolean> {
+  if (await lista.recarregar()) return true;
+  for (const ms of esperas) {
+    await dormir(ms);
+    if (await lista.recarregar()) return true;
+  }
+  return false;
+}
+
+type Numeros = Pick<Partida, 'pontos' | 'mortes' | 'fantasmas'>;
+
+/**
+ * A animação é jogada de novo com as contribuições de agora; se o GitHub mudou a janela
+ * daquele dia, os números podem não bater com a partida salva. Só avisa.
+ */
+export function conferirDivergencia(
+  login: string,
+  data: string,
+  salva: Numeros | undefined,
+  nova: Numeros,
+  avisar: (m: string) => void = console.warn
+): void {
+  if (!salva) return;
+  const campos = (['pontos', 'mortes', 'fantasmas'] as const).filter((k) => salva[k] !== nova[k]);
+  if (!campos.length) return;
+  const detalhe = campos.map((k) => `${k} ${salva[k]} → ${nova[k]}`).join(', ');
+  avisar(`[web] a animação de ${login} em ${data} não bate com a partida salva (${detalhe})`);
+}
+
 /** Copia a lista com `desde` limitado aos últimos `dias` até `ultimo`. */
 export function aparar(jogadores: Jogador[], ultimo: string, dias: number): Jogador[] {
   const inicio = addDays(ultimo, -(dias - 1));
@@ -79,6 +120,9 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<void> 
   const cfg = configDoAmbiente(env);
   const log = (m: string) => console.log(m);
   const token = cfg.githubToken;
+  if (cfg.databaseUrl && !token) {
+    throw new Error('GITHUB_TOKEN é obrigatório com DATABASE_URL: sem ele a animação das partidas não é desenhada');
+  }
 
   let repo: PartidaRepo;
   let pg: PgRepo | undefined;
@@ -98,18 +142,32 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<void> 
     () => loadJogadores({ ...fonte, hoje: ultimoDiaCompleto() } as LoadOptions),
     log
   );
-  await lista.recarregar();
-  setInterval(() => void lista.recarregar(), RECARGA_MS).unref();
+  const recargas = () => setInterval(() => void lista.recarregar(), RECARGA_MS).unref();
+  let listaPronta: Promise<boolean>;
+  if (pg) {
+    // Produção: sem lista não sobe (o Railway reinicia o serviço).
+    if (!(await primeiraCarga(lista))) {
+      await pg.close().catch(() => {});
+      throw new Error('não consegui ler a lista de jogadores depois de 4 tentativas');
+    }
+    listaPronta = Promise.resolve(true);
+    recargas();
+  } else {
+    // Desenvolvimento: as tentativas correm em segundo plano.
+    listaPronta = primeiraCarga(lista).finally(recargas);
+  }
 
   const app = createApp({
     repo,
     jogadores: lista.atual,
     hoje: () => ultimoDiaCompleto(),
     confiarProxy: cfg.confiarProxy,
-    renderSvg: async (login, data, tema) => {
-      if (!token) throw new Error('GITHUB_TOKEN ausente: não dá para buscar as contribuições');
+    podeDesenhar: Boolean(token),
+    renderSvg: async (login, data, tema, salva: PartidaSalva) => {
+      if (!token) throw new SemRender('sem GITHUB_TOKEN');
       const { contributions } = await fetchContributionsWindow(login, data, token, fetchComTimeout);
       const partida = await playDay({ login, date: data, contributions, theme: tema, withSvg: true });
+      if (partida) conferirDivergencia(login, data, salva, partida);
       return partida?.svg ?? null;
     }
   });
@@ -118,8 +176,23 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<void> 
     log(`[web] ouvindo em http://localhost:${info.port}`)
   );
 
+  servidor.on('error', (e: NodeJS.ErrnoException) => {
+    console.error(
+      e.code === 'EADDRINUSE'
+        ? `[web] a porta ${cfg.porta} já está em uso; feche o outro servidor ou use PORT=<outra>`
+        : `[web] o servidor falhou: ${mensagem(e)}`
+    );
+    process.exit(1);
+  });
+
   const encerrar = () => {
-    servidor.close(() => void (pg?.close() ?? Promise.resolve()).finally(() => process.exit(0)));
+    // conexões presas não seguram o processo para sempre
+    setTimeout(() => process.exit(0), 10_000).unref();
+    servidor.close(() => {
+      (pg ? pg.close() : Promise.resolve())
+        .catch((e) => console.error(`[web] erro ao fechar o banco: ${mensagem(e)}`))
+        .finally(() => process.exit(0));
+    });
   };
   process.once('SIGTERM', encerrar);
   process.once('SIGINT', encerrar);
@@ -131,14 +204,14 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<void> 
     } else {
       const ultimo = ultimoDiaCompleto();
       log(`[web] jogando os últimos ${DIAS_DEV} dias em segundo plano…`);
-      runCron({
+      void listaPronta.then(() => runCron({
         repo,
         jogadores: aparar(lista.atual(), ultimo, DIAS_DEV),
         ultimo,
         fetchWindow: (login, date) => fetchContributionsWindow(login, date, token, fetchComTimeout),
         listPublished: (p, since) => listPublished(p.repo, p.branch, p.path, token, { since, log }),
         log
-      })
+      }))
         .then((r) =>
           log(`[web] partidas locais prontas: ${r.total.jogadas} jogadas, ${r.total.erros} erros, ${r.total.pendentes} pendentes`)
         )

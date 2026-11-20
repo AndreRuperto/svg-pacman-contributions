@@ -44,7 +44,7 @@ function tabela(d: DadosRanking): Html {
   ${d.linhas.map(
     (l) => html`<tr>
     <td class="${classePosicao(l)}">${l.posicao}</td>
-    <td><a class="jogador" href="${urlJogador(l.login)}"><img class="avatar" src="${urlAvatar(l.login, 56)}" alt="" width="28" height="28" loading="lazy">${l.login}</a></td>
+    <th scope="row"><a class="jogador" href="${urlJogador(l.login)}"><img class="avatar" src="${urlAvatar(l.login, 56)}" alt="" width="28" height="28" loading="lazy">${l.login}</a></th>
     <td class="num${d.aba === 'pontos' ? ' ativo' : ''}">${inteiro(l.pontos)}</td>
     <td class="num${d.aba === 'eficiencia' ? ' ativo' : ''}">${decimal(l.eficiencia)}</td>
     <td class="num">${l.fantasmas}</td>

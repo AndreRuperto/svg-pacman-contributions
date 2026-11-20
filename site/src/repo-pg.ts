@@ -25,11 +25,19 @@ export class PgRepo implements PartidaRepo {
   async migrate(): Promise<void> {
     const conexao = await this.sql.reserve();
     try {
+      // sem esperar para sempre se outro processo travar segurando o lock
+      await conexao`SET lock_timeout = '30s'`;
       await conexao`SELECT pg_advisory_lock(hashtext('pacman-migrate'))`;
       try {
         await conexao.file(SCHEMA);
       } finally {
-        await conexao`SELECT pg_advisory_unlock(hashtext('pacman-migrate'))`;
+        // uma falha aqui não pode esconder o erro da migração (se a conexão caiu, o lock caiu junto)
+        try {
+          await conexao`SELECT pg_advisory_unlock(hashtext('pacman-migrate'))`;
+          await conexao`RESET lock_timeout`;
+        } catch (e) {
+          console.error(`[migrate] não consegui liberar o lock: ${e instanceof Error ? e.message : String(e)}`);
+        }
       }
     } finally {
       conexao.release();

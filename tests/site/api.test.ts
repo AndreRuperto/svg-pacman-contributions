@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { createApp, type AppDeps } from '../../site/src/app.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { SemRender, createApp, type AppDeps } from '../../site/src/app.js';
 import { LruCache } from '../../site/src/cache.js';
 import { FilaCheia, RateLimiter, Semaforo } from '../../site/src/ratelimit.js';
 import { MemoryRepo } from '../../site/src/repo.js';
@@ -175,6 +175,43 @@ type App = Awaited<ReturnType<typeof montar>>['app'];
 const pedirPartida = (app: App, headers: Record<string, string> = {}, tema = 'github-dark') =>
   Promise.resolve(app.request(`/api/partida/AndreRuperto/${HOJE}?tema=${tema}`, { headers }));
 const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+describe('servidor sem como desenhar (SemRender)', () => {
+  it('503 com Retry-After de uma hora e um aviso só', async () => {
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const { app } = await montar({
+        deps: {
+          renderSvg: async () => {
+            throw new SemRender('sem GITHUB_TOKEN');
+          }
+        }
+      });
+      for (const tema of ['neon', 'brasa']) {
+        const res = await app.request(`/api/partida/AndreRuperto/${HOJE}?tema=${tema}`);
+        expect(res.status).toBe(503);
+        expect(res.headers.get('retry-after')).toBe('3600');
+        expect((await res.json()).erro).toMatch(/animação/);
+      }
+      expect(aviso).toHaveBeenCalledTimes(1);
+    } finally {
+      aviso.mockRestore();
+    }
+  });
+  it('renderSvg recebe a partida salva (para conferir a divergência)', async () => {
+    const recebidas: unknown[] = [];
+    const { app } = await montar({
+      deps: {
+        renderSvg: async (_l, _d, _t, salva) => {
+          recebidas.push(salva);
+          return '<svg/>';
+        }
+      }
+    });
+    await app.request(`/api/partida/AndreRuperto/${HOJE}`);
+    expect(recebidas[0]).toMatchObject({ login: 'AndreRuperto', data: HOJE, pontos: 900 });
+  });
+});
 
 describe('limite de pedidos', () => {
   it('mais de 30 por minuto do mesmo IP em /api/partida → 429 com Retry-After', async () => {

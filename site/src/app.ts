@@ -8,7 +8,7 @@ import { dataValida, exigirHoje } from './datas.js';
 import type { Jogador } from './jogadores.js';
 import type { Aba, Periodo } from './ranking.js';
 import { FilaCheia, RateLimiter, Semaforo } from './ratelimit.js';
-import { chaveLogin, type PartidaRepo } from './repo.js';
+import { chaveLogin, type PartidaRepo, type PartidaSalva } from './repo.js';
 import { paginaJogador } from './views/jogador.js';
 import { CSS, paginaErro, type Html } from './views/layout.js';
 import { paginaPartida } from './views/partida.js';
@@ -20,8 +20,14 @@ export interface AppDeps {
   jogadores: () => Jogador[];
   /** AAAA-MM-DD (UTC). Em produção, o último dia completo. */
   hoje: () => string;
-  /** SVG da partida daquele dia naquele tema; `null` se não houver o que jogar. */
-  renderSvg: (login: string, data: string, tema: ThemeKeys) => Promise<string | null>;
+  /**
+   * SVG da partida daquele dia naquele tema; `null` se não houver o que jogar.
+   * Recebe a partida salva para conferir se a de agora deu os mesmos números.
+   * Lança `SemRender` quando este servidor não tem como desenhar (ex.: sem token).
+   */
+  renderSvg: (login: string, data: string, tema: ThemeKeys, salva: PartidaSalva) => Promise<string | null>;
+  /** `false` quando o servidor não desenha partidas: a tela troca a animação por um aviso. Padrão `true`. */
+  podeDesenhar?: boolean;
   /**
    * `true` só atrás de um proxy confiável (Railway): o IP vem de `x-real-ip`,
    * senão do último item de `x-forwarded-for`. Padrão `false`: só o socket.
@@ -60,6 +66,16 @@ const CSP_HTML = [
   "form-action 'self'",
   "frame-ancestors 'none'"
 ].join('; ');
+
+/** O servidor não tem como desenhar a partida (ex.: sem `GITHUB_TOKEN`). */
+export class SemRender extends Error {
+  constructor(motivo: string) {
+    super(motivo);
+    this.name = 'SemRender';
+  }
+}
+
+const RETRY_SEM_RENDER_S = 3600;
 
 type Status = 400 | 404 | 429 | 500 | 503;
 const erro = (c: Context, status: Status, mensagem: string) => c.json({ erro: mensagem }, status);
@@ -121,6 +137,8 @@ export function createApp(deps: AppDeps): Hono {
   const limitePartida = deps.rateLimiter ?? new RateLimiter({ limite: 30, janelaMs: 60_000, agora });
   const limiteJson = deps.rateLimiterJson ?? new RateLimiter({ limite: 120, janelaMs: 60_000, agora });
 
+  let avisouSemRender = false;
+  const podeDesenhar = deps.podeDesenhar ?? true;
   const hoje = (): string => {
     const h = deps.hoje();
     exigirHoje(h);
@@ -158,6 +176,9 @@ export function createApp(deps: AppDeps): Hono {
     return falha(c, 500, 'Algo deu errado', 'Erro interno. Tente de novo em instantes.');
   });
   app.notFound(naoEncontrada);
+
+  // Sem favicon; responde vazio antes do limite para não gastar a cota do visitante.
+  app.get('/favicon.ico', (c) => c.body(null, 204, { 'Cache-Control': `public, max-age=${MAX_AGE_PASSADO}` }));
 
   // O CSS tem o hash do conteúdo na URL do layout: pode ficar em cache por um ano.
   app.get('/static/site.css', (c) =>
@@ -215,7 +236,7 @@ export function createApp(deps: AppDeps): Hono {
       let pendente = emAndamento.get(chave);
       if (!pendente) {
         pendente = renders
-          .executar(() => deps.renderSvg(jogador.login, data, tema))
+          .executar(() => deps.renderSvg(jogador.login, data, tema, salva))
           .finally(() => emAndamento.delete(chave));
         emAndamento.set(chave, pendente);
       }
@@ -223,6 +244,12 @@ export function createApp(deps: AppDeps): Hono {
       try {
         novo = await pendente;
       } catch (e) {
+        if (e instanceof SemRender) {
+          if (!avisouSemRender) console.warn(`[api] a animação não pode ser desenhada: ${e.message}`);
+          avisouSemRender = true;
+          c.header('Retry-After', String(RETRY_SEM_RENDER_S));
+          return erro(c, 503, 'A animação não está disponível neste servidor.');
+        }
         if (!(e instanceof FilaCheia)) throw e;
         c.header('Retry-After', String(RETRY_FILA_S));
         return erro(c, 503, 'Muitas partidas sendo desenhadas agora. Tente de novo em alguns segundos.');
@@ -270,7 +297,7 @@ export function createApp(deps: AppDeps): Hono {
     if (!partida) return falha(c, 404, 'Partida não encontrada', `Não há partida de ${d.login} neste dia.`);
     const t = c.req.query('tema');
     const tema = t !== undefined && temaValido(t) ? t : TEMA_PADRAO;
-    return pagina(c, paginaPartida({ jogador: d, partida, tema, temaPadrao: TEMA_PADRAO }));
+    return pagina(c, paginaPartida({ jogador: d, partida, tema, temaPadrao: TEMA_PADRAO, podeDesenhar }));
   });
 
   return app;
