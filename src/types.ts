@@ -152,6 +152,8 @@ export interface GameTheme {
   pacmanPowerupColor: string;
   /** Cor do fantasma assustado piscando no fim do power-up. */
   flashColor: string;
+  /** Contorno de 1 px no fantasma assustado e nos olhos, onde o sprite fixo some no tema. */
+  spriteOutline?: string;
   tunnelColor: string;        // boca do túnel em repouso
   tunnelActiveColor: string;  // boca do túnel com o Pac-Man perto
 }

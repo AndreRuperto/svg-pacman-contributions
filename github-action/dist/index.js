@@ -19861,7 +19861,9 @@ var init_constants = __esm({
         pacmanColor: "#F2C200",
         pacmanStroke: "#1f2328",
         pacmanPowerupColor: "#CF222E",
-        flashColor: "#24292F"
+        flashColor: "#24292F",
+        spriteOutline: "#1f2328"
+        // olhos brancos somem no fundo branco
       },
       "github-dark": {
         textColor: "#8b949e",
@@ -19892,7 +19894,9 @@ var init_constants = __esm({
         wallColor: "#4D4DFF",
         intensityColors: ARCADE,
         tunnelColor: "#555555",
-        ...DARK_CHARACTERS
+        ...DARK_CHARACTERS,
+        spriteOutline: "#FFFFFF"
+        // o assustado azul some nas células azuis
       },
       /* ---------- Neon ---------- */
       neon: {
@@ -19926,7 +19930,8 @@ var init_constants = __esm({
         pacmanColor: "#F2C200",
         pacmanStroke: "#1F1E24",
         pacmanPowerupColor: "#DD2B0E",
-        flashColor: "#1F1E24"
+        flashColor: "#1F1E24",
+        spriteOutline: "#1F1E24"
       },
       "gitlab-dark": {
         textColor: "#a4a3a8",
@@ -20422,7 +20427,7 @@ var init_svg = __esm({
 	  </info>
 	</metadata>`;
       svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
-      svg += generateGhostsPredefinition(theme.flashColor);
+      svg += generateGhostsPredefinition(theme.flashColor, theme.spriteOutline);
       const arenaHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE);
       svg += `<defs><clipPath id="arena"><rect x="0" y="15" width="${svgWidth}" height="${arenaHeight}"/></clipPath></defs>`;
       let lastMonth = "";
@@ -20581,8 +20586,12 @@ var init_svg = __esm({
       const [r2, g, b] = [1, 3, 5].map((i2) => (parseInt(hex.slice(i2, i2 + 2), 16) / 255).toFixed(3));
       return `0 0 0 0 ${r2}  0 0 0 0 ${g}  0 0 0 0 ${b}  0 0 0 1 0`;
     };
-    generateGhostsPredefinition = (flashColor) => {
+    generateGhostsPredefinition = (flashColor, outline) => {
+      const outlined = outline ? ' filter="url(#sprite-outline)"' : "";
       let defs = `<defs>`;
+      if (outline) {
+        defs += `<filter id="sprite-outline" x="-20%" y="-20%" width="140%" height="140%"><feMorphology in="SourceAlpha" operator="dilate" radius="1" result="wide"/><feFlood flood-color="${outline}"/><feComposite in2="wide" operator="in" result="line"/><feMerge><feMergeNode in="line"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+      }
       ["blinky", "inky", "pinky", "clyde"].forEach((ghostName) => {
         ["up", "down", "left", "right"].forEach((direction) => {
           const ghostObj = GHOSTS[ghostName];
@@ -20597,19 +20606,19 @@ var init_svg = __esm({
       });
       defs += `
     <symbol id="ghost-scared" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-        <image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
+        <image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"${outlined}/>
     </symbol>`;
       defs += `
     <filter id="flash-white"><feColorMatrix type="matrix" values="${flashMatrix(flashColor)}"/></filter>
     <symbol id="ghost-scared-flash" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-        <image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/>
+        <g${outlined}><image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/></g>
     </symbol>`;
       ["up", "down", "left", "right"].forEach((direction) => {
         if (GHOSTS["eyes"] && direction in GHOSTS["eyes"]) {
           const eyesObj = GHOSTS["eyes"];
           defs += `
             <symbol id="ghost-eyes-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                <image href="${eyesObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
+                <image href="${eyesObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"${outlined}/>
             </symbol>
             `;
         } else {

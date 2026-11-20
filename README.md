@@ -138,7 +138,7 @@ Esses níveis são relativos ao padrão de contribuições de cada usuário e ca
 | `alto-contraste` | Preto, rampa de azul por claridade e paredes laranja |
 | `gitlab` / `gitlab-dark` | Roxo-azulado do calendário do GitLab |
 
-Todo tema define as mesmas cores (fundo, células, paredes, textos, túnel, Pac-Man, power-up e fantasma piscando) e passa nos testes de contraste: texto ≥ 4,5:1 e paredes ≥ 3:1 sobre o fundo. Nos temas claros, o Pac-Man ganha contorno escuro para não sumir no branco.
+Todo tema define as mesmas cores (fundo, células, paredes, textos, túnel, Pac-Man, power-up e fantasma piscando) e passa nos testes de contraste: texto ≥ 4,5:1 e paredes ≥ 3:1 sobre o fundo. Nos temas claros, o Pac-Man e os olhos dos fantasmas ganham contorno escuro para não sumir no branco; no `arcade`, o fantasma assustado ganha contorno branco para não sumir nas células azuis.
 
 No fim da animação, um placar mostra pontos, fantasmas comidos, maior combo, mortes e duração.
 
