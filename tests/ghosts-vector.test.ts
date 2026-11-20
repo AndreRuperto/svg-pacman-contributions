@@ -42,6 +42,9 @@ describe('fantasmas em vetor (prancha: A · Lençol)', () => {
         expect(new Set(t.ghostColors.map(c => c.toUpperCase())).size).toBe(4);
         expect(t.ghostColors.map(c => c.toUpperCase())).not.toContain(t.pacmanPowerupColor.toUpperCase());
       });
+      it('nenhum fantasma normal se confunde com o fantasma piscando', () => {
+        for (const c of t.ghostColors) expect(contrast(c, t.flashColor), `${c} vs pisca ${t.flashColor}`).toBeGreaterThanOrEqual(1.25);
+      });
       it('fantasmas ≥ 3:1 sobre o fundo (ou com contorno que garante isso)', () => {
         for (const c of t.ghostColors) {
           const ok = contrast(c, t.gridBackground) >= 3 || (!!t.ghostOutline && contrast(t.ghostOutline, t.gridBackground) >= 3);

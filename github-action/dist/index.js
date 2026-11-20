@@ -19925,8 +19925,8 @@ var init_constants = __esm({
         intensityColors: NEON,
         tunnelColor: "#4A3A70",
         ...DARK_CHARACTERS,
-        ghostColors: ["#C0EB75", "#66D9E8", "#FFA94D", "#F8F9FA"]
-        // sem roxo e rosa: as células já são
+        ghostColors: ["#C0EB75", "#66D9E8", "#FFA94D", "#FFC9C9"]
+        // sem roxo e rosa (as células já são) e sem branco (é o pisca)
       },
       /* ---------- Alto contraste: rampa de azul por claridade, paredes laranja ---------- */
       "alto-contraste": {
