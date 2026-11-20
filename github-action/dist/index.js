@@ -21266,7 +21266,7 @@ var init_store = __esm({
 });
 
 // src/core/game.ts
-var POINTS_MAP, MAX_FRAMES, GHOST_BASE_POINTS, BASE_DEATH_PENALTY, placePacman, placeGhosts, stopGame, initRound, startGame, resetPacman, determineGhostName, pushSnapshot, collideWith, checkCollisions, checkSwapCollisions, eatCell, activatePowerUp, updateGame, releaseGhostFromHouse, Game;
+var POINTS_MAP, MAX_FRAMES, MAX_EFFICIENCY_MULTIPLIER, GHOST_BASE_POINTS, BASE_DEATH_PENALTY, placePacman, placeGhosts, stopGame, initRound, startGame, resetPacman, determineGhostName, pushSnapshot, collideWith, checkCollisions, checkSwapCollisions, eatCell, activatePowerUp, updateGame, releaseGhostFromHouse, Game;
 var init_game = __esm({
   "src/core/game.ts"() {
     "use strict";
@@ -21286,6 +21286,7 @@ var init_game = __esm({
       "FOURTH_QUARTILE": 40
     };
     MAX_FRAMES = 6e3;
+    MAX_EFFICIENCY_MULTIPLIER = 3;
     GHOST_BASE_POINTS = 200;
     BASE_DEATH_PENALTY = 200;
     placePacman = (store) => {
@@ -21532,7 +21533,7 @@ var init_game = __esm({
         store.statistics.timeBonus = timeBonus;
         const ghostsEaten = store.statistics.ghostsEaten;
         const deaths = Math.max(1, store.statistics.deaths);
-        const efficiencyMultiplier = parseFloat((1 + ghostsEaten / deaths).toFixed(2));
+        const efficiencyMultiplier = Math.min(MAX_EFFICIENCY_MULTIPLIER, parseFloat((1 + ghostsEaten / deaths).toFixed(2)));
         store.statistics.efficiencyMultiplier = efficiencyMultiplier;
         const pointsBeforeBonus = store.statistics.totalPoints;
         let finalPoints = pointsBeforeBonus;

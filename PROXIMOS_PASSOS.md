@@ -52,7 +52,7 @@ Rodada 2 (branch `claude/proximos-passos`, 2026-11-19), já feito:
 - [x] Velocidade da animação: `speed` na Action, `animationSpeed` na biblioteca.
 
 Pendente:
-- [ ] **Decidir:** pontuação final explode com o multiplicador `1 + fantasmas / mortes` (`game.ts`). Ex.: 27 fantasmas e 1 morte dá ×28 e 878.640 pts. Opções: teto no multiplicador, soma em vez de multiplicação, ou tirar o multiplicador.
+- [x] Pontuação final: multiplicador de eficiência `1 + fantasmas/mortes` com teto de ×3 (antes chegava a ×28).
 - [ ] Revisão visual da animação completa no navegador (`pnpm preview`): túnel, bocas em ciano, fantasmas virando e piscando.
 - [ ] Rodar a Action de verdade no GitHub (workflow do perfil) e conferir o SVG publicado.
 - [ ] Temas novos e painel de estatísticas no SVG: são visuais; pela regra global, antes montar a prancha de identidade e sistema de design do projeto (`/prancha`).
