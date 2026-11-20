@@ -1443,11 +1443,11 @@ var require_sbmh = __commonJS({
       }
       const chlen = chunk.length;
       this._bufpos = pos || 0;
-      let r2;
-      while (r2 !== chlen && this.matches < this.maxMatches) {
-        r2 = this._sbmh_feed(chunk);
+      let r3;
+      while (r3 !== chlen && this.matches < this.maxMatches) {
+        r3 = this._sbmh_feed(chunk);
       }
-      return r2;
+      return r3;
     };
     SBMH.prototype._sbmh_feed = function(data) {
       const len = data.length;
@@ -1611,9 +1611,9 @@ var require_HeaderParser = __commonJS({
     }
     inherits(HeaderParser, EventEmitter);
     HeaderParser.prototype.push = function(data) {
-      const r2 = this.ss.push(data);
+      const r3 = this.ss.push(data);
       if (this.finished) {
-        return r2;
+        return r3;
       }
     };
     HeaderParser.prototype.reset = function() {
@@ -1757,9 +1757,9 @@ var require_Dicer = __commonJS({
             this._ignore();
           }
         }
-        const r2 = this._hparser.push(data);
-        if (!this._inHeader && r2 !== void 0 && r2 < data.length) {
-          data = data.slice(r2);
+        const r3 = this._hparser.push(data);
+        if (!this._inHeader && r3 !== void 0 && r3 < data.length) {
+          data = data.slice(r3);
         } else {
           return cb();
         }
@@ -1798,7 +1798,7 @@ var require_Dicer = __commonJS({
       let buf;
       const self2 = this;
       let i2 = 0;
-      let r2;
+      let r3;
       let shouldWriteMore = true;
       if (!this._part && this._justMatched && data) {
         while (this._dashes < 2 && start + i2 < end) {
@@ -1861,9 +1861,9 @@ var require_Dicer = __commonJS({
           if (buf) {
             this._hparser.push(buf);
           }
-          r2 = this._hparser.push(data.slice(start, end));
-          if (!this._inHeader && r2 !== void 0 && r2 < end) {
-            this._oninfo(false, data, start + r2, end);
+          r3 = this._hparser.push(data.slice(start, end));
+          if (!this._inHeader && r3 !== void 0 && r3 < end) {
+            this._oninfo(false, data, start + r3, end);
           }
         }
       }
@@ -2884,11 +2884,11 @@ var require_multipart = __commonJS({
       });
     }
     Multipart.prototype.write = function(chunk, cb) {
-      const r2 = this.parser.write(chunk);
-      if (r2 && !this._pause) {
+      const r3 = this.parser.write(chunk);
+      if (r3 && !this._pause) {
         cb();
       } else {
-        this._needDrain = !r2;
+        this._needDrain = !r3;
         this._cb = cb;
       }
     };
@@ -4384,11 +4384,11 @@ var require_webidl = __commonJS({
       return x2;
     };
     webidl.util.IntegerPart = function(n) {
-      const r2 = Math.floor(Math.abs(n));
+      const r3 = Math.floor(Math.abs(n));
       if (n < 0) {
-        return -1 * r2;
+        return -1 * r3;
       }
-      return r2;
+      return r3;
     };
     webidl.sequenceConverter = function(converter) {
       return (V) => {
@@ -14892,15 +14892,15 @@ var require_cache = __commonJS({
         webidl.brandCheck(this, _Cache);
         if (request !== void 0) request = webidl.converters.RequestInfo(request);
         options = webidl.converters.CacheQueryOptions(options);
-        let r2 = null;
+        let r3 = null;
         if (request !== void 0) {
           if (request instanceof Request2) {
-            r2 = request[kState];
-            if (r2.method !== "GET" && !options.ignoreMethod) {
+            r3 = request[kState];
+            if (r3.method !== "GET" && !options.ignoreMethod) {
               return [];
             }
           } else if (typeof request === "string") {
-            r2 = new Request2(request)[kState];
+            r3 = new Request2(request)[kState];
           }
         }
         const responses = [];
@@ -14909,7 +14909,7 @@ var require_cache = __commonJS({
             responses.push(requestResponse[1]);
           }
         } else {
-          const requestResponses = this.#queryCache(r2, options);
+          const requestResponses = this.#queryCache(r3, options);
           for (const requestResponse of requestResponses) {
             responses.push(requestResponse[1]);
           }
@@ -14944,8 +14944,8 @@ var require_cache = __commonJS({
           if (typeof request === "string") {
             continue;
           }
-          const r2 = request[kState];
-          if (!urlIsHttpHttpsScheme(r2.url) || r2.method !== "GET") {
+          const r3 = request[kState];
+          if (!urlIsHttpHttpsScheme(r3.url) || r3.method !== "GET") {
             throw webidl.errors.exception({
               header: "Cache.addAll",
               message: "Expected http/s scheme when method is not GET."
@@ -14954,19 +14954,19 @@ var require_cache = __commonJS({
         }
         const fetchControllers = [];
         for (const request of requests) {
-          const r2 = new Request2(request)[kState];
-          if (!urlIsHttpHttpsScheme(r2.url)) {
+          const r3 = new Request2(request)[kState];
+          if (!urlIsHttpHttpsScheme(r3.url)) {
             throw webidl.errors.exception({
               header: "Cache.addAll",
               message: "Expected http/s scheme."
             });
           }
-          r2.initiator = "fetch";
-          r2.destination = "subresource";
-          requestList.push(r2);
+          r3.initiator = "fetch";
+          r3.destination = "subresource";
+          requestList.push(r3);
           const responsePromise = createDeferredPromise();
           fetchControllers.push(fetching({
-            request: r2,
+            request: r3,
             dispatcher: getGlobalDispatcher(),
             processResponse(response) {
               if (response.type === "error" || response.status === 206 || response.status < 200 || response.status > 299) {
@@ -15117,20 +15117,20 @@ var require_cache = __commonJS({
         webidl.argumentLengthCheck(arguments, 1, { header: "Cache.delete" });
         request = webidl.converters.RequestInfo(request);
         options = webidl.converters.CacheQueryOptions(options);
-        let r2 = null;
+        let r3 = null;
         if (request instanceof Request2) {
-          r2 = request[kState];
-          if (r2.method !== "GET" && !options.ignoreMethod) {
+          r3 = request[kState];
+          if (r3.method !== "GET" && !options.ignoreMethod) {
             return false;
           }
         } else {
           assert(typeof request === "string");
-          r2 = new Request2(request)[kState];
+          r3 = new Request2(request)[kState];
         }
         const operations = [];
         const operation = {
           type: "delete",
-          request: r2,
+          request: r3,
           options
         };
         operations.push(operation);
@@ -15161,15 +15161,15 @@ var require_cache = __commonJS({
         webidl.brandCheck(this, _Cache);
         if (request !== void 0) request = webidl.converters.RequestInfo(request);
         options = webidl.converters.CacheQueryOptions(options);
-        let r2 = null;
+        let r3 = null;
         if (request !== void 0) {
           if (request instanceof Request2) {
-            r2 = request[kState];
-            if (r2.method !== "GET" && !options.ignoreMethod) {
+            r3 = request[kState];
+            if (r3.method !== "GET" && !options.ignoreMethod) {
               return [];
             }
           } else if (typeof request === "string") {
-            r2 = new Request2(request)[kState];
+            r3 = new Request2(request)[kState];
           }
         }
         const promise = createDeferredPromise();
@@ -15179,7 +15179,7 @@ var require_cache = __commonJS({
             requests.push(requestResponse[0]);
           }
         } else {
-          const requestResponses = this.#queryCache(r2, options);
+          const requestResponses = this.#queryCache(r3, options);
           for (const requestResponse of requestResponses) {
             requests.push(requestResponse[0]);
           }
@@ -15243,14 +15243,14 @@ var require_cache = __commonJS({
                   message: "put operation should have an associated response"
                 });
               }
-              const r2 = operation.request;
-              if (!urlIsHttpHttpsScheme(r2.url)) {
+              const r3 = operation.request;
+              if (!urlIsHttpHttpsScheme(r3.url)) {
                 throw webidl.errors.exception({
                   header: "Cache.#batchCacheOperations",
                   message: "expected http or https scheme"
                 });
               }
-              if (r2.method !== "GET") {
+              if (r3.method !== "GET") {
                 throw webidl.errors.exception({
                   header: "Cache.#batchCacheOperations",
                   message: "not get method"
@@ -19817,7 +19817,7 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
 });
 
 // src/core/constants.ts
-var CELL_SIZE, GAP_SIZE, GRID_WIDTH, GRID_HEIGHT, TUNNEL_ROW, isTunnelCell, PACMAN_COLOR_DEAD, DELTA_TIME, PACMAN_DEATH_DURATION, PACMAN_POWERUP_DURATION, POWERUP_FLASH_FRAMES, GITHUB_LIGHT, GITHUB_DARK, BRASA, ARCADE, NEON, ALTO_CONTRASTE, GITLAB_LIGHT, GITLAB_DARK, DARK_CHARACTERS, GAME_THEMES, GHOSTS, WALLS, setWall;
+var CELL_SIZE, GAP_SIZE, GRID_WIDTH, GRID_HEIGHT, TUNNEL_ROW, isTunnelCell, PACMAN_COLOR_DEAD, DELTA_TIME, PACMAN_DEATH_DURATION, PACMAN_POWERUP_DURATION, POWERUP_FLASH_FRAMES, GITHUB_LIGHT, GITHUB_DARK, BRASA, ARCADE, NEON, ALTO_CONTRASTE, GITLAB_LIGHT, GITLAB_DARK, DARK_CHARACTERS, LIGHT_GHOSTS, GAME_THEMES, WALLS, setWall;
 var init_constants = __esm({
   "src/core/constants.ts"() {
     "use strict";
@@ -19847,7 +19847,18 @@ var init_constants = __esm({
     ALTO_CONTRASTE = ["#262626", "#003D80", "#0066D6", "#66B2FF", "#FFFFFF"];
     GITLAB_LIGHT = ["#ececef", "#d2dcff", "#7992f5", "#3f51ae", "#2a2b59"];
     GITLAB_DARK = ["#28272d", "#2f2a6b", "#4b4fc8", "#7992f5", "#d2dcff"];
-    DARK_CHARACTERS = { pacmanColor: "#FFFF00", pacmanPowerupColor: "#FF4D4D", flashColor: "#FFFFFF", tunnelActiveColor: "#00FFFF" };
+    DARK_CHARACTERS = {
+      pacmanColor: "#FFFF00",
+      pacmanPowerupColor: "#FF4D4D",
+      flashColor: "#FFFFFF",
+      tunnelActiveColor: "#00FFFF",
+      /* Fantasmas (prancha: A · Lençol): longe do amarelo do Pac-Man, do vermelho do poder e do verde das células */
+      ghostColors: ["#B794F6", "#F783AC", "#66D9E8", "#FFA94D"],
+      scaredColor: "#4C6EF5",
+      scaredFace: "#FFE8CC",
+      flashFace: "#4C6EF5"
+    };
+    LIGHT_GHOSTS = { scaredColor: "#364FC7", scaredFace: "#FFFFFF", flashFace: "#FFFFFF" };
     GAME_THEMES = {
       /* ---------- GitHub ---------- */
       github: {
@@ -19862,8 +19873,11 @@ var init_constants = __esm({
         pacmanStroke: "#1f2328",
         pacmanPowerupColor: "#CF222E",
         flashColor: "#24292F",
-        spriteOutline: "#1f2328"
+        spriteOutline: "#1f2328",
         // olhos brancos somem no fundo branco
+        ghostColors: ["#7048E8", "#D6336C", "#0C8599", "#E8590C"],
+        ghostOutline: "#1f2328",
+        ...LIGHT_GHOSTS
       },
       "github-dark": {
         textColor: "#8b949e",
@@ -19883,8 +19897,10 @@ var init_constants = __esm({
         intensityColors: BRASA,
         tunnelColor: "#5C4F49",
         ...DARK_CHARACTERS,
-        pacmanPowerupColor: "#FF3B5C"
+        pacmanPowerupColor: "#FF3B5C",
         // vermelho puxado para o rosa: não some no laranja das células
+        ghostColors: ["#B794F6", "#F783AC", "#66D9E8", "#C0EB75"]
+        // sem laranja: as células já são laranja
       },
       /* ---------- Fliperama ---------- */
       arcade: {
@@ -19895,6 +19911,7 @@ var init_constants = __esm({
         intensityColors: ARCADE,
         tunnelColor: "#555555",
         ...DARK_CHARACTERS,
+        ghostColors: ["#E599F7", "#FF8FAB", "#66D9E8", "#FFA94D"],
         spriteOutline: "#FFFFFF"
         // o assustado azul some nas células azuis
       },
@@ -19906,7 +19923,9 @@ var init_constants = __esm({
         wallColor: "#FF2E97",
         intensityColors: NEON,
         tunnelColor: "#4A3A70",
-        ...DARK_CHARACTERS
+        ...DARK_CHARACTERS,
+        ghostColors: ["#C0EB75", "#66D9E8", "#FFA94D", "#F8F9FA"]
+        // sem roxo e rosa: as células já são
       },
       /* ---------- Alto contraste: rampa de azul por claridade, paredes laranja ---------- */
       "alto-contraste": {
@@ -19916,7 +19935,10 @@ var init_constants = __esm({
         wallColor: "#FF9F1C",
         intensityColors: ALTO_CONTRASTE,
         tunnelColor: "#8A8A8A",
-        ...DARK_CHARACTERS
+        ...DARK_CHARACTERS,
+        ghostColors: ["#E599F7", "#FF8FAB", "#C0EB75", "#FFA94D"],
+        // sem ciano: as células são azuis
+        spriteOutline: "#FFFFFF"
       },
       /* ---------- GitLab ---------- */
       gitlab: {
@@ -19931,7 +19953,11 @@ var init_constants = __esm({
         pacmanStroke: "#1F1E24",
         pacmanPowerupColor: "#DD2B0E",
         flashColor: "#1F1E24",
-        spriteOutline: "#1F1E24"
+        spriteOutline: "#1F1E24",
+        ghostColors: ["#C2255C", "#E8590C", "#0C8599", "#2B8A3E"],
+        // sem violeta: as células são roxo-azuladas
+        ghostOutline: "#1F1E24",
+        ...LIGHT_GHOSTS
       },
       "gitlab-dark": {
         textColor: "#a4a3a8",
@@ -19940,42 +19966,9 @@ var init_constants = __esm({
         wallColor: "#ececef",
         intensityColors: GITLAB_DARK,
         tunnelColor: "#737278",
-        ...DARK_CHARACTERS
-      }
-    };
-    GHOSTS = {
-      blinky: {
-        up: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABiklEQVR4nIXSO2sVURQF4G8mMwa8QU2KxFcjCoIgacR/oCBYCP4fsTEIBkWwEK21UAQLIdjYaKEiJIXBXhNBCFaSeDP3zLa4mdyj5rHgwNmPtffZ62z+Q4miKHlWs3yALwUvKYphbC8UjDN3nIUB/SCCSDRnWKiZVxTFrvxp5kMRHbEltaTODuIED3YkT3FnUy+uS815qQkzMSJOxAWpuSo1A72Y4f5f5DFuBpE+vmsmZ9ukF9Eu/xwV+Pw1TEYcOtum9GmxCaLmdl7jeRDp968mcnQFMqS02bSkMV5tS36UBL6t7ixO6o/uK6sKymM0Q9l5NKC/Ldb3lWGrqenRCw73hr61H9viDujjKbztnLnae50uF4sl1nf91/2xvt9q7YuyEwKCNg+2DFoGue/fnHLoGwbyZQ/akqqkykkFZW6XmNy6VJdYyhPP8eE07/PCl1kqqbbMI3BrjY1rvMH4SW4kmou86Eac5UmiOcUcxq/wep2NirugYh4TXfOah6izUauax5leB2vuwR+e2vAshd8i9AAAAABJRU5ErkJggg==",
-        down: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABmUlEQVR4nHXTT0tUYRQG8N97/TOloSYpYv/BNlLYqqJli1Z9gz5SOwkKgpDaRBS5CKJ2fYFWrsyNZWKSOYliw8y9p8XMHa+Tc+ByOec8z/M+7z3nJidHwhtc7ORreIjog29H1iYunmc5iPIpyGd5h0cd8ZNPvcLzXmJBXq1N8/g/kSSlyywFkdPMaVZJvfVZnkhHImmSZyWol9jrqMSMsti5tmhwJyhSO+8bZT8ogrulQDbDQZe8/ZPt38eZA9jbZ2OjKzTFPpJxPrdoBFFsruVRxq+tI/v1nW45vn2NIFo0TvMxTdLcYRBt+DHPne/Up36GvaygDn+p17+srp+d59S1KHyvXOPHgaFLTC9gfUtQdDp/TLAbRJPDQ2O7cyIuiAgzlQlcjSkR8yLCWJS7McJGV6Df2HoXqZqPsJmVdk56J7JEVrGsmida2TATZeM+q+U4E9kcKzdYqe7Hg+OYcdN8atG41f5Zagu8KMhv8rbck9u8L8iv8xS1e3xo0TjHMgyM8BJDnUMGa7xWjrYdQ8O8cuSkNsoSsn/EzgO2a6zxyAAAAABJRU5ErkJggg==",
-        left: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABzklEQVR4nIWSy2tTURCHvzNnzk0TS21sQluhq4Kb+sAH4qrgyoV/oNuCUIogEUGKf4DoolBFfCC4sYKgDVXig/Tec8ZF7k1uo9GBWczvnN8H84DpcM6h6ruw14VBBwZdeIX3inPuj//18FkmS/jtDdgvYGhgBhYhvwwv2khPs8z/3R2CnIcHlWlWXsXvMleDOEBVZaM0R8gTxGljghghN7BLyK4PwY/6UeUsbNuZlsVvn3JLyWz+1MTc8mbHP8x+HpmpWgVZhh5OKsbc0/6bgxhjzM3MbDicAN4f2jj6fUsQE8R52McBrcz7VbpPaJmxWALMxoBOMPMrE0bV3hXYC42grMCziOY3SJG18lf+fQxYx6y1XupfP1t9M6vwkjZ8GQ3JR3t3YHY8MGvWZsBpsw99s8GhmZwcbBd+sQQf/7e6WdmBIynKdRqkf17ZjBCrFdMQg5SgmNbqNySuFAySGwFP1AI6rVW1g0KANoCA3oK3DqR8lIvw/Bzs17Xb8LqqBTosI70ChjfhEVnWuIC/EyHfhIc4L2jmrqH3IuTX0S2azcYmcr+A4RrymCwEafuwJaoNAB+CLKjuiGoY9+q9XxDdcSF4AFEJiyJ3QwjyGx0DPZpbZTAYAAAAAElFTkSuQmCC",
-        right: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABp0lEQVR4nI3TO2tUQRQH8N+9e9eg0YBBlwR8gNHKRqz8Amph4zcSBCWgEBALQbAU0U4EUewsfDQJNuIDiaAkSNhCY3Rz79xjsdndaxKDB6aYM//HzDln2DayrMXDgrct3hXcR7Y9dhMT14/wNFEGEURFb5onuLKjzDQ3B6QgalJNauamuLYt+SA3gkiUTffBauYPbBbJmB2AalJ8+Ryx2o1oN0Qm9kSdeim9Xyh/FFm0uNzUeFSTEmUsfoxhLC6NBNbXIyIipVR+fTGf8AAKZB2qjDyoHZ0B+04wvjJleWDRbisTuzponcon5Om7OoN7Fb1hsVY+RUTE2PGIw2J0g6jjd0TYG3FBnSp6uAPzg4oPwd1vEUvdCJ2RwNRk/1mvPwyxeF5gbUtLJjtb27TcJdsyBGs58n+Mxf9E6y9yUDf3NVVNtQOmzm0Agjpr3Cb6h0VO0SQNu9WPlGNS/x3FWRaawBlenuRVU/g8b/J++2G/grlVfp3jMcaOMZsoT3O3ryM/w4OK3iEuYewiz9b4iasDtznsHpi3uG3kAu2CW0Zfery98R/+AA8N/U/uOBf2AAAAAElFTkSuQmCC"
-      },
-      pinky: {
-        up: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACkElEQVR4nG2TT2hcVRTGf/fc+2bey4xJk9hoXGlMES0uCoVoF4IWW1BEkWBB6lKwEPBPLXUlhYIYEiouRDdSsGDalJYmrtIuhECLC0MQIaWmgo2RJo0WMmn+zMy997h4aScTenbn+8453+E798L2EECMFHDjCWbRwoLDTmBEcrI5TFNiDWVjhtJgX549fGV3W+nplKisV+dqu344+NuKrP1SMeZDfNSHDsgonprq//njZ7v2QpJAYZOoAhswW5lm37mXvvlX7w00rZEkiSlRHLz5/mXd1xbqEOr6kaoeq6l+qqqfqEKoP1/21bkPJrWMG7bW5uLGGIDj1/svqq/4as+LqjjVym1V/TKqnlBdW1ClRfWJPap+xVf/endcgc+NMThVBejY6UrQAn9e27JazUCA7DHQ1RwKAbq0FaBTVRFxTtpNKU1dEe5us7gG1IGwBVuGLEnoIMuMtWKAL268ef5Y73NvI8E7jhagCxhSmN/0uLsOx5Nc4NQaUVN/64+f6Lnw1rcOKJVc0WHwrCYwCFiFumncaDGBzzxEB7UClKHVpA4oOSCEGPNCFyFY8Kb5wApsuM3D50RdPECQBgSEmDc2gIYBFhAFzcVMFADbeJsKMbVeVSOqoEpIqYUitTwPqBJjwXoCaN4aBfAh+BjT6OXO786YuqgQY6rezk0VZP7XQiyqRyxGosidaRez6GMIEfACdO7IOsUt/Zc+dfbA2MTMdzVTNrJy+6orjPSdcT++cHr5n0lHBpMz3/snR1+95Jb+TtvTRwR4FOCNM6+cXOorPTMKOIF3xl77er3btn8FgMDjbufQ+OvDVYH3ALen3Ds6sv/EMtB/34FDQEtusgE4wpa/K4IAAyIPoIx8GP8DW7gOkh3Y7ZsAAAAASUVORK5CYII=",
-        down: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACZ0lEQVR4nHWRy4vNYRjHP8/ze885c+GIuTSZxriMS6KkKeQSK0lRDAsbthaTzSyUqYlhxYIsJkTNiGYh+RMYKRFTM5Fxq8ll3BriMOac3+95LM45GYOn3sX79n2/l+cL/58e4CkwAtwFwr9A8tfNOQJsernr2toFtauyFPIgORp7tw68TT6PAgcA+zcBdD7be6O7pXYDVNbgkVsRJEruPR6/puH85hsfyO0uk0gJgOOdT3b1d7csbctLQVRjDXhZxrHgMQH041Cov7jx+kdye0TERERw90PDOy6fXr5yXyxfRcVRomnmzADHqiTWT4Mhc7H1ch72q7sDNC+qnI/FFkslyhwB8d+f3SBL8RTAq5otDysA11IMicSQClE6BI4CS7yYUoB6h2MKxyOYC1JItEGyeSAC6B7c2Tdhhy3xN/7nnHD3jrz7xJQ3c7cuS5L99wsKdxRoakrXVzhu1JTilt1nAI+gYlrVATQ1NxgsUyA/GSfgwBdYvB4ihVfPgRQgCuOgjSDV4O9AIlFsEmBCAfEIUOBsQsNIUajpFPCmALHDSWgag+wPkFPANyAogAbABcDBc2q396HFtYJZFBMc/S5htL0UL7ZYEBUxBUyBxA085Sb510rKIICn3fTHWNBvo4FM0aFn3PTnWPCUW0k2VmDWjFSGKCHdemXL0IMXvUYFyM9Xurh39aCcWziQez8AlWDjD3VZ3+pBHX8USGcB6gDab23r+by9dt09oErg4HDb1ck1M5feLK2RaqIzI3v7JxeEuj4gPU9nX3rc1j+RRq6Wy+kCaqeUdQaYMa28C2XCYpH0iKC/AKR7DJ4ZSbreAAAAAElFTkSuQmCC",
-        left: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACnklEQVR4nG2TTYiVZRTHf+c8z/vee+emNVycYBocHAqGEN3IgEgg7bIZBir72CW2aNEERZiK6Ci4sNrooi9q02KaZhYubNGuhVEkLcqmLkhpwgwqRGBzZ+6d+77POS7uxUw8yz+HP/+Pc+C+EREIIsAc8AdwBVhEEOT+bf4PxTySinQid9+z8vKFpxoDT1RB+KdzrTM69+zFDuknsni0LMoHEAhkzuzV/V+fGNmyC2qP4sENQLqirK9wa+0XHv9q+kzL7DBm9xCoImbHf33x/Mnx8amurIlqVyOSIAnUFcus9MLtxl/f5FsXJk+6yCzufc/wxqVXvvC0lgozS3624z6T3Gfc/T1zd3dvuduxjVQeKjeaz8078I6IoO4OMMaBHXjFTUSUNyswBNQcXu27rIO8nSsK45VRgG3ujoYsyAC5TDyzkxhh5UY/k0zgtlAZhXxrHxsEHNCe/xijaCrS4e9e+Pz1fQ+7Qcgl7y+XBgapfU9N6xDakvtju+3n5+deK8vytAIjw9aoXjjo5k0YbgAfJripUIXyXeg2gQ7wfgHJ8MxtRBs5MBKBdpE2oArMlUCA1dDrR7yn5IMAXevhwcGgSwGwHgHtSQb+TSCxh4iDOxQKfwOiEB3KBATUBSBEQFx64XiWmxgKBg6WU4KjySMGJMFDNMzvxqJAwhzP3WT9poJDVDyKaet61Nb16CoGCkGQ9rJ65ma9I00K1DfHOqFb5hOLey83l+eNKsja7zr82Y4ft3z65PfSWlIG4M/lBXYuPH05dDv55vwhgE0AB7+d+vj29NDEJaD2SNj01tJLX7a317adBxRBx+tji7/tX9gYjLUjQG3f0MQPFyc/WQVmCCGg6DGgAaBRBfQcSOU/n5oBH/XfHGBQ4JRq5A5IWx73SeLhogAAAABJRU5ErkJggg==",
-        right: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACmUlEQVR4nGWTT4iWVRTGf+fce9/vj6Nf4/hnRlEERVcuAsFw0SKRRAhSiBJXgiQiqNRCwc1AC6FsihYVtrKYWShRkkSudBNFCPkVrSSmwj/ziVoa8c3Me99zXLzfTJTP6p57D8957nnOgf9DAUECXCxgJsGdAvmWIAF9Khv5TxAChcWJpsuO6QOXtw4v29wmOzZ3P2+Y3Nm9XT3qWvRDZPxpAkWWWXp/ev/lY8uXbwfpQGvw5sDsn/jjXxn7dOf5Ho8PDm5rgpSSpOzvTL/21Zsja3bNS1tURSL3ARWIjuGZlfD37e/jxg93n38U+wdzzo6IAJz+7dVLnk/mOR8391mvcc7dT7j78dL93Xl3d6+qqnxw6ppH+EBVUXcHWDXGSN3A4wINyEB/HzAELBV4IwFQAX+8vMUyjJkZKkG0Q7MoUgIDnqm/3VoN7RXAPaAIAPT79fHZ50Z1tFiXUiCoV/7e9b2Th2zdthz6FMzUBBs2wfBCyVwBEFvAKo27Om4/7596qaz4XIHO0tCICLWCCaAHN6/Cw3FqJ/5SOFOSSvAuXDkCK6qmAsMRKDNWmxIc5oG3HaJBqRCkNquX4HQeWB4G0igVcF0YB/fa2EpgNoDZQmKNuQh9Bwev3bN/h9PAipDd3RBAK6whuWowj/giubVCxsEGRRWwbJVZy7Le60aRSgGskKx3f4x+64fCE4YKBNBeN1rLsrlZrR5WjjQ7Gh/2musv7P7ym18+nqUNVe+7OPTZ9qk0teOTmd+vKEvgxs1J1k4+fzHc+alIjSEFRgH2Tr3w1oNtnU0XgAi8cmnPRH99Y/VHSK1ziDj+9YtnyzbFUSBsbKw998Wes/8Ahxc6cABZXB2AIyISFvdMVYATMcZBTAJeB3gCWn4PpFt1S94AAAAASUVORK5CYII="
-      },
-      inky: {
-        up: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABzklEQVR4nJWTzWtTURDFf3fyXtqSCKa1GsWPTRG6UdSVa/8pV+JK6kYh4EoIIrgRuhAMgitdWGqhdtFWq0IoIsVqQUSSZ/Jy73HxkvBin6ADA3fOnXOGmbkXCqwEBrSATWAbeGhFiYeIpdgBDY7OtfiUpHgJSbz7kjBVfQrciO3vUo7aqQe0BxlJEiF4QvDZWeLNZzF15JYrJB+bb7KZiMuDHhd8OhYZ+Vmfcs2nbOyK8vRt54YyBlCqNPja1bL3KRY8Jj3JkVu/JJCO14N/5H3K1q6Amy4rDWCvCMH/8D4NA6kfJJ8TkKQkSApS2/uUrgQsA1jknDFbH+CcfQRcCWIHO7n+vgHTLqu2A+CBciWNsz7Kz9nv90bDakv68Gf/kg4kreSH+3YvAe4Dtj8GC4iFHoLnpwSsGdD5lzdyyPoC6NpoEf9v2Q5stAcAQhhM5IQwKMRyZhACAFLALEKajPMYMI6VZRnY/PAmYuHiaw76WUvfMWZmX3LizApyGba9B4tX1jGLqABQg3K1yepWh3MLTYOIk6fvst7uMVe/5xj+zPOLj1l7n1CtXY8h5tLVZ7zY6ABLWGQOuOMgAnDOGdBgcrjxEBsNbAZYMov4DRt5NkCBfZ1GAAAAAElFTkSuQmCC",
-        down: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB10lEQVR4nIWT3WsTURDFfzP37hrTD1QM9hPTYlP7ov6hvgcsvhSUUpD+EfUpRKEi+CRUkYgFrTakabK5d3zYTbLRiAcG7s6eM3vmsBfmQMCRpi1uLFyQVi+oVE8UdB53Bk5EcZWXrNbbXIUMM8PMuBwNqN1/C5XnDmSu2IOyvnXMsBDNq64ZtbUjnRkigogoK5u5OISMGMNf4hAyQuFqe+/QqU6GCEn1BYOC9K+vlwf1zPDJviMPxsiudkks/jekMW5aZJQ9jIA65xwbOxERRUR/AudzNFZUsbay3YhevYPqcpss37ljU8SS7R+l/kczI8ZAP2SIPxFIuthwEeDaLOpodO2cS1XVj1OKZjGEMDSzOPS+sjh2IXKuOOmOnb0GFm6DW4J3JfttIEkt1moWW2b5ugFAekDybSblTTM25qS/YsZucY4xMDIDd+Yp/6Jmkc8yfY5xBICq52uJM4UqECcvRHRCMIuoelT9jKjMyRvpILdlRuPJKd8Lmz0zlm61uHOvRVb0OmbsPD6drAW/YGH5Fe1PPbYaBykkrNWbvO8MWK8fOBABpb53yIfLPndXnzpIePDomDdf+qSLR4hzCtJU8OSBKOizP66vR/y+Ux33EnBN71P5DQllVXyQma9lAAAAAElFTkSuQmCC",
-        left: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB4ElEQVR4nH2SvWtUURDFf3Pf24+siYkYFLRRizSaSiVi7V9g7b9hpSgogmIhipVbC0IwQrTQRgQ/CiMxCbsgxi9iIMHGENndrG/vPRZv3+atbDIwMHM4Z+65946xc1SByW791cwuSNIufIiiCOASFB8z/71FU2JTor7miSpPgKtdzgAxgCtdZ2lVSGmG4AnB9/r6uijsuRlh/WLnHLjyFea+CO8TOp12T5Rlp9PG+4TlX6JYuuGcS8VmBnCRd3VNe5/U8id284Okl5kj7xNq6wIu501Mz/xck/c+kaRaTvxc2/FUSh2G4IFnABQKDtzehzYksc8nG5spuefgqDRyJMUa2YBEwsrTUeqeO7z/1uBk8CBtbXSJWQ5LVNIBH/OPu7jSAB4AvOZ3Cs5sSZv/P56kuSDV81gInqYEzMdAky0Po47zpcFffNoGgH8BaDnAMLfDau0S6m5ArwSQQj9JYSCWC9ebJgUsZyXrzVyfqL/vOGCUYQPnYianPrP8J2M6Dh5eYv+BBXx38GoTTkx9wrmYIQDGAG7zttbgzLlXDsqMjV9j4UebieOzBpGBcWziEYsrLcYP3SpCiVNnX/BmqQHcJ45jKJTvAiMAzswwqwLF7XtaDK5q2ZWhgovvRVHMP7z+WsD4PpRYAAAAAElFTkSuQmCC",
-        right: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB1klEQVR4nI2Tu4tTURDGf2fOvUlMcAXjigpZFfGBlaAI+h/4T9nYCClslFiJLlhZbJXCJmyxrs91bdyXYLFE8UGURaImN3PG4t6blxH8YIr5+OabOXPOcUzBpeECPAAuZnRb4FqAMK2fgPce4Aa+2GTjY5dgRt+M9m9lbv4xcDuOvZtdDEixXOf9F8MsjRCUEHSYf1KjWrvv00GnEJdusvPNUE1QTYZFeagmDAY92j+NucP3GJo4l4799msqCkFbZrY7bWBmr0LQF6oJux3Dx3dlrP8SGhTVpGkjPBsrXs84VU2e7CUKPAVAxDl86RH9dMxOJtx/0ozKyCAHhzQBM/yJ5ShCABbZ+NDLl7WcCavHzCiNDLYzXiIzjgdlM+lRLLYAXrOXbTwTr5rZ1owd7JjZio1pkU4EdOlPXsjVf7yTM9OEoyuAzLrV/4KJyAQRwuCvfBY3BgECBpgFRKKRe5aLRJiFCS7P0YEAB6kAIhHnLq+z+TkzcMKR2nP2lVf47tJJOwPh7IU1yBtZFaBO680PLl1pFqBA5cB1Xm73OH1+qQBeAOaPNlh794vawp0CxCycWmR1q0up8pBsDXVwZUi/MtAACvlpXHrUhkTiMyoCbvk4dn8AgDJfwO8SCRMAAAAASUVORK5CYII="
-      },
-      clyde: {
-        up: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACj0lEQVR4nG2TT2hUVxSHv3PunZfJm5CMiSGSaigxUDSIFv9sutBNQSiuCl1YpO2iUdAiFURKRSUBiyC6EFEsLrJQEHHdlXShiwYpVVBQpJuaVkZDdDI248x7954u5llH8MCFy3fO+fG799wrvCfUJxLz9mXgwwL97rw/HPL8feVvw3sPcLwPrv8z1W92ELPvscdfpS2Fq8BBEXmnR7q3vdjJh1OjP4wNLmMjLyOlItNGWRjk7t8pH8/OHxKRs2bWZVk9Kcw8+Ha97RgN2eRA3rKZCbPTmJ3B7Og2+6Anb32+NmR3vh4JwHfOuUJdBAc//rV/2MLS7YxqDGBmTx+anfdms8O28OcTA7OBiRhC45fszu4+A/aKCN7MCLB1zaARKxt4VRPVAPR+BNEgKzM0vpqXDXAV0RjWtTetaHpg0szwmnjSdv6aDOAplaS/ONhzMMCaQGCgr2M5SE1DVJQQxDk0tvOLj6Yqu2xkIerspx5qQBOubIdmgPoCXPuko5k/wl3amZTWZfHu7upUCOGYBzaMVpZTKxGpPYEL46AlqNc7MwrA/Bz8XIXMYGkJW0EcqzRSYNwD/xIUYgAFGssd69o16AgsFoIFb0UFQlMB/3/CigZfNFuxKNgbMQMRA3CFnoMAMaHzVouiWCaPZXKsYHTVFFYUyLCA9RB1UTyuQ80Ttea8PhdvJSLa4foCHxPymLsIZAoMURa0lvrJs/63xccJpCDzFU1PhptjP9ltedarpPDgj0q+5Vwy5+tpub/8WoEqwIm5L4cbmwfcDSAZ8kzf/2ZVa1S5WNyi29jvbtzbs7qZIgeA8merSrd+/WJlHdiHcw6PnwZ6O/9CRXFnQN/MARHpcXCqC1UVPSIi/AeSmwjoBKJbfAAAAABJRU5ErkJggg==",
-        down: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACbElEQVR4nHWSu2tUYRDFfzP37t27DzbZyOrGRyISBIPaaKNNChsbKxEEKx9EEEUUUkgKEaKCRAVfUUNasU7tH5BCQaIiEl/EmEgIebnZzd29+41FEl2DDkwz35wz35wzwv/jOrAHqAHTwDnABLCGJr8RIQJmXAJ2vz2ROt65YTmNMyajLDsGS5kqfAKu/YVZN/XK2KncjY6NFWit4ZLEABKj8l31x3yK7QNLdyO4/C+C3s+n833t++diczivTICtdgjUU1QRiN7kgpaBxXsRXGwk6Jk41XSrdd9CLCVUQPHW/c2BGc4yuPKHrJ+7X+o36FnToGvzlrIzAUl6itZXpFtTS4BQEUMtdi5TjB1wCEBX30tSFSURwtmXcGEaCh3gVsG5FrjwaSWbNyHVuqZhcW2DxxPdmSX3IFG3yoj9iWmzJ3mze56ZfWioj5l7lKtXzjdVgGEFDmxpKqcJahB2NixdgIQPosDOhnoHBEbYshACXQosEgs4hegLbXtBUlCerYBfBa8O5Sn8Ngi2AqVxRGOlqgA/FfBRD5yDwaMkPwPLkH5yBOYWIHIweJjMNwi/A0+PQVQBLwBQ/7fKMdjyRzfWW1AsC/IVBzEKWhv1F/raQWLMTToikBUDnA/EmMNCnM4GPvkZYAYDp3PqYx7WVHOSHVc8kPlAXbYaC3UViBVoIanofMbfd9tGZ95nIQCZzWt7n3vVfK02IlN5JQC+ZOm8yWudSvqEYFAAuPPuZHHpYDMvgDAHV8e7i9GuFMOAB0hRGJo4U6xtUx4DQUeCZ+9PFys+PF/zph/INNzdABA0eKfA0CohQAJ4CMgv7wr9rCokR+cAAAAASUVORK5CYII=",
-        left: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACk0lEQVR4nGWTT4jVVRTHP+fcM783b97TpzNqjDMaZTCFZBJCbqRN62jbRhGrhWW4axM0BrNIEJpwCoUGghZtbOWmbWoUEU0Jok8xCMU/U6O+p7557917T4vf82V54HsvF77nfr/33HPg/yECqgp8BzQHWEQVEXmCbv85mEmM8dhG9x3XDjVeLcbuGaos/92YnD55Z6qPnDOzj2OM/+o9rt1Qjt9+t3Kw2NCFBriQEZAeShv+vLme50+0jnTUZ8kZAH20roP5y4emDtqLxLyWSA+ki8oqSmHkp0Kc3n4nNg/UPgpZPhw+R0QQmLv+wYyn9Fs/5+XkX25zP0qJb15w97Z793fPx4uUFuhf3DfuwOHHa3Lq6vmfU0qp7+7uvuy+YO6fr3Hv3PJh3P3B+1/Q8fdxYB5ArQhSlyrP7tylYS087AJsgELhxiTS2MTGmYFMYxsSUVxQEDMTjb301aV31r++o+aZh2rBAFqQUpnUg/TIafcaoUPhz3n+dd/42zHGIwo8s3n0pi3NzpBuXaUS2vD1bmglqDfxT/ewcqENqQmLr4GDV8hbK3dHga0GdHCgehn9djskg/v3y/8RQM7C4iT0EjxYLZ1k6PcN6HUMUEShl0tCoIQPsAqsPhhcBqRyF8kAQQFFHQTyGHGYDOQKMVeIQzeAG2UHBYaNFMmOF2RdKUuIlkS9LaYrZj5CxgbKbdQD2aMDJAXWURj6V2EvzY/80vqjBjWQ63VdM8f3W47qT7JSU6pw6UI9v7IwuhRa1aJWcYA6wNzS3on27gk5DVSmRmTuylubO09XWQQVsPDyhJxu7p/o1k0Og1bfmLYfz7y5qQ28h5kRkE9AxgBCCAosgIbhlAmjAp+VUw6g4wKzqso/UZISjmIm/qIAAAAASUVORK5CYII=",
-        right: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACkUlEQVR4nG2Sz4uVZRTHP+c8z33vfe+90zg/dEaZULlUEgQa1NZ/wIXQtl8bN2HRJlq4CwRhxDEZBYtpF9QiaSHtWgiioBthwCjMizk23hrTxmruve/7nNPivd7IOnB4OHCew/mezxeeDhEQkRpczODnGqzV4RohBET+2/6vQlXqxnIT27/23tT+fPL3Jm54f8L2Lv157W6yLrXa61YU9j8DVKZFz99/d/JIbfYR5Anq4I6Jo2xmsAm7Tw2//sl4DTAABYgxyjR2vnc0PxI6D0qboySfgj7IAGUI1h6Wtk/LO8f2HH4WLsQQVMaaYal/dNrTMoV/Muvut9y97/7lPvdF3E/ivtJx94ee0kaRFg/4BHyO6nj/r+xDUjpL4eX3Po4/NtzPTbkvB3fvubt7SqnodbsJ9GolPIjOoCqeKSiEDgCNXSDtGbg/A5kDOwAI22Bu7x6dknmyKFE9+YU77zxzyHcNTYcWsZsAtCchA3CHZMA9HCDX2Mlg7f1tr2alX1dgodV8FAlACXx6EMrv2Fh9wODMy9D+ER4DK68g3MW7t7m1+BzN/KYOYCECA0wABwc2H8K5lyBTsGLECfhtHc52KvJhCASMNIgVSq+afAR2kKCf/nHKk/yrgBI8x4SKQTXfq8cyyvEnBWtQWp1ybDcBa45qDzwxkgF4humvWt1CwCOmPaKuS/SAEcADpr+ESI3RwTAFZmmArtfji6fl8r3VFrRAehO64wTfZif8G++2lTps3Z7Q50/rJek2lNxIsB3g+JU35h8fmA4XQbM2fLD65sLWC634BQQFYQ7O/PDWzmJnXZZA4+4GKzfent9qwWeoKlD7CDSvRCkCp5Rq0crtQSK1jzWOvKsaFT0ZY5S/AWqkD0QparkoAAAAAElFTkSuQmCC"
-      },
-      eyes: {
-        up: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAj0lEQVR4nO2RsQ7CMAxE79K6aQCJbuztb8Af8P8rX8HaYzCChgbanZ5kyYqezjkb2MR3K02eOUdzJiBwhBCsgPWE7RcmD9YfBsCgp9zdS5Kul/Mpn50z95tzdSkAAKSYZp/7ZDzKF6XYxIUUvw12bbvKAF1VMQCvXUhSydXIjDk2kcDkjL4kF1k+4xrmH/UA3stP0Iur7f8AAAAASUVORK5CYII=",
-        down: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAm0lEQVR4nO2Ryw3CQAxE35jdEBFRAycEpUAJ9A81EBIlcMjPgazEHUbyxX47I3vhLwBiDDydUpxnQt8zgG2+kQeD1A2cTJo3JIqVzV29jod9NrCX82m3xLRt27wHTYlmY+SjquslRpJ9ZVAmDKC/wf0K0lQAuFtWddn0a88ZgAwoKKx7MdRnShxdF5hAHIc5t+Q3rp2BoRT2c3oBFX9xUA7hwq8AAAAASUVORK5CYII=",
-        left: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAuUlEQVR4nO2PvRIBQRCEu+fOIaD8RkoRKCGZwNt4fwKFcutnW2LP1tWdF6CjmdmveruBvxgGSSqOJKvgmEnM6CWYxS7hkYSVbuWdABIC9pTkI2cAeHiv3WazDPsiazWeFczDS0buQQLl0CfnrmHOb10LDHkoJxtV1cXZubyohCyyH36tVuji8vvHwJI6DltMhzNM2jqpUJqmaEdMD8YV5h3l0vHNrAf9zrjV/ARQpLrPYmYBZrWpfkwv2KllZq2VZYMAAAAASUVORK5CYII=",
-        right: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAArklEQVR4nO2RsQrCMBCGv0vaUq2gIlJxEBEX6eLi5jv4/g8h0qViIpxT27S0i3M/COTCx5/cBSYAiIxBA8a8IcfEIhiRjmh7tQHi3pkAVnqpIfs4sbX8KIrdmGc6qfJCBETA+XlzZeWc73r1etIJgHXw7KjZV957Btn0A8K+26bf7vMd88izmbnl+UpVtVRVrVSvnJeLICAFkiRu51WqHjlkd05bAC7Gpv9+4wT8AASmiluJhbS5AAAAAElFTkSuQmCC"
-      },
-      scared: {
-        imgDate: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADCklEQVR4nFWSX2hbZRjGf993vnN60qSNXWva6JpR7f5km7qrWrVUXYt2HdOCk2FBoQiDsivxRmU3XggiKIIIuxgOpxeyKsL8A8IoaJVNrMy4Mant2qZbMxKX5k/TmJ6cfJ8Xyao+8PK8F89z8bzPK7gDIcHo+t42GGbwmzk8vwJCIi2HH4d7KfxcAgFCbGkFANIB7cH2l3exc+IVCHfRtn8Mzb/IJ6YQpSxzp94h9enSHY9CyLq5Z3If8ddO0xrrpwr4/B/tDz2PDbj37EW5x1k5PYeQSIyBHcfjxN84QzDWz0a1jNY+1n/MFqC1z0a1TKhnkH0nP2L7xE6MQSAkPH7lPJG9R6j4FXzlstkwBQADlBscAKiWabGbWZ39hJm+lxRGg59PgdFUpdrWDf1xWCvBpV8AG548CIEAXEiAl5aKmtF42RsYgyK4x8EKtSOFZMPo8SfggxfqJ7CPgAjA9Ov1JIffh2/PC0lYSJy2KKHdjmLw0gJN4W48o1FS3S7UxVfSdTYa0lXotKFQAiyp8IxmW98EAz88LBgtpnBaovU6G9kdoAZ4jaKdBnuAbgxAJTuvMEajgHXts1nzcJWLKyQ1YN2vANCqXCRQ1j5ezaNJKlosB6NrEltIbsKJ5zLXrp8rrr44ml1gyWiaSunfPs4tz54p3MAq32bZ6MljxdXr59ZvTR7NJ0kBtrQEQ7nlN09IVS7mkn/mOnp778olH3nw7t1/ZQs3f5q3bNuynIE4tIbc8MU/iqnFW8GOAztKmU3jht869XdOIYRMZyuFzy/H+jO/Ctl1wN+MdRZTiRU7cPbLth4UNDnF1T1dpczZ75vbM4lgZPaxYGSkN30VI6TgUH4FK9xNevpd2iL307J/jIzRmHySyldvo4HmZ08iWu8lIiTFxBS57ArRg6/ip6/C4VKapy9/Rug+m8gzXYzOX2DcGIYSU1uvPHTta8aN4dDcd3Q81U5wl8PI718wkl2A4eRFQg+4W+LosRhH1xZ5dPo9hAJhw8DMh4ytLdI5Ft3ShfuCDC/N/AMdtzXsl7IlxgAAAABJRU5ErkJggg=="
+        ...DARK_CHARACTERS,
+        ghostColors: ["#F783AC", "#FFA94D", "#66D9E8", "#C0EB75"]
+        // sem violeta: as células são roxas
       }
     };
     WALLS = {
@@ -20356,7 +20349,7 @@ function mapGhostStateChanges(store, ghostIndex) {
   });
   return stateChanges;
 }
-var SPEED_PRESETS, frameDurationMs, toPixel, samePos, isWrap, isTeleport, generatePositionAnimation, generateAnimatedSVG, generatePacManPath, generatePacManRotations, generatePacManColors, MONTHS_BAND, PANEL_TOP, PANEL_HEIGHT, SYSTEM_MONO, formatThousands, escapeXml, generateStatsPanel, generateCellColorValues, flashMatrix, generateGhostsPredefinition, generateChangingValuesAnimation, SVG;
+var SPEED_PRESETS, frameDurationMs, toPixel, samePos, isWrap, isTeleport, generatePositionAnimation, generateAnimatedSVG, generatePacManPath, generatePacManRotations, generatePacManColors, MONTHS_BAND, PANEL_TOP, PANEL_HEIGHT, SYSTEM_MONO, formatThousands, escapeXml, generateStatsPanel, generateCellColorValues, r2, ellipsePath, BODIES, GHOST_ORDER, DIRS, EYE_WHITE, PUPIL, strokeAttr, eyesMarkup, scaredFaceMarkup, symbolMarkup, generateGhostsPredefinition, generateChangingValuesAnimation, SVG;
 var init_svg = __esm({
   "src/renderers/svg.ts"() {
     "use strict";
@@ -20427,7 +20420,7 @@ var init_svg = __esm({
 	  </info>
 	</metadata>`;
       svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
-      svg += generateGhostsPredefinition(theme.flashColor, theme.spriteOutline);
+      svg += generateGhostsPredefinition(theme);
       const arenaHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE);
       svg += `<defs><clipPath id="arena"><rect x="0" y="15" width="${svgWidth}" height="${arenaHeight}"/></clipPath></defs>`;
       let lastMonth = "";
@@ -20582,56 +20575,46 @@ var init_svg = __esm({
     generateCellColorValues = (store, x2, y) => {
       return store.gameHistory.map((state) => state.grid[x2][y].color);
     };
-    flashMatrix = (hex) => {
-      const [r2, g, b] = [1, 3, 5].map((i2) => (parseInt(hex.slice(i2, i2 + 2), 16) / 255).toFixed(3));
-      return `0 0 0 0 ${r2}  0 0 0 0 ${g}  0 0 0 0 ${b}  0 0 0 1 0`;
+    r2 = (n) => Math.round(n * 100) / 100;
+    ellipsePath = (cx, cy, rx, ry) => `M${r2(cx - rx)} ${r2(cy)}a${rx} ${ry} 0 1 0 ${r2(2 * rx)} 0a${rx} ${ry} 0 1 0 ${r2(-2 * rx)} 0Z`;
+    BODIES = [
+      "M3 18.5V9a7 7 0 0 1 14 0v9.5l-2.33-2-2.34 2-2.33-2-2.33 2-2.34-2Z",
+      "M3 18.5V9a7 7 0 0 1 14 0v9.5q-1.75-2.5-3.5 0t-3.5 0t-3.5 0t-3.5 0Z",
+      "M3 18.5V9a7 7 0 0 1 14 0v9.5h-3.5l-1-2-1 2h-3l-1-2-1 2Z",
+      "M3 18.5V9a7 7 0 0 1 14 0v7c-1.5 3.5-4 .5-6.5 1.8S5 19.5 3 18.5Z"
+    ];
+    GHOST_ORDER = ["blinky", "pinky", "inky", "clyde"];
+    DIRS = { right: [1, 0], left: [-1, 0], up: [0, -1], down: [0, 1] };
+    EYE_WHITE = "#FFFFFF";
+    PUPIL = "#1F2A6B";
+    strokeAttr = (color, width = 0.8) => color ? ` stroke="${color}" stroke-width="${width}" stroke-linejoin="round"` : "";
+    eyesMarkup = (dir, outline) => {
+      const [dx, dy] = DIRS[dir];
+      return `<path d="${ellipsePath(7.3, 9.4, 2.3, 2.7)}${ellipsePath(12.7, 9.4, 2.3, 2.7)}" fill="${EYE_WHITE}"${strokeAttr(outline, 0.7)}/><path d="${ellipsePath(r2(7.3 + dx * 1.1), r2(9.6 + dy * 1.3), 1.25, 1.25)}${ellipsePath(r2(12.7 + dx * 1.1), r2(9.6 + dy * 1.3), 1.25, 1.25)}" fill="${PUPIL}"/>`;
     };
-    generateGhostsPredefinition = (flashColor, outline) => {
-      const outlined = outline ? ' filter="url(#sprite-outline)"' : "";
-      let defs = `<defs>`;
-      if (outline) {
-        defs += `<filter id="sprite-outline" x="-20%" y="-20%" width="140%" height="140%"><feMorphology in="SourceAlpha" operator="dilate" radius="1" result="wide"/><feFlood flood-color="${outline}"/><feComposite in2="wide" operator="in" result="line"/><feMerge><feMergeNode in="line"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
-      }
-      ["blinky", "inky", "pinky", "clyde"].forEach((ghostName) => {
-        ["up", "down", "left", "right"].forEach((direction) => {
-          const ghostObj = GHOSTS[ghostName];
-          if (direction in ghostObj) {
-            defs += `
-                <symbol id="ghost-${ghostName}-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                    <image href="${ghostObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
-                </symbol>
-                `;
-          }
-        });
-      });
-      defs += `
-    <symbol id="ghost-scared" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-        <image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"${outlined}/>
-    </symbol>`;
-      defs += `
-    <filter id="flash-white"><feColorMatrix type="matrix" values="${flashMatrix(flashColor)}"/></filter>
-    <symbol id="ghost-scared-flash" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-        <g${outlined}><image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/></g>
-    </symbol>`;
-      ["up", "down", "left", "right"].forEach((direction) => {
-        if (GHOSTS["eyes"] && direction in GHOSTS["eyes"]) {
-          const eyesObj = GHOSTS["eyes"];
-          defs += `
-            <symbol id="ghost-eyes-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                <image href="${eyesObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"${outlined}/>
-            </symbol>
-            `;
-        } else {
-          console.warn(`Imagem para eyes-${direction} n\xE3o encontrada, usando placeholder`);
-          defs += `
-            <symbol id="ghost-eyes-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                <circle cx="${CELL_SIZE / 2}" cy="${CELL_SIZE / 2}" r="${CELL_SIZE / 3}" fill="white"/>
-            </symbol>
-            `;
+    scaredFaceMarkup = (face) => `<path d="${ellipsePath(7.3, 9, 1.1, 1.1)}${ellipsePath(12.7, 9, 1.1, 1.1)}" fill="${face}"/><path d="M5.5 13.6l1.5-1.1 1.5 1.1 1.5-1.1 1.5 1.1 1.5-1.1 1.5 1.1" fill="none" stroke="${face}" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>`;
+    symbolMarkup = (id, inner) => `<symbol id="${id}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">${inner}</symbol>`;
+    generateGhostsPredefinition = (theme) => {
+      let defs = "<defs>";
+      GHOST_ORDER.forEach((name, i2) => {
+        for (const dir of Object.keys(DIRS)) {
+          defs += symbolMarkup(
+            `ghost-${name}-${dir}`,
+            `<path d="${BODIES[i2]}" fill="${theme.ghostColors[i2]}"${strokeAttr(theme.ghostOutline)}/>${eyesMarkup(dir)}`
+          );
         }
       });
-      defs += `</defs>`;
-      return defs;
+      defs += symbolMarkup(
+        "ghost-scared",
+        `<path d="${BODIES[0]}" fill="${theme.scaredColor}"${strokeAttr(theme.spriteOutline)}/>${scaredFaceMarkup(theme.scaredFace)}`
+      );
+      const flashOutline = theme.spriteOutline && theme.spriteOutline.toUpperCase() !== theme.flashColor.toUpperCase() ? theme.spriteOutline : void 0;
+      defs += symbolMarkup(
+        "ghost-scared-flash",
+        `<path d="${BODIES[0]}" fill="${theme.flashColor}"${strokeAttr(flashOutline)}/>${scaredFaceMarkup(theme.flashFace)}`
+      );
+      for (const dir of Object.keys(DIRS)) defs += symbolMarkup(`ghost-eyes-${dir}`, eyesMarkup(dir, theme.spriteOutline));
+      return defs + "</defs>";
     };
     generateChangingValuesAnimation = (store, changingValues) => {
       if (store.gameHistory.length !== changingValues.length) {
@@ -20848,11 +20831,11 @@ var init_ghosts_movement = __esm({
         return w * w;
       });
       const total = weights.reduce((a, b) => a + b, 0);
-      let r2 = store.rng() * total;
+      let r3 = store.rng() * total;
       let idx = 0;
       for (; idx < weights.length - 1; idx++) {
-        r2 -= weights[idx];
-        if (r2 <= 0) break;
+        r3 -= weights[idx];
+        if (r3 <= 0) break;
       }
       const next = choices[idx];
       ghost.x = next.x;
@@ -21080,10 +21063,10 @@ var init_min_heap = __esm({
           a[0] = last;
           let i2 = 0;
           for (; ; ) {
-            const l = 2 * i2 + 1, r2 = l + 1;
+            const l = 2 * i2 + 1, r3 = l + 1;
             let m2 = i2;
             if (l < a.length && a[l].key < a[m2].key) m2 = l;
-            if (r2 < a.length && a[r2].key < a[m2].key) m2 = r2;
+            if (r3 < a.length && a[r3].key < a[m2].key) m2 = r3;
             if (m2 === i2) break;
             [a[m2], a[i2]] = [a[i2], a[m2]];
             i2 = m2;
@@ -23153,8 +23136,8 @@ var require_ponyfill_es2018 = __commonJS({
           controller._started = true;
           ReadableByteStreamControllerCallPullIfNeeded(controller);
           return null;
-        }, (r2) => {
-          ReadableByteStreamControllerError(controller, r2);
+        }, (r3) => {
+          ReadableByteStreamControllerError(controller, r3);
           return null;
         });
       }
@@ -24128,9 +24111,9 @@ var require_ponyfill_es2018 = __commonJS({
           controller._started = true;
           WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
           return null;
-        }, (r2) => {
+        }, (r3) => {
           controller._started = true;
-          WritableStreamDealWithRejection(stream, r2);
+          WritableStreamDealWithRejection(stream, r3);
           return null;
         });
       }
@@ -24787,8 +24770,8 @@ var require_ponyfill_es2018 = __commonJS({
           controller._started = true;
           ReadableStreamDefaultControllerCallPullIfNeeded(controller);
           return null;
-        }, (r2) => {
-          ReadableStreamDefaultControllerError(controller, r2);
+        }, (r3) => {
+          ReadableStreamDefaultControllerError(controller, r3);
           return null;
         });
       }
@@ -24904,9 +24887,9 @@ var require_ponyfill_es2018 = __commonJS({
         }
         branch1 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel1Algorithm);
         branch2 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel2Algorithm);
-        uponRejection(reader._closedPromise, (r2) => {
-          ReadableStreamDefaultControllerError(branch1._readableStreamController, r2);
-          ReadableStreamDefaultControllerError(branch2._readableStreamController, r2);
+        uponRejection(reader._closedPromise, (r3) => {
+          ReadableStreamDefaultControllerError(branch1._readableStreamController, r3);
+          ReadableStreamDefaultControllerError(branch2._readableStreamController, r3);
           if (!canceled1 || !canceled2) {
             resolveCancelPromise(void 0);
           }
@@ -24930,12 +24913,12 @@ var require_ponyfill_es2018 = __commonJS({
           resolveCancelPromise = resolve;
         });
         function forwardReaderError(thisReader) {
-          uponRejection(thisReader._closedPromise, (r2) => {
+          uponRejection(thisReader._closedPromise, (r3) => {
             if (thisReader !== reader) {
               return null;
             }
-            ReadableByteStreamControllerError(branch1._readableStreamController, r2);
-            ReadableByteStreamControllerError(branch2._readableStreamController, r2);
+            ReadableByteStreamControllerError(branch1._readableStreamController, r3);
+            ReadableByteStreamControllerError(branch2._readableStreamController, r3);
             if (!canceled1 || !canceled2) {
               resolveCancelPromise(void 0);
             }
@@ -25937,9 +25920,9 @@ var require_ponyfill_es2018 = __commonJS({
       }
       function TransformStreamDefaultControllerPerformTransform(controller, chunk) {
         const transformPromise = controller._transformAlgorithm(chunk);
-        return transformPromiseWith(transformPromise, void 0, (r2) => {
-          TransformStreamError(controller._controlledTransformStream, r2);
-          throw r2;
+        return transformPromiseWith(transformPromise, void 0, (r3) => {
+          TransformStreamError(controller._controlledTransformStream, r3);
+          throw r3;
         });
       }
       function TransformStreamDefaultControllerTerminate(controller) {
@@ -25984,9 +25967,9 @@ var require_ponyfill_es2018 = __commonJS({
             defaultControllerFinishPromiseResolve(controller);
           }
           return null;
-        }, (r2) => {
-          ReadableStreamDefaultControllerError(readable._readableStreamController, r2);
-          defaultControllerFinishPromiseReject(controller, r2);
+        }, (r3) => {
+          ReadableStreamDefaultControllerError(readable._readableStreamController, r3);
+          defaultControllerFinishPromiseReject(controller, r3);
           return null;
         });
         return controller._finishPromise;
@@ -26011,9 +25994,9 @@ var require_ponyfill_es2018 = __commonJS({
             defaultControllerFinishPromiseResolve(controller);
           }
           return null;
-        }, (r2) => {
-          ReadableStreamDefaultControllerError(readable._readableStreamController, r2);
-          defaultControllerFinishPromiseReject(controller, r2);
+        }, (r3) => {
+          ReadableStreamDefaultControllerError(readable._readableStreamController, r3);
+          defaultControllerFinishPromiseReject(controller, r3);
           return null;
         });
         return controller._finishPromise;
@@ -26043,10 +26026,10 @@ var require_ponyfill_es2018 = __commonJS({
             defaultControllerFinishPromiseResolve(controller);
           }
           return null;
-        }, (r2) => {
-          WritableStreamDefaultControllerErrorIfNeeded(writable._writableStreamController, r2);
+        }, (r3) => {
+          WritableStreamDefaultControllerErrorIfNeeded(writable._writableStreamController, r3);
           TransformStreamUnblockWrite(stream);
-          defaultControllerFinishPromiseReject(controller, r2);
+          defaultControllerFinishPromiseReject(controller, r3);
           return null;
         });
         return controller._finishPromise;
