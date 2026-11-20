@@ -57,3 +57,41 @@ export class RateLimiter {
     }
   }
 }
+
+/** Lançado por `Semaforo.executar` quando a fila de espera está cheia. */
+export class FilaCheia extends Error {
+  constructor() {
+    super('fila de espera cheia');
+    this.name = 'FilaCheia';
+  }
+}
+
+/** Limita tarefas simultâneas; as excedentes esperam numa fila de tamanho limitado. */
+export class Semaforo {
+  private ativos = 0;
+  private fila: (() => void)[] = [];
+
+  constructor(
+    private readonly max: number,
+    private readonly maxFila: number
+  ) {
+    if (!Number.isInteger(max) || max < 1) throw new Error(`Semaforo: limite inválido (${max})`);
+  }
+
+  async executar<T>(tarefa: () => Promise<T>): Promise<T> {
+    if (this.ativos >= this.max) {
+      if (this.fila.length >= this.maxFila) throw new FilaCheia();
+      await new Promise<void>((liberar) => this.fila.push(liberar));
+    } else {
+      this.ativos++;
+    }
+    try {
+      return await tarefa();
+    } finally {
+      // passa a vaga direto ao próximo da fila (ativos não muda) ou a devolve
+      const proximo = this.fila.shift();
+      if (proximo) proximo();
+      else this.ativos--;
+    }
+  }
+}

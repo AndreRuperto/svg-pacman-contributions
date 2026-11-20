@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createApp } from '../../site/src/app.js';
+import { createApp, type AppDeps } from '../../site/src/app.js';
 import { LruCache } from '../../site/src/cache.js';
-import { RateLimiter } from '../../site/src/ratelimit.js';
+import { FilaCheia, RateLimiter, Semaforo } from '../../site/src/ratelimit.js';
 import { MemoryRepo } from '../../site/src/repo.js';
 import type { Jogador } from '../../site/src/jogadores.js';
 import type { Partida } from '../../src/runner.js';
@@ -18,7 +18,7 @@ const jogadores: Jogador[] = [
   { login: 'bia', desde: '2026-01-01' }
 ];
 
-async function montar(opts: { lista?: Jogador[]; repo?: MemoryRepo } = {}) {
+async function montar(opts: { lista?: Jogador[]; repo?: MemoryRepo; deps?: Partial<AppDeps> } = {}) {
   const repo = opts.repo ?? new MemoryRepo();
   for (const x of [
     p('AndreRuperto', HOJE, 900, { eficiencia: 3 }),
@@ -39,7 +39,8 @@ async function montar(opts: { lista?: Jogador[]; repo?: MemoryRepo } = {}) {
     renderSvg: async (login, data, tema) => {
       chamadas.push(`${login}|${data}|${tema}`);
       return `<svg data-login="${login}" data-data="${data}" data-tema="${tema}"/>`;
-    }
+    },
+    ...opts.deps
   });
   return { app, repo, chamadas };
 }
@@ -167,18 +168,210 @@ describe('GET /api/partida/:login/:data', () => {
   });
 });
 
+type App = Awaited<ReturnType<typeof montar>>['app'];
+const pedirPartida = (app: App, headers: Record<string, string> = {}, tema = 'github-dark') =>
+  Promise.resolve(app.request(`/api/partida/AndreRuperto/${HOJE}?tema=${tema}`, { headers }));
+const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 describe('limite de pedidos', () => {
-  it('mais de 30 por minuto do mesmo IP em /api/partida → 429', async () => {
-    const { app } = await montar();
-    const req = (ip: string) => app.request(`/api/partida/AndreRuperto/${HOJE}`, { headers: { 'x-forwarded-for': `${ip}, 10.0.0.1` } });
-    for (let i = 0; i < 30; i++) expect((await req('1.2.3.4')).status).toBe(200);
-    const bloqueado = await req('1.2.3.4');
+  it('mais de 30 por minuto do mesmo IP em /api/partida → 429 com Retry-After', async () => {
+    const { app } = await montar({ deps: { confiarProxy: true } });
+    for (let i = 0; i < 30; i++) expect((await pedirPartida(app, { 'x-real-ip': '1.2.3.4' })).status).toBe(200);
+    const bloqueado = await pedirPartida(app, { 'x-real-ip': '1.2.3.4' });
     expect(bloqueado.status).toBe(429);
     expect(Number(bloqueado.headers.get('retry-after'))).toBeGreaterThan(0);
     expect((await bloqueado.json()).erro).toBeTypeOf('string');
-    expect((await req('5.6.7.8')).status).toBe(200);
-    // outras rotas não são limitadas
-    expect((await app.request('/api/ranking', { headers: { 'x-forwarded-for': '1.2.3.4' } })).status).toBe(200);
+    expect((await pedirPartida(app, { 'x-real-ip': '5.6.7.8' })).status).toBe(200);
+    // as rotas JSON têm orçamento próprio
+    expect((await app.request('/api/ranking', { headers: { 'x-real-ip': '1.2.3.4' } })).status).toBe(200);
+  });
+
+  it('confiarProxy: trocar o primeiro item do x-forwarded-for não zera o limite (vale o último)', async () => {
+    const { app } = await montar({ deps: { confiarProxy: true } });
+    for (let i = 0; i < 30; i++) {
+      expect((await pedirPartida(app, { 'x-forwarded-for': `aleatorio-${i}, 9.9.9.9` })).status).toBe(200);
+    }
+    expect((await pedirPartida(app, { 'x-forwarded-for': 'outro, 9.9.9.9' })).status).toBe(429);
+    expect((await pedirPartida(app, { 'x-forwarded-for': 'outro, 8.8.8.8' })).status).toBe(200);
+  });
+
+  it('sem confiarProxy, os cabeçalhos são ignorados (vale o socket)', async () => {
+    const { app } = await montar();
+    for (let i = 0; i < 30; i++) {
+      expect((await pedirPartida(app, { 'x-real-ip': `1.1.1.${i}`, 'x-forwarded-for': `2.2.2.${i}` })).status).toBe(200);
+    }
+    expect((await pedirPartida(app, { 'x-real-ip': '3.3.3.3' })).status).toBe(429);
+  });
+
+  it('rotas JSON: 120 por minuto por IP', async () => {
+    const { app } = await montar({ deps: { confiarProxy: true } });
+    const req = () => app.request('/api/ranking', { headers: { 'x-real-ip': '4.4.4.4' } });
+    for (let i = 0; i < 120; i++) expect((await req()).status).toBe(200);
+    const r = await req();
+    expect(r.status).toBe(429);
+    expect(r.headers.get('retry-after')).toBeTruthy();
+    expect((await r.json()).erro).toBeTypeOf('string');
+  });
+});
+
+describe('memo das rotas JSON', () => {
+  it('ranking e jogador ficam 60 s em memória, com Cache-Control de 60 s', async () => {
+    let agora = 1_000_000;
+    const { app, repo } = await montar({ deps: { agora: () => agora } });
+    const r1 = await app.request('/api/ranking');
+    expect(r1.headers.get('cache-control')).toBe('public, max-age=60');
+    const j1 = await app.request('/api/jogador/bia');
+    expect(j1.headers.get('cache-control')).toBe('public, max-age=60');
+    const rankingAntes = await r1.json();
+    const jogadorAntes = await j1.json();
+    await repo.upsert(p('bia', HOJE, 1));
+    expect(await (await app.request('/api/ranking')).json()).toEqual(rankingAntes);
+    expect(await (await app.request('/api/jogador/BIA')).json()).toEqual(jogadorAntes);
+    agora += 60_001;
+    expect((await (await app.request('/api/ranking')).json()).linhas[0].login).toBe('AndreRuperto');
+    expect((await (await app.request('/api/jogador/bia')).json()).partidas[0].pontos).toBe(1);
+  });
+  it('a chave do memo inclui aba e período', async () => {
+    const { app } = await montar();
+    await app.request('/api/ranking?aba=pontos&periodo=hoje');
+    expect((await (await app.request('/api/ranking?aba=eficiencia&periodo=recorde')).json())).toMatchObject({
+      aba: 'eficiencia',
+      periodo: 'recorde'
+    });
+  });
+});
+
+describe('SVG: cabeçalhos, versão, concorrência e falhas', () => {
+  it('nosniff e CSP restritiva', async () => {
+    const { app } = await montar();
+    const res = await pedirPartida(app);
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(res.headers.get('content-security-policy')).toBe("default-src 'none'; style-src 'unsafe-inline'");
+  });
+  it('a chave do cache inclui a versão do motor da partida salva', async () => {
+    const { app, repo, chamadas } = await montar();
+    await pedirPartida(app);
+    await pedirPartida(app);
+    expect(chamadas).toHaveLength(1);
+    await repo.upsert(p('AndreRuperto', HOJE, 900, { versao_motor: '9.9.9' }));
+    await pedirPartida(app);
+    expect(chamadas).toHaveLength(2);
+  });
+  it('dois pedidos simultâneos do mesmo SVG → um render', async () => {
+    const { app, chamadas } = await montar();
+    const [a, b] = await Promise.all([pedirPartida(app), pedirPartida(app)]);
+    expect([a.status, b.status]).toEqual([200, 200]);
+    expect(await a.text()).toBe(await b.text());
+    expect(chamadas).toHaveLength(1);
+  });
+  it('falha de render → 500 com erro, não cacheia, o próximo pedido renderiza de novo', async () => {
+    let n = 0;
+    const { app } = await montar({
+      deps: {
+        renderSvg: async () => {
+          n++;
+          if (n === 1) throw new Error('GitHub fora do ar');
+          return '<svg/>';
+        }
+      }
+    });
+    const r1 = await pedirPartida(app);
+    expect(r1.status).toBe(500);
+    expect((await r1.json()).erro).toBeTypeOf('string');
+    const r2 = await pedirPartida(app);
+    expect(r2.status).toBe(200);
+    expect(await r2.text()).toBe('<svg/>');
+    expect(n).toBe(2);
+  });
+  it('no máximo maxRenders ao mesmo tempo', async () => {
+    let ativos = 0;
+    let pico = 0;
+    const { app } = await montar({
+      deps: {
+        maxRenders: 2,
+        renderSvg: async () => {
+          ativos++;
+          pico = Math.max(pico, ativos);
+          await esperar(5);
+          ativos--;
+          return '<svg/>';
+        }
+      }
+    });
+    const temas = ['neon', 'arcade', 'brasa', 'github', 'gitlab'];
+    const res = await Promise.all(temas.map((t) => pedirPartida(app, {}, t)));
+    expect(res.map((r) => r.status)).toEqual([200, 200, 200, 200, 200]);
+    expect(pico).toBe(2);
+  });
+  it('fila cheia → 503 com Retry-After: 5', async () => {
+    const { app } = await montar({
+      deps: {
+        maxRenders: 1,
+        maxFila: 1,
+        renderSvg: async () => {
+          await esperar(5);
+          return '<svg/>';
+        }
+      }
+    });
+    const res = await Promise.all(['neon', 'arcade', 'brasa'].map((t) => pedirPartida(app, {}, t)));
+    expect(res.map((r) => r.status).sort()).toEqual([200, 200, 503]);
+    const recusado = res.find((r) => r.status === 503)!;
+    expect(recusado.headers.get('retry-after')).toBe('5');
+    expect((await recusado.json()).erro).toBeTypeOf('string');
+  });
+});
+
+describe('rotas fora da API', () => {
+  it('404 em JSON dentro de /api e em texto fora dela', async () => {
+    const { app } = await montar();
+    const a = await app.request('/api/nada');
+    expect(a.status).toBe(404);
+    expect((await a.json()).erro).toBeTypeOf('string');
+    const b = await app.request('/qualquer');
+    expect(b.status).toBe(404);
+    expect(b.headers.get('content-type')).toMatch(/^text\/plain/);
+  });
+});
+
+describe('LruCache com teto de bytes', () => {
+  it('descarta os mais antigos quando a soma dos pesos passa do teto', () => {
+    const c = new LruCache<string>(100, { maxPeso: 10, peso: (v) => v.length });
+    c.set('a', '12345');
+    c.set('b', '12345');
+    expect(c.peso).toBe(10);
+    c.set('c', '123');
+    expect(c.get('a')).toBeUndefined();
+    expect(c.get('b')).toBe('12345');
+    expect(c.peso).toBe(8);
+    c.set('b', '1');
+    expect(c.peso).toBe(4);
+    c.set('grande', '12345678901');
+    expect(c.get('grande')).toBeUndefined();
+    expect(c.peso).toBe(4);
+  });
+});
+
+describe('Semaforo', () => {
+  it('limita os simultâneos e recusa com a fila cheia', async () => {
+    const s = new Semaforo(1, 1);
+    let soltar!: () => void;
+    const a = s.executar(() => new Promise<number>((r) => (soltar = () => r(1))));
+    const b = s.executar(async () => 2);
+    await expect(s.executar(async () => 3)).rejects.toBeInstanceOf(FilaCheia);
+    soltar();
+    expect(await a).toBe(1);
+    expect(await b).toBe(2);
+    expect(await s.executar(async () => 4)).toBe(4);
+  });
+  it('libera a vaga quando a tarefa falha', async () => {
+    const s = new Semaforo(1, 0);
+    await expect(
+      s.executar(async () => {
+        throw new Error('x');
+      })
+    ).rejects.toThrow('x');
+    expect(await s.executar(async () => 5)).toBe(5);
   });
 });
 
