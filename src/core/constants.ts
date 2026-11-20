@@ -3,7 +3,7 @@ import { GameTheme, GhostName, ThemeKeys } from '../types.js';
 /* ───────────── Configurações gerais ───────────── */
 export const CELL_SIZE  = 20;
 export const GAP_SIZE   = 2;
-export const GRID_WIDTH = 53;   // 52 semanas + semana corrente
+export const GRID_WIDTH = 53;   // 52  semanas + semana corrente
 export const GRID_HEIGHT = 7;   // dom … sáb
 
 export const TUNNEL_ROW = 3;

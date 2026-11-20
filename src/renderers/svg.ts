@@ -413,8 +413,8 @@ const generateChangingValuesAnimation = (store: StoreType, changingValues: strin
 	    return { keyTimes: "0;1", values: changingValues[0] || '#000;#000' };
 	}
 	
-	let keyTimes: number[] = [];
-	let values: string[] = [];
+	const keyTimes: number[] = [];
+	const values: string[] = [];
 	let lastValue: string | null = null;
 	let lastIndex: number | null = null;
 

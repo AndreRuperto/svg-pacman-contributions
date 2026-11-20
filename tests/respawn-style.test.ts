@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { makeStore, run } from './helpers.js';
-import { GRID_HEIGHT, PACMAN_DEATH_DURATION } from '../src/core/constants.js';
+import { GRID_HEIGHT } from '../src/core/constants.js';
 import { getPlayerStyle } from '../src/movement/pacman-movement.js';
 import { PlayerStyle } from '../src/types.js';
 

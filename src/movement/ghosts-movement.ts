@@ -109,7 +109,7 @@ const reverseDirection = (ghost: Ghost) => {
     }
 };
 
-const moveGhostInHouse = (ghost: Ghost, store: StoreType) => {
+const moveGhostInHouse = (ghost: Ghost, _store: StoreType) => {
     // Se o fantasma estiver sendo liberado, permitir que ele saia da casa
     if (ghost.justReleasedFromHouse) {
         // O fantasma só pode sair pela porta, que está na posição x=26
@@ -387,7 +387,7 @@ const BFSTargetLocation = (
 // Calcula o destino para cada fantasma baseado na sua personalidade
 const calculateGhostTarget = (ghost: Ghost, store: StoreType): Point2d => {
     const { pacman } = store;
-    let pacDirection = getPacmanDirection(store);
+    const pacDirection = getPacmanDirection(store);
     
     // Ajuste a velocidade do Blinky com base nos pontos restantes (fica mais agressivo)
     let speedMultiplier = 1;
@@ -416,7 +416,7 @@ const calculateGhostTarget = (ghost: Ghost, store: StoreType): Point2d => {
         case 'blinky': // Vermelho - mira diretamente no Pac-Man
             return { x: pacman.x, y: pacman.y };
 
-        case 'pinky': // Rosa - tenta emboscar o Pac-Man se posicionando à sua frente
+        case 'pinky': { // Rosa - tenta emboscar o Pac-Man se posicionando à sua frente
             const lookAhead = 4; // 4 células à frente do Pac-Man
             
             // Cálculo especial para o "bug" original: quando Pac-Man olha para cima,
@@ -438,8 +438,9 @@ const calculateGhostTarget = (ghost: Ghost, store: StoreType): Point2d => {
             targetY = Math.min(Math.max(targetY, 0), GRID_HEIGHT - 1);
             
             return { x: targetX, y: targetY };
+        }
 
-        case 'inky': // Azul - comportamento coordenado com Blinky
+        case 'inky': { // Azul - comportamento coordenado com Blinky
             const blinky = store.ghosts.find((g) => g.name === 'blinky');
             
             // Ponto de referência: 2 células à frente do Pac-Man
@@ -471,8 +472,9 @@ const calculateGhostTarget = (ghost: Ghost, store: StoreType): Point2d => {
             twoAhead.y = Math.min(Math.max(twoAhead.y, 0), GRID_HEIGHT - 1);
             
             return twoAhead;
+        }
 
-        case 'clyde': // Laranja - alterna entre perseguir e ficar aleatório
+        case 'clyde': { // Laranja - alterna entre perseguir e ficar aleatório
             const distanceToPacman = MovementUtils.calculateDistance(ghost.x, ghost.y, pacman.x, pacman.y);
             
             // Comportamento especial de Clyde: se estiver muito perto, ele foge para seu canto
@@ -482,6 +484,7 @@ const calculateGhostTarget = (ghost: Ghost, store: StoreType): Point2d => {
                 // Quando longe, persegue o Pac-Man diretamente
                 return { x: pacman.x, y: pacman.y };
             }
+        }
 
         default:
             // Comportamento padrão: mira no Pac-Man

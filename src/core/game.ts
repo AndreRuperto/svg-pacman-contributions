@@ -1,9 +1,6 @@
 import { SVG } from '../renderers/svg.js';
 import {
   DELTA_TIME,
-  GHOST_NAMES,
-  GRID_HEIGHT,
-  GRID_WIDTH,
   PACMAN_DEATH_DURATION,
   PACMAN_POWERUP_DURATION,
   POWERUP_FLASH_FRAMES
@@ -312,7 +309,6 @@ const updateGame = (store: StoreType) => {
   const remaining = store.grid.some(row => row.some(c => c.commitsCount > 0));
   if (!remaining && store.statistics) { // Verifica se statistics existe
     // Calcular Bônus de Tempo
-    const idealFrames = store.contributions.length * 2;
     const actualFrames = store.frameCount;
     const timeBonus = Math.max(0, 10000 - (actualFrames * 10));
     store.statistics.timeBonus = timeBonus;

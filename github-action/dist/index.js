@@ -20061,6 +20061,7 @@ var init_utils = __esm({
           const authorDateStr = item.commit.author?.date?.split("T")[0];
           const committerDateStr = item.commit.committer?.date?.split("T")[0];
           const keyDate = committerDateStr || authorDateStr;
+          if (!keyDate) return map;
           const count = (map.get(keyDate) || { count: 0 }).count + 1;
           return map.set(keyDate, {
             date: new Date(keyDate),
@@ -20151,7 +20152,7 @@ var init_utils = __esm({
         FOURTH_QUARTILE: "\u{1F7E5}"
       };
       for (let y = 0; y < GRID_HEIGHT; y++) {
-        const row = store.grid.map((col) => levelSymbol[col[y].level]).join("");
+        if (store.config.debug) console.log(store.grid.map((col) => levelSymbol[col[y].level]).join(""));
       }
     };
     printArenaAsHTML = (store) => {
@@ -20549,8 +20550,8 @@ var init_svg = __esm({
       if (totalFrames === 0) {
         return { keyTimes: "0;1", values: changingValues[0] || "#000;#000" };
       }
-      let keyTimes = [];
-      let values = [];
+      const keyTimes = [];
+      const values = [];
       let lastValue = null;
       let lastIndex = null;
       changingValues.forEach((currentValue, index) => {
@@ -20682,7 +20683,7 @@ var init_ghosts_movement = __esm({
           break;
       }
     };
-    moveGhostInHouse = (ghost, store) => {
+    moveGhostInHouse = (ghost, _store) => {
       if (ghost.justReleasedFromHouse) {
         if (ghost.x === 26) {
           ghost.y = 2;
@@ -20862,7 +20863,7 @@ var init_ghosts_movement = __esm({
     };
     calculateGhostTarget = (ghost, store) => {
       const { pacman } = store;
-      let pacDirection = getPacmanDirection(store);
+      const pacDirection = getPacmanDirection(store);
       let speedMultiplier = 1;
       if (ghost.name === "blinky") {
         const totalDots = GRID_WIDTH * GRID_HEIGHT;
@@ -20882,7 +20883,7 @@ var init_ghosts_movement = __esm({
       switch (ghost.name) {
         case "blinky":
           return { x: pacman.x, y: pacman.y };
-        case "pinky":
+        case "pinky": {
           const lookAhead = 4;
           let targetX = pacman.x;
           let targetY = pacman.y;
@@ -20896,7 +20897,8 @@ var init_ghosts_movement = __esm({
           targetX = Math.min(Math.max(targetX, 0), GRID_WIDTH - 1);
           targetY = Math.min(Math.max(targetY, 0), GRID_HEIGHT - 1);
           return { x: targetX, y: targetY };
-        case "inky":
+        }
+        case "inky": {
           const blinky = store.ghosts.find((g) => g.name === "blinky");
           let twoAhead = {
             x: pacman.x + pacDirection[0] * 2,
@@ -20917,13 +20919,15 @@ var init_ghosts_movement = __esm({
           twoAhead.x = Math.min(Math.max(twoAhead.x, 0), GRID_WIDTH - 1);
           twoAhead.y = Math.min(Math.max(twoAhead.y, 0), GRID_HEIGHT - 1);
           return twoAhead;
-        case "clyde":
+        }
+        case "clyde": {
           const distanceToPacman = MovementUtils.calculateDistance(ghost.x, ghost.y, pacman.x, pacman.y);
           if (distanceToPacman < 8) {
             return SCATTER_CORNERS["clyde"];
           } else {
             return { x: pacman.x, y: pacman.y };
           }
+        }
         default:
           return { x: pacman.x, y: pacman.y };
       }
@@ -21527,7 +21531,6 @@ var init_game = __esm({
       });
       const remaining = store.grid.some((row) => row.some((c) => c.commitsCount > 0));
       if (!remaining && store.statistics) {
-        const idealFrames = store.contributions.length * 2;
         const actualFrames = store.frameCount;
         const timeBonus = Math.max(0, 1e4 - actualFrames * 10);
         store.statistics.timeBonus = timeBonus;
