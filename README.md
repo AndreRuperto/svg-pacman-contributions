@@ -113,6 +113,7 @@ Esses níveis são relativos ao padrão de contribuições de cada usuário e ca
 | `theme`            | Tema de cores                            | `github-dark`  | `github`, `github-dark`, `brasa`              |
 | `output_directory` | Pasta de saída dos SVGs                  | `dist`         | Qualquer caminho local válido                 |
 | `player_style`     | Estilo de jogo do Pac-Man                | `oportunista`  | `oportunista`, `agressivo`, `conservador`     |
+| `speed`            | Velocidade da animação                   | `normal`       | `slow` (½×), `normal`, `fast` (2×) ou um multiplicador (ex.: `1.5`) |
 
 ### Opções da biblioteca (`PacmanRenderer`)
 
@@ -123,6 +124,7 @@ Esses níveis são relativos ao padrão de contribuições de cada usuário e ca
 | `githubSettings.accessToken` | Token do GitHub para acesso à API | —        | Token pessoal válido (com permissão de leitura pública) |
 | `playerStyle`     | Estilo do Pac-Man                         | `oportunista`  | `oportunista`, `agressivo`, `conservador`     |
 | `seed`            | Semente da partida                        | usuário + data (UTC) | Qualquer string — a mesma semente gera a mesma partida |
+| `animationSpeed`  | Velocidade da animação                    | `normal`       | `'slow'`, `'normal'`, `'fast'` ou um número > 0 |
 | `debug`           | Liga logs de diagnóstico da IA            | `false`        | `true`, `false`                               |
 
 ### 🎲 Partida estável durante o dia
@@ -158,7 +160,7 @@ Cada fantasma ganhou novas imagens e personalidades fiéis aos do jogo original.
 Construído com TypeScript e Node.js, o projeto consiste em:
 
 - `src/`: Lógica principal do jogo e renderização
-- `scripts/`: Ferramentas para gerar SVGs
+- `tools/preview.ts`: Preview local do SVG
 - `github-action/`: Integração com GitHub Action
 - `tests/`: Testes com Vitest (regras de comer, túneis, fantasmas, IA e uma partida completa por estilo)
 
@@ -169,7 +171,18 @@ pnpm install
 pnpm test                 # roda todos os testes
 pnpm exec tsc --noEmit    # checagem de tipos
 pnpm run build:web        # gera dist/pacman-contribution-graph.min.js
+pnpm run build:action     # gera github-action/dist/index.js
 ```
+
+### 👀 Preview local
+
+```bash
+pnpm preview                                         # mapa sorteado, oportunista, github-dark
+pnpm preview --style agressivo --theme brasa --speed fast --seed abc
+GITHUB_TOKEN=seu_token pnpm preview --user seu_login # suas contribuições reais
+```
+
+O SVG é gravado em `outputs/preview-<estilo>-<tema>.svg` e aberto no navegador (`--no-open` para só gravar).
 
 A partida completa (`tests/full-game.test.ts`) grava um SVG por estilo em `outputs/partida-<estilo>.svg` — abra no navegador para conferir a animação.
 

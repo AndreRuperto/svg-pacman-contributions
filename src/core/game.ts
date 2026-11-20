@@ -26,6 +26,8 @@ const POINTS_MAP: Record<ContributionLevel, number> = {
 
 /** Limite de segurança do loop do SVG (~20 min de animação). */
 const MAX_FRAMES = 6000;
+/** Teto do multiplicador de eficiência (1 + fantasmas/mortes), para a pontuação não explodir. */
+const MAX_EFFICIENCY_MULTIPLIER = 3;
 const GHOST_BASE_POINTS = 200;
 const BASE_DEATH_PENALTY = 200;
 
@@ -318,7 +320,7 @@ const updateGame = (store: StoreType) => {
     // Calcular Multiplicador de Eficiência
     const ghostsEaten = store.statistics.ghostsEaten;
     const deaths = Math.max(1, store.statistics.deaths);
-    const efficiencyMultiplier = parseFloat((1 + (ghostsEaten / deaths)).toFixed(2));
+    const efficiencyMultiplier = Math.min(MAX_EFFICIENCY_MULTIPLIER, parseFloat((1 + (ghostsEaten / deaths)).toFixed(2)));
     store.statistics.efficiencyMultiplier = efficiencyMultiplier;
 
     // Aplicar bônus e multiplicador à pontuação final em statistics
