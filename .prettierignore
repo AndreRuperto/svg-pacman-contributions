@@ -1,0 +1,5 @@
+dist/
+github-action/dist/
+outputs/
+logs/
+pnpm-lock.yaml

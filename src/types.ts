@@ -135,13 +135,23 @@ export interface Config {
 }
 
 /* ───────────────────────── Temas ──────────────────────────────────── */
-export type ThemeKeys = 'github' | 'github-dark' | 'brasa';
+export type ThemeKeys =
+  | 'github' | 'github-dark' | 'brasa'
+  | 'arcade' | 'neon' | 'alto-contraste' | 'gitlab' | 'gitlab-dark';
 
 export interface GameTheme {
   textColor: string;
   gridBackground: string;
   wallColor: string;
   intensityColors: string[];  // 5 cores (NONE … FOURTH)
+  /** Valores do placar. */
+  textStrong: string;
+  pacmanColor: string;
+  /** Contorno do Pac-Man (temas claros); vazio = sem contorno. */
+  pacmanStroke?: string;
+  pacmanPowerupColor: string;
+  /** Cor do fantasma assustado piscando no fim do power-up. */
+  flashColor: string;
   tunnelColor: string;        // boca do túnel em repouso
   tunnelActiveColor: string;  // boca do túnel com o Pac-Man perto
 }

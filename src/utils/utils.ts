@@ -25,8 +25,11 @@ const getGitlabContribution = async (store: StoreType) => {
 };
 
 /* ─────────────────────────── REST fetch ──────────────────────── */
+/** Item da busca de commits da API REST (só os campos usados). */
+type CommitSearchItem = { commit: { author?: { date?: string }; committer?: { date?: string } } };
+
 const getGithubContribution = async (store: StoreType): Promise<Contribution[]> => {
-  const commits: any[] = [];
+  const commits: CommitSearchItem[] = [];
   let isComplete = false;
   let page = 1;
 
@@ -40,7 +43,7 @@ const getGithubContribution = async (store: StoreType): Promise<Contribution[]> 
         `https://api.github.com/search/commits?q=author:${store.config.username}&sort=author-date&order=desc&page=${page}&per_page=100`,
         { headers }
       );
-      const data: { items?: any[] } = await response.json();
+      const data: { items?: CommitSearchItem[] } = await response.json();
       isComplete = !data.items || data.items.length === 0;
       commits.push(...(data.items ?? []));
       page++;
@@ -51,10 +54,11 @@ const getGithubContribution = async (store: StoreType): Promise<Contribution[]> 
 
   return Array.from(
     commits
-      .reduce((map: any, item: any) => {
+      .reduce((map: Map<string, Contribution>, item: CommitSearchItem) => {
         const authorDateStr = item.commit.author?.date?.split('T')[0];
         const committerDateStr = item.commit.committer?.date?.split('T')[0];
         const keyDate = committerDateStr || authorDateStr;
+        if (!keyDate) return map; // commit sem data: ignora
         const count = (map.get(keyDate) || { count: 0 }).count + 1;
         return map.set(keyDate, {
           date: new Date(keyDate),
@@ -170,8 +174,7 @@ export const printArena = (store: StoreType) => {
   } as const;
 
   for (let y = 0; y < GRID_HEIGHT; y++) {
-    const row = store.grid.map((col) => levelSymbol[col[y].level]).join('');
-    //console.log(row);
+    if (store.config.debug) console.log(store.grid.map((col) => levelSymbol[col[y].level]).join(''));
   }
 };
 

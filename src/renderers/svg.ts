@@ -5,9 +5,7 @@ import {
 	GHOSTS,
 	GRID_HEIGHT,
 	GRID_WIDTH,
-	PACMAN_COLOR,
 	PACMAN_COLOR_DEAD,
-	PACMAN_COLOR_POWERUP,
 	TUNNEL_ROW,
 	WALLS
 } from '../core/constants.js';
@@ -65,13 +63,12 @@ export const generatePositionAnimation = (points: { x: number; y: number }[]): A
 const generateAnimatedSVG = (store: StoreType) => {
 	// Dimensões e duração
 	const svgWidth = GRID_WIDTH * (CELL_SIZE + GAP_SIZE);
-	const svgHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE) + 50; // Altura extra para estatísticas
+	const theme = Utils.getCurrentTheme(store);
+	const svgHeight = PANEL_TOP + PANEL_HEIGHT; // grid + faixa dos meses + placar
 	const frameMs = frameDurationMs(store.config);
 	const totalDurationMs = store.gameHistory.length * frameMs;
-	const totalDurationSecs = totalDurationMs / 1000;
-	const minutes = Math.floor(totalDurationSecs / 60);
-	const seconds = Math.round(totalDurationSecs % 60);
-	const totalDurationFormatted = `${minutes}m ${seconds}s`;
+	const totalSecs = Math.round(totalDurationMs / 1000);
+	const totalDurationFormatted = `${Math.floor(totalSecs / 60)}m ${String(totalSecs % 60).padStart(2, '0')}s`;
 	
 	// Estrutura básica do SVG
 	let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
@@ -86,7 +83,7 @@ const generateAnimatedSVG = (store: StoreType) => {
 	</metadata>`;
 	svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
 	
-	svg += generateGhostsPredefinition();
+	svg += generateGhostsPredefinition(theme.flashColor);
 	const arenaHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE);
 	svg += `<defs><clipPath id="arena"><rect x="0" y="15" width="${svgWidth}" height="${arenaHeight}"/></clipPath></defs>`;
   
@@ -129,7 +126,6 @@ const generateAnimatedSVG = (store: StoreType) => {
 	}
 
 	// Bocas do túnel: acendem quando o Pac-Man está a até 3 passos
-	const theme = Utils.getCurrentTheme(store);
 	const mouthColors = (mouthX: number) => generateChangingValuesAnimation(store, store.gameHistory.map(s =>
 		MovementUtils.gridDistance(s.pacman, { x: mouthX, y: TUNNEL_ROW }) <= 3 ? theme.tunnelActiveColor : theme.tunnelColor));
 	const mouthY = TUNNEL_ROW * (CELL_SIZE + GAP_SIZE) + 15;
@@ -147,7 +143,8 @@ const generateAnimatedSVG = (store: StoreType) => {
 	const pacmanColorAnimation = generateChangingValuesAnimation(store, generatePacManColors(store));
 	const pacmanPositionAnimation = generatePositionAnimation(store.gameHistory.map(s => s.pacman));
 	const pacmanRotationAnimation = generateChangingValuesAnimation(store, generatePacManRotations(store));
-	svg += `<path id="pacman" d="${generatePacManPath(0.55)}" fill="${PACMAN_COLOR}">
+	const pacmanStroke = theme.pacmanStroke ? ` stroke="${theme.pacmanStroke}" stroke-width="1.5" stroke-linejoin="round"` : '';
+	svg += `<path id="pacman" d="${generatePacManPath(0.55)}" fill="${theme.pacmanColor}"${pacmanStroke}>
 	  <animate attributeName="fill" dur="${totalDurationMs}ms" repeatCount="indefinite"
 		keyTimes="${pacmanColorAnimation.keyTimes}"
 		values="${pacmanColorAnimation.values}"/>
@@ -199,20 +196,7 @@ const generateAnimatedSVG = (store: StoreType) => {
 	});
 	svg += `</g>`; // fim do recorte da arena
   
-	// Estatísticas e barra de progresso
-	const textColor = Utils.getCurrentTheme(store).textColor;
-	
-	// Estatísticas de jogo
-	svg += `
-	<g transform="translate(0, ${svgHeight - 15})">
-	<text x="10" y="0" font-size="12" fill="${textColor}">
-		Pontos: ${store.statistics?.totalPoints || 0}
- | Fantasmas: ${store.statistics?.ghostsEaten || 0} | Mortes: ${store.statistics?.deaths || 0}
-	</text>
-	<text x="${svgWidth - 10}" y="0" text-anchor="end" font-size="12" fill="${textColor}">
-		Duração: ${totalDurationFormatted} (${store.gameHistory.length} frames)
-	</text>
-	</g>`;
+	svg += generateStatsPanel(store, svgWidth, totalDurationFormatted);
 	
 	svg += '</svg>';
 	return svg;
@@ -331,22 +315,59 @@ const generatePacManRotations = (store: StoreType): string[] => {
 };
 
 const generatePacManColors = (store: StoreType): string[] => {
+	const theme = Utils.getCurrentTheme(store);
 	return store.gameHistory.map((state) => {
-		if (state.pacman.deadRemainingDuration) {
-			return PACMAN_COLOR_DEAD;
-		} else if (state.pacman.powerupRemainingDuration) {
-			return PACMAN_COLOR_POWERUP;
-		} else {
-			return PACMAN_COLOR;
-		}
+		if (state.pacman.deadRemainingDuration) return PACMAN_COLOR_DEAD;
+		if (state.pacman.powerupRemainingDuration) return theme.pacmanPowerupColor;
+		return theme.pacmanColor;
 	});
+};
+
+/* ───────────── Placar (prancha: "3 · Painel de estatísticas") ───────────── */
+const MONTHS_BAND = 15;
+const PANEL_TOP = MONTHS_BAND + GRID_HEIGHT * (CELL_SIZE + GAP_SIZE) + 8;
+const PANEL_HEIGHT = 52;
+/** O SVG vai para o README como <img>, que não carrega fontes externas. */
+const SYSTEM_MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace";
+
+/** 84450 → "84.450" (sem depender do ICU do Node). */
+export const formatThousands = (n: number): string =>
+	String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+const escapeXml = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+export const generateStatsPanel = (store: StoreType, svgWidth: number, duration: string): string => {
+	const theme = Utils.getCurrentTheme(store);
+	const s = store.statistics;
+	const items: [string, string][] = [
+		['PONTOS', formatThousands(s?.totalPoints ?? 0)],
+		['FANTASMAS', String(s?.ghostsEaten ?? 0)],
+		['MAIOR COMBO', `×${s?.highestGhostCombo ?? 0}`],
+		['MORTES', String(s?.deaths ?? 0)],
+		['DURAÇÃO', duration]
+	];
+	const col = svgWidth / items.length;
+	let out = `<g id="placar" font-family="${SYSTEM_MONO}">`;
+	out += `<rect x="0" y="${PANEL_TOP}" width="${svgWidth}" height="1" fill="${theme.tunnelColor}"/>`;
+	items.forEach(([label, value], i) => {
+		const x = Math.round(i * col + 16);
+		out += `<text x="${x}" y="${PANEL_TOP + 19}" font-size="12" letter-spacing="0.96" fill="${theme.textColor}">${escapeXml(label)}</text>`;
+		out += `<text x="${x}" y="${PANEL_TOP + 46}" font-size="28" font-weight="700" fill="${theme.textStrong}">${escapeXml(value)}</text>`;
+	});
+	return out + '</g>';
 };
 
 const generateCellColorValues = (store: StoreType, x: number, y: number): string[] => {
 	return store.gameHistory.map((state) => state.grid[x][y].color);
 };
 
-const generateGhostsPredefinition = () => {
+/** Matriz que pinta toda a figura com uma cor só (mantém a transparência). */
+const flashMatrix = (hex: string) => {
+	const [r, g, b] = [1, 3, 5].map(i => (parseInt(hex.slice(i, i + 2), 16) / 255).toFixed(3));
+	return `0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}  0 0 0 1 0`;
+};
+
+const generateGhostsPredefinition = (flashColor: string) => {
 	// console.log("Definindo símbolos dos fantasmas");
     let defs = `<defs>`;
     
@@ -374,7 +395,7 @@ const generateGhostsPredefinition = () => {
 
     // Fantasma assustado piscando (mesma imagem, toda branca)
     defs += `
-    <filter id="flash-white"><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/></filter>
+    <filter id="flash-white"><feColorMatrix type="matrix" values="${flashMatrix(flashColor)}"/></filter>
     <symbol id="ghost-scared-flash" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
         <image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/>
     </symbol>`;
@@ -413,8 +434,8 @@ const generateChangingValuesAnimation = (store: StoreType, changingValues: strin
 	    return { keyTimes: "0;1", values: changingValues[0] || '#000;#000' };
 	}
 	
-	let keyTimes: number[] = [];
-	let values: string[] = [];
+	const keyTimes: number[] = [];
+	const values: string[] = [];
 	let lastValue: string | null = null;
 	let lastIndex: number | null = null;
 

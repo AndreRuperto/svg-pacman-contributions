@@ -19817,7 +19817,7 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
 });
 
 // src/core/constants.ts
-var CELL_SIZE, GAP_SIZE, GRID_WIDTH, GRID_HEIGHT, TUNNEL_ROW, isTunnelCell, PACMAN_COLOR, PACMAN_COLOR_POWERUP, PACMAN_COLOR_DEAD, DELTA_TIME, PACMAN_DEATH_DURATION, PACMAN_POWERUP_DURATION, POWERUP_FLASH_FRAMES, GITHUB_LIGHT, GITHUB_DARK, BRASA, GAME_THEMES, GHOSTS, WALLS, setWall;
+var CELL_SIZE, GAP_SIZE, GRID_WIDTH, GRID_HEIGHT, TUNNEL_ROW, isTunnelCell, PACMAN_COLOR_DEAD, DELTA_TIME, PACMAN_DEATH_DURATION, PACMAN_POWERUP_DURATION, POWERUP_FLASH_FRAMES, GITHUB_LIGHT, GITHUB_DARK, BRASA, ARCADE, NEON, ALTO_CONTRASTE, GITLAB_LIGHT, GITLAB_DARK, DARK_CHARACTERS, GAME_THEMES, GHOSTS, WALLS, setWall;
 var init_constants = __esm({
   "src/core/constants.ts"() {
     "use strict";
@@ -19827,8 +19827,6 @@ var init_constants = __esm({
     GRID_HEIGHT = 7;
     TUNNEL_ROW = 3;
     isTunnelCell = (x2, y) => y === TUNNEL_ROW && (x2 <= 1 || x2 >= GRID_WIDTH - 2);
-    PACMAN_COLOR = "yellow";
-    PACMAN_COLOR_POWERUP = "red";
     PACMAN_COLOR_DEAD = "#80808064";
     DELTA_TIME = 200;
     PACMAN_DEATH_DURATION = 10;
@@ -19844,32 +19842,100 @@ var init_constants = __esm({
       /*'#FD0000'*/
     ];
     BRASA = ["#1A1614", "#5C2D0F", "#994B19", "#CC6521", "#FF7E29"];
+    ARCADE = ["#0B0B14", "#14145C", "#22229A", "#3333CC", "#FFB8AE"];
+    NEON = ["#1A0F33", "#3B1D6B", "#6A2BA8", "#A63BD0", "#FF6EC7"];
+    ALTO_CONTRASTE = ["#262626", "#003D80", "#0066D6", "#66B2FF", "#FFFFFF"];
+    GITLAB_LIGHT = ["#ececef", "#d2dcff", "#7992f5", "#3f51ae", "#2a2b59"];
+    GITLAB_DARK = ["#28272d", "#2f2a6b", "#4b4fc8", "#7992f5", "#d2dcff"];
+    DARK_CHARACTERS = { pacmanColor: "#FFFF00", pacmanPowerupColor: "#FF4D4D", flashColor: "#FFFFFF", tunnelActiveColor: "#00FFFF" };
     GAME_THEMES = {
       /* ---------- GitHub ---------- */
       github: {
         textColor: "#57606a",
+        textStrong: "#1f2328",
         gridBackground: "#ffffff",
         wallColor: "#000000",
         intensityColors: GITHUB_LIGHT,
         tunnelColor: "#8c959f",
-        tunnelActiveColor: "#00FFFF"
+        tunnelActiveColor: "#0598BC",
+        pacmanColor: "#F2C200",
+        pacmanStroke: "#1f2328",
+        pacmanPowerupColor: "#CF222E",
+        flashColor: "#24292F"
       },
       "github-dark": {
         textColor: "#8b949e",
+        textStrong: "#e6edf3",
         gridBackground: "#0d1117",
         wallColor: "#ffffff",
         intensityColors: GITHUB_DARK,
         tunnelColor: "#6e7681",
-        tunnelActiveColor: "#00FFFF"
+        ...DARK_CHARACTERS
       },
       /* ---------- Brasa (escuro, em laranja) ---------- */
       brasa: {
         textColor: "#988881",
+        textStrong: "#FBFAF9",
         gridBackground: "#120F0D",
         wallColor: "#FBFAF9",
         intensityColors: BRASA,
         tunnelColor: "#5C4F49",
-        tunnelActiveColor: "#00FFFF"
+        ...DARK_CHARACTERS,
+        pacmanPowerupColor: "#FF3B5C"
+        // vermelho puxado para o rosa: não some no laranja das células
+      },
+      /* ---------- Fliperama ---------- */
+      arcade: {
+        textColor: "#BDBDBD",
+        textStrong: "#FFFFFF",
+        gridBackground: "#000000",
+        wallColor: "#4D4DFF",
+        intensityColors: ARCADE,
+        tunnelColor: "#555555",
+        ...DARK_CHARACTERS
+      },
+      /* ---------- Neon ---------- */
+      neon: {
+        textColor: "#B3A3D9",
+        textStrong: "#F5F0FF",
+        gridBackground: "#0B0420",
+        wallColor: "#FF2E97",
+        intensityColors: NEON,
+        tunnelColor: "#4A3A70",
+        ...DARK_CHARACTERS
+      },
+      /* ---------- Alto contraste: rampa de azul por claridade, paredes laranja ---------- */
+      "alto-contraste": {
+        textColor: "#FFFFFF",
+        textStrong: "#FFFFFF",
+        gridBackground: "#000000",
+        wallColor: "#FF9F1C",
+        intensityColors: ALTO_CONTRASTE,
+        tunnelColor: "#8A8A8A",
+        ...DARK_CHARACTERS
+      },
+      /* ---------- GitLab ---------- */
+      gitlab: {
+        textColor: "#626168",
+        textStrong: "#1F1E24",
+        gridBackground: "#ffffff",
+        wallColor: "#1F1E24",
+        intensityColors: GITLAB_LIGHT,
+        tunnelColor: "#89888d",
+        tunnelActiveColor: "#0598BC",
+        pacmanColor: "#F2C200",
+        pacmanStroke: "#1F1E24",
+        pacmanPowerupColor: "#DD2B0E",
+        flashColor: "#1F1E24"
+      },
+      "gitlab-dark": {
+        textColor: "#a4a3a8",
+        textStrong: "#ececef",
+        gridBackground: "#18171d",
+        wallColor: "#ececef",
+        intensityColors: GITLAB_DARK,
+        tunnelColor: "#737278",
+        ...DARK_CHARACTERS
       }
     };
     GHOSTS = {
@@ -20061,6 +20127,7 @@ var init_utils = __esm({
           const authorDateStr = item.commit.author?.date?.split("T")[0];
           const committerDateStr = item.commit.committer?.date?.split("T")[0];
           const keyDate = committerDateStr || authorDateStr;
+          if (!keyDate) return map;
           const count = (map.get(keyDate) || { count: 0 }).count + 1;
           return map.set(keyDate, {
             date: new Date(keyDate),
@@ -20151,7 +20218,7 @@ var init_utils = __esm({
         FOURTH_QUARTILE: "\u{1F7E5}"
       };
       for (let y = 0; y < GRID_HEIGHT; y++) {
-        const row = store.grid.map((col) => levelSymbol[col[y].level]).join("");
+        if (store.config.debug) console.log(store.grid.map((col) => levelSymbol[col[y].level]).join(""));
       }
     };
     printArenaAsHTML = (store) => {
@@ -20284,7 +20351,7 @@ function mapGhostStateChanges(store, ghostIndex) {
   });
   return stateChanges;
 }
-var SPEED_PRESETS, frameDurationMs, toPixel, samePos, isWrap, isTeleport, generatePositionAnimation, generateAnimatedSVG, generatePacManPath, generatePacManRotations, generatePacManColors, generateCellColorValues, generateGhostsPredefinition, generateChangingValuesAnimation, SVG;
+var SPEED_PRESETS, frameDurationMs, toPixel, samePos, isWrap, isTeleport, generatePositionAnimation, generateAnimatedSVG, generatePacManPath, generatePacManRotations, generatePacManColors, MONTHS_BAND, PANEL_TOP, PANEL_HEIGHT, SYSTEM_MONO, formatThousands, escapeXml, generateStatsPanel, generateCellColorValues, flashMatrix, generateGhostsPredefinition, generateChangingValuesAnimation, SVG;
 var init_svg = __esm({
   "src/renderers/svg.ts"() {
     "use strict";
@@ -20338,13 +20405,12 @@ var init_svg = __esm({
     };
     generateAnimatedSVG = (store) => {
       const svgWidth = GRID_WIDTH * (CELL_SIZE + GAP_SIZE);
-      const svgHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE) + 50;
+      const theme = Utils.getCurrentTheme(store);
+      const svgHeight = PANEL_TOP + PANEL_HEIGHT;
       const frameMs = frameDurationMs(store.config);
       const totalDurationMs = store.gameHistory.length * frameMs;
-      const totalDurationSecs = totalDurationMs / 1e3;
-      const minutes = Math.floor(totalDurationSecs / 60);
-      const seconds = Math.round(totalDurationSecs % 60);
-      const totalDurationFormatted = `${minutes}m ${seconds}s`;
+      const totalSecs = Math.round(totalDurationMs / 1e3);
+      const totalDurationFormatted = `${Math.floor(totalSecs / 60)}m ${String(totalSecs % 60).padStart(2, "0")}s`;
       let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
       svg += `<desc>Generated with pacman-contribution-graph on ${/* @__PURE__ */ new Date()}</desc>`;
       svg += `<metadata>
@@ -20356,7 +20422,7 @@ var init_svg = __esm({
 	  </info>
 	</metadata>`;
       svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
-      svg += generateGhostsPredefinition();
+      svg += generateGhostsPredefinition(theme.flashColor);
       const arenaHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE);
       svg += `<defs><clipPath id="arena"><rect x="0" y="15" width="${svgWidth}" height="${arenaHeight}"/></clipPath></defs>`;
       let lastMonth = "";
@@ -20391,7 +20457,6 @@ var init_svg = __esm({
           }
         }
       }
-      const theme = Utils.getCurrentTheme(store);
       const mouthColors = (mouthX) => generateChangingValuesAnimation(store, store.gameHistory.map((s2) => MovementUtils.gridDistance(s2.pacman, { x: mouthX, y: TUNNEL_ROW }) <= 3 ? theme.tunnelActiveColor : theme.tunnelColor));
       const mouthY = TUNNEL_ROW * (CELL_SIZE + GAP_SIZE) + 15;
       for (const [id, mx, rx] of [["tunnel-left", 0, 0], ["tunnel-right", GRID_WIDTH - 1, (GRID_WIDTH - 1) * (CELL_SIZE + GAP_SIZE) + CELL_SIZE - 3]]) {
@@ -20404,7 +20469,8 @@ var init_svg = __esm({
       const pacmanColorAnimation = generateChangingValuesAnimation(store, generatePacManColors(store));
       const pacmanPositionAnimation = generatePositionAnimation(store.gameHistory.map((s2) => s2.pacman));
       const pacmanRotationAnimation = generateChangingValuesAnimation(store, generatePacManRotations(store));
-      svg += `<path id="pacman" d="${generatePacManPath(0.55)}" fill="${PACMAN_COLOR}">
+      const pacmanStroke = theme.pacmanStroke ? ` stroke="${theme.pacmanStroke}" stroke-width="1.5" stroke-linejoin="round"` : "";
+      svg += `<path id="pacman" d="${generatePacManPath(0.55)}" fill="${theme.pacmanColor}"${pacmanStroke}>
 	  <animate attributeName="fill" dur="${totalDurationMs}ms" repeatCount="indefinite"
 		keyTimes="${pacmanColorAnimation.keyTimes}"
 		values="${pacmanColorAnimation.values}"/>
@@ -20444,17 +20510,7 @@ var init_svg = __esm({
         svg += `</g>`;
       });
       svg += `</g>`;
-      const textColor = Utils.getCurrentTheme(store).textColor;
-      svg += `
-	<g transform="translate(0, ${svgHeight - 15})">
-	<text x="10" y="0" font-size="12" fill="${textColor}">
-		Pontos: ${store.statistics?.totalPoints || 0}
- | Fantasmas: ${store.statistics?.ghostsEaten || 0} | Mortes: ${store.statistics?.deaths || 0}
-	</text>
-	<text x="${svgWidth - 10}" y="0" text-anchor="end" font-size="12" fill="${textColor}">
-		Dura\xE7\xE3o: ${totalDurationFormatted} (${store.gameHistory.length} frames)
-	</text>
-	</g>`;
+      svg += generateStatsPanel(store, svgWidth, totalDurationFormatted);
       svg += "</svg>";
       return svg;
     };
@@ -20485,20 +20541,47 @@ var init_svg = __esm({
       });
     };
     generatePacManColors = (store) => {
+      const theme = Utils.getCurrentTheme(store);
       return store.gameHistory.map((state) => {
-        if (state.pacman.deadRemainingDuration) {
-          return PACMAN_COLOR_DEAD;
-        } else if (state.pacman.powerupRemainingDuration) {
-          return PACMAN_COLOR_POWERUP;
-        } else {
-          return PACMAN_COLOR;
-        }
+        if (state.pacman.deadRemainingDuration) return PACMAN_COLOR_DEAD;
+        if (state.pacman.powerupRemainingDuration) return theme.pacmanPowerupColor;
+        return theme.pacmanColor;
       });
+    };
+    MONTHS_BAND = 15;
+    PANEL_TOP = MONTHS_BAND + GRID_HEIGHT * (CELL_SIZE + GAP_SIZE) + 8;
+    PANEL_HEIGHT = 52;
+    SYSTEM_MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace";
+    formatThousands = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    escapeXml = (t2) => t2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    generateStatsPanel = (store, svgWidth, duration) => {
+      const theme = Utils.getCurrentTheme(store);
+      const s2 = store.statistics;
+      const items = [
+        ["PONTOS", formatThousands(s2?.totalPoints ?? 0)],
+        ["FANTASMAS", String(s2?.ghostsEaten ?? 0)],
+        ["MAIOR COMBO", `\xD7${s2?.highestGhostCombo ?? 0}`],
+        ["MORTES", String(s2?.deaths ?? 0)],
+        ["DURA\xC7\xC3O", duration]
+      ];
+      const col = svgWidth / items.length;
+      let out = `<g id="placar" font-family="${SYSTEM_MONO}">`;
+      out += `<rect x="0" y="${PANEL_TOP}" width="${svgWidth}" height="1" fill="${theme.tunnelColor}"/>`;
+      items.forEach(([label, value], i2) => {
+        const x2 = Math.round(i2 * col + 16);
+        out += `<text x="${x2}" y="${PANEL_TOP + 19}" font-size="12" letter-spacing="0.96" fill="${theme.textColor}">${escapeXml(label)}</text>`;
+        out += `<text x="${x2}" y="${PANEL_TOP + 46}" font-size="28" font-weight="700" fill="${theme.textStrong}">${escapeXml(value)}</text>`;
+      });
+      return out + "</g>";
     };
     generateCellColorValues = (store, x2, y) => {
       return store.gameHistory.map((state) => state.grid[x2][y].color);
     };
-    generateGhostsPredefinition = () => {
+    flashMatrix = (hex) => {
+      const [r2, g, b] = [1, 3, 5].map((i2) => (parseInt(hex.slice(i2, i2 + 2), 16) / 255).toFixed(3));
+      return `0 0 0 0 ${r2}  0 0 0 0 ${g}  0 0 0 0 ${b}  0 0 0 1 0`;
+    };
+    generateGhostsPredefinition = (flashColor) => {
       let defs = `<defs>`;
       ["blinky", "inky", "pinky", "clyde"].forEach((ghostName) => {
         ["up", "down", "left", "right"].forEach((direction) => {
@@ -20517,7 +20600,7 @@ var init_svg = __esm({
         <image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
     </symbol>`;
       defs += `
-    <filter id="flash-white"><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/></filter>
+    <filter id="flash-white"><feColorMatrix type="matrix" values="${flashMatrix(flashColor)}"/></filter>
     <symbol id="ghost-scared-flash" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
         <image href="${GHOSTS["scared"].imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/>
     </symbol>`;
@@ -20549,8 +20632,8 @@ var init_svg = __esm({
       if (totalFrames === 0) {
         return { keyTimes: "0;1", values: changingValues[0] || "#000;#000" };
       }
-      let keyTimes = [];
-      let values = [];
+      const keyTimes = [];
+      const values = [];
       let lastValue = null;
       let lastIndex = null;
       changingValues.forEach((currentValue, index) => {
@@ -20682,7 +20765,7 @@ var init_ghosts_movement = __esm({
           break;
       }
     };
-    moveGhostInHouse = (ghost, store) => {
+    moveGhostInHouse = (ghost, _store) => {
       if (ghost.justReleasedFromHouse) {
         if (ghost.x === 26) {
           ghost.y = 2;
@@ -20862,7 +20945,7 @@ var init_ghosts_movement = __esm({
     };
     calculateGhostTarget = (ghost, store) => {
       const { pacman } = store;
-      let pacDirection = getPacmanDirection(store);
+      const pacDirection = getPacmanDirection(store);
       let speedMultiplier = 1;
       if (ghost.name === "blinky") {
         const totalDots = GRID_WIDTH * GRID_HEIGHT;
@@ -20882,7 +20965,7 @@ var init_ghosts_movement = __esm({
       switch (ghost.name) {
         case "blinky":
           return { x: pacman.x, y: pacman.y };
-        case "pinky":
+        case "pinky": {
           const lookAhead = 4;
           let targetX = pacman.x;
           let targetY = pacman.y;
@@ -20896,7 +20979,8 @@ var init_ghosts_movement = __esm({
           targetX = Math.min(Math.max(targetX, 0), GRID_WIDTH - 1);
           targetY = Math.min(Math.max(targetY, 0), GRID_HEIGHT - 1);
           return { x: targetX, y: targetY };
-        case "inky":
+        }
+        case "inky": {
           const blinky = store.ghosts.find((g) => g.name === "blinky");
           let twoAhead = {
             x: pacman.x + pacDirection[0] * 2,
@@ -20917,13 +21001,15 @@ var init_ghosts_movement = __esm({
           twoAhead.x = Math.min(Math.max(twoAhead.x, 0), GRID_WIDTH - 1);
           twoAhead.y = Math.min(Math.max(twoAhead.y, 0), GRID_HEIGHT - 1);
           return twoAhead;
-        case "clyde":
+        }
+        case "clyde": {
           const distanceToPacman = MovementUtils.calculateDistance(ghost.x, ghost.y, pacman.x, pacman.y);
           if (distanceToPacman < 8) {
             return SCATTER_CORNERS["clyde"];
           } else {
             return { x: pacman.x, y: pacman.y };
           }
+        }
         default:
           return { x: pacman.x, y: pacman.y };
       }
@@ -21386,7 +21472,7 @@ var init_game = __esm({
         if (store.statistics) {
           store.statistics.ghostsEaten++;
         }
-        const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, store.game.combo - 1);
+        const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, Math.min(store.game.combo, 4) - 1);
         store.pacman.points += ghostPoints;
         store.pacman.totalPoints += ghostPoints;
         if (store.statistics) {
@@ -21527,7 +21613,6 @@ var init_game = __esm({
       });
       const remaining = store.grid.some((row) => row.some((c) => c.commitsCount > 0));
       if (!remaining && store.statistics) {
-        const idealFrames = store.contributions.length * 2;
         const actualFrames = store.frameCount;
         const timeBonus = Math.max(0, 1e4 - actualFrames * 10);
         store.statistics.timeBonus = timeBonus;

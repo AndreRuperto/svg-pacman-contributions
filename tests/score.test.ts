@@ -17,3 +17,19 @@ describe('pontuação final', () => {
     expect(finish(3, 2).efficiencyMultiplier).toBe(2.5);
   });
 });
+
+describe('combo de fantasmas', () => {
+  it('a partir do 4º fantasma seguido, cada um vale 1600', () => {
+    const store = makeStore();
+    store.pacman.powerupRemainingDuration = 20;
+    const paid: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      const g = store.ghosts[i % 4];
+      Object.assign(g, { inHouse: false, scared: true, name: 'blinky', x: store.pacman.x, y: store.pacman.y });
+      const before = store.pacman.totalPoints;
+      Game.checkCollisions(store);
+      paid.push(store.pacman.totalPoints - before);
+    }
+    expect(paid).toEqual([200, 400, 800, 1600, 1600, 1600]);
+  });
+});
