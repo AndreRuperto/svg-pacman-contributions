@@ -20079,7 +20079,7 @@ var init_movement_utils = __esm({
 });
 
 // src/utils/utils.ts
-var import_fs, weeksBetween, truncateToUTCDate, getGitlabContribution, getGithubContribution, getCurrentTheme, levelToIndex, buildGrid, buildMonthLabels, createGridFromData, printArena, printArenaAsHTML, Utils;
+var import_fs, weeksBetween, truncateToUTCDate, getGitlabContribution, getGithubContribution, getCurrentTheme, levelToIndex, parseUTCDate, gridWindow, buildGrid, buildMonthLabels, createGridFromData, printArena, printArenaAsHTML, Utils;
 var init_utils = __esm({
   "src/utils/utils.ts"() {
     "use strict";
@@ -20154,11 +20154,22 @@ var init_utils = __esm({
           return 0;
       }
     };
+    parseUTCDate = (date) => {
+      const d = /* @__PURE__ */ new Date(`${date}T00:00:00Z`);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== date) {
+        throw new Error(`DATA_INVALIDA: ${date}`);
+      }
+      return d;
+    };
+    gridWindow = (date) => {
+      const end = date ? parseUTCDate(date) : truncateToUTCDate(/* @__PURE__ */ new Date());
+      const start = new Date(end);
+      start.setUTCDate(end.getUTCDate() - 364);
+      start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+      return { start, end };
+    };
     buildGrid = (store) => {
-      const endDate = truncateToUTCDate(/* @__PURE__ */ new Date());
-      const startDate = new Date(endDate);
-      startDate.setUTCDate(endDate.getUTCDate() - 365);
-      startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
+      const { start: startDate, end: endDate } = gridWindow(store.config.date);
       const realWidth = 53;
       const grid = Array.from(
         { length: realWidth },
@@ -20185,10 +20196,7 @@ var init_utils = __esm({
       store.grid = grid;
     };
     buildMonthLabels = (store) => {
-      const endDate = truncateToUTCDate(/* @__PURE__ */ new Date());
-      const startDate = new Date(endDate);
-      startDate.setUTCDate(endDate.getUTCDate() - 365);
-      startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
+      const { start: startDate, end: endDate } = gridWindow(store.config.date);
       const realWidth = weeksBetween(startDate, endDate) + 1;
       const labels = Array(realWidth).fill("");
       let lastMonth = "";
@@ -20411,13 +20419,14 @@ var init_svg = __esm({
       const totalSecs = Math.round(totalDurationMs / 1e3);
       const totalDurationFormatted = `${Math.floor(totalSecs / 60)}m ${String(totalSecs % 60).padStart(2, "0")}s`;
       let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
-      svg += `<desc>Generated with pacman-contribution-graph on ${/* @__PURE__ */ new Date()}</desc>`;
+      const day = store.config.date;
+      svg += `<desc>Generated with pacman-contribution-graph on ${day ?? /* @__PURE__ */ new Date()}</desc>`;
       svg += `<metadata>
 	  <info>
 		<frames>${store.gameHistory.length}</frames>
 		<frameRate>${1e3 / frameMs}</frameRate>
 		<durationMs>${totalDurationMs}</durationMs>
-		<generatedOn>${(/* @__PURE__ */ new Date()).toISOString()}</generatedOn>
+		<generatedOn>${day ? `${day}T00:00:00.000Z` : (/* @__PURE__ */ new Date()).toISOString()}</generatedOn>
 	  </info>
 	</metadata>`;
       svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
@@ -21345,7 +21354,7 @@ var init_store = __esm({
 });
 
 // src/core/game.ts
-var POINTS_MAP, MAX_FRAMES, MAX_EFFICIENCY_MULTIPLIER, GHOST_BASE_POINTS, BASE_DEATH_PENALTY, placePacman, placeGhosts, stopGame, initRound, startGame, resetPacman, determineGhostName, pushSnapshot, collideWith, checkCollisions, checkSwapCollisions, eatCell, activatePowerUp, updateGame, releaseGhostFromHouse, Game;
+var POINTS_MAP, MAX_FRAMES, MAX_EFFICIENCY_MULTIPLIER, GHOST_BASE_POINTS, BASE_DEATH_PENALTY, placePacman, placeGhosts, stopGame, initRound, startGame, finishGame, resetPacman, determineGhostName, pushSnapshot, collideWith, checkCollisions, checkSwapCollisions, eatCell, activatePowerUp, updateGame, releaseGhostFromHouse, Game;
 var init_game = __esm({
   "src/core/game.ts"() {
     "use strict";
@@ -21427,7 +21436,8 @@ var init_game = __esm({
       if (store.config.outputFormat === "svg") {
         while (remainingCells() && store.frameCount < MAX_FRAMES) updateGame(store);
         if (remainingCells()) {
-          console.warn(`Partida interrompida em ${MAX_FRAMES} frames; c\xE9lulas restantes foram limpas.`);
+          if (store.config.debug) console.warn(`Partida interrompida em ${MAX_FRAMES} frames; c\xE9lulas restantes foram limpas.`);
+          if (store.statistics) store.statistics.interrupted = true;
           const empty = Utils.getCurrentTheme(store).intensityColors[0];
           store.grid.forEach((col) => col.forEach((c) => {
             c.commitsCount = 0;
@@ -21435,11 +21445,15 @@ var init_game = __esm({
             c.color = empty;
           }));
         }
-        updateGame(store);
+        finishGame(store);
       } else {
         clearInterval(store.gameInterval);
         store.gameInterval = setInterval(() => updateGame(store), DELTA_TIME);
       }
+    };
+    finishGame = (store) => {
+      const limit = 3 * Math.max(1, store.config.gameSpeed) + 3;
+      for (let i2 = 0; !store.game.over && i2 < limit; i2++) updateGame(store);
     };
     resetPacman = (store) => {
       store.pacman.x = 26;
@@ -21606,6 +21620,8 @@ var init_game = __esm({
       });
       const remaining = store.grid.some((row) => row.some((c) => c.commitsCount > 0));
       if (!remaining && store.statistics) {
+        if (store.game.over) return;
+        store.game.over = true;
         const actualFrames = store.frameCount;
         const timeBonus = Math.max(0, 1e4 - actualFrames * 10);
         store.statistics.timeBonus = timeBonus;
@@ -21650,7 +21666,7 @@ var init_game = __esm({
         ghost.confusionFrames = 30;
       }
     };
-    Game = { startGame, stopGame, initRound, step: updateGame, eatCell, checkCollisions, checkSwapCollisions };
+    Game = { startGame, finishGame, stopGame, initRound, step: updateGame, eatCell, checkCollisions, checkSwapCollisions };
   }
 });
 
@@ -28175,58 +28191,73 @@ var init_src = __esm({
 });
 
 // src/providers/github-contributions.ts
-async function fetchGithubContributionsGraphQL(store, username, token) {
-  const query = (
-    /* GraphQL */
-    `
-    query ($login: String!) {
-      user(login: $login) {
-        contributionsCollection {
-          contributionCalendar {
-            weeks {
-              contributionDays {
-                date
-                contributionCount
-                color
-                contributionLevel
-              }
-            }
-          }
-        }
-      }
-    }
-  `
-  );
-  const response = await fetch2("https://api.github.com/graphql", {
+async function fetchContributionsWindow(login, date, token, fetchImpl = fetch2) {
+  const variables = {
+    login,
+    from: gridWindow(date).start.toISOString(),
+    to: `${date}T23:59:59Z`
+  };
+  const response = await fetchImpl("https://api.github.com/graphql", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ query, variables: { login: username } })
+    body: JSON.stringify({ query: QUERY, variables })
   });
-  if (!response.ok) {
-    throw new Error(
-      `GitHub GraphQL request failed: ${response.status} ${response.statusText}`
-    );
-  }
+  if (!response.ok) throw new Error(`GITHUB_${response.status}`);
   const json = await response.json();
-  return json.data.user.contributionsCollection.contributionCalendar.weeks.flatMap((week) => week.contributionDays).map((d) => {
-    const level = d.contributionLevel;
-    const theme = getCurrentTheme(store);
-    return {
-      date: new Date(d.date),
-      count: d.contributionCount,
-      color: theme.intensityColors[levelToIndex(level)],
-      level
-    };
-  });
+  const user = json.data?.user;
+  const errors = json.errors ?? [];
+  if (errors.some((e2) => e2.type === "NOT_FOUND") || !user && errors.length === 0) {
+    throw new Error("USUARIO_NAO_ENCONTRADO");
+  }
+  if (errors.length > 0 || !user) {
+    throw new Error(`GITHUB_GRAPHQL: ${errors.map((e2) => e2.message ?? "").join("; ")}`);
+  }
+  const contributions = user.contributionsCollection.contributionCalendar.weeks.flatMap((week) => week.contributionDays).map((d) => ({
+    date: new Date(d.date),
+    count: d.contributionCount,
+    color: "",
+    level: d.contributionLevel
+  }));
+  return {
+    contributions,
+    rateLimit: json.data?.rateLimit ?? null
+  };
 }
+async function fetchGithubContributionsGraphQL(store, username, token) {
+  const { contributions } = await fetchContributionsWindow(username, store.config.date ?? todayUTC(), token);
+  const theme = getCurrentTheme(store);
+  return contributions.map((c) => ({ ...c, color: theme.intensityColors[levelToIndex(c.level)] }));
+}
+var QUERY, todayUTC;
 var init_github_contributions = __esm({
   "src/providers/github-contributions.ts"() {
     "use strict";
     init_src();
     init_utils();
+    QUERY = /* GraphQL */
+    `
+  query ($login: String!, $from: DateTime!, $to: DateTime!) {
+    rateLimit { remaining resetAt }
+    user(login: $login) {
+      contributionsCollection(from: $from, to: $to) {
+        contributionCalendar {
+          weeks {
+            contributionDays {
+              date
+              contributionCount
+              color
+              contributionLevel
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+    todayUTC = () => (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
   }
 });
 
@@ -28266,7 +28297,12 @@ var init_src2 = __esm({
         };
         this.store = JSON.parse(JSON.stringify(Store));
         this.store.config = { ...defaultConfig, ...this.conf };
-        this.store.rng = createRng(this.store.config.seed ?? defaultSeed(this.store.config.username));
+        this.store.rng = createRng(
+          this.store.config.seed ?? defaultSeed(
+            this.store.config.username,
+            this.store.config.date ? /* @__PURE__ */ new Date(`${this.store.config.date}T00:00:00Z`) : void 0
+          )
+        );
         switch (this.store.config.platform) {
           case "github":
             if (this.store.config.githubSettings?.accessToken) {

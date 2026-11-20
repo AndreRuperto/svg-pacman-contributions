@@ -1,0 +1,82 @@
+import { html } from 'hono/html';
+import type { ThemeKeys } from '../../../src/types.js';
+import type { DadosJogador } from '../dados.js';
+import type { PartidaSalva } from '../repo.js';
+import {
+  NOMES_TEMAS,
+  dataExtenso,
+  decimal,
+  duracao,
+  inteiro,
+  urlJogador,
+  urlPartida,
+  urlPublicado
+} from './formato.js';
+import { layout, type Html } from './layout.js';
+
+export interface PartidaPagina {
+  jogador: DadosJogador;
+  partida: PartidaSalva;
+  tema: ThemeKeys;
+  temaPadrao: ThemeKeys;
+  /** `false`: o servidor não desenha partidas, a tela mostra um aviso no lugar da animação. */
+  podeDesenhar?: boolean;
+}
+
+function seta(data: string | undefined, rotulo: string, simbolo: string, login: string, sufixo: string): Html {
+  return data
+    ? html`<a class="seta" href="${urlPartida(login, data)}${sufixo}" aria-label="${rotulo}, ${dataExtenso(data)}">${simbolo}</a>`
+    : html`<span class="seta seta-off" aria-hidden="true">${simbolo}</span>`;
+}
+
+function stat(rotulo: string, valor: string): Html {
+  return html`<div class="tile"><p class="tile-rotulo">${rotulo}</p><p class="tile-valor">${valor}</p></div>`;
+}
+
+export function paginaPartida({ jogador, partida: p, tema, temaPadrao, podeDesenhar = true }: PartidaPagina): Html {
+  const { login } = jogador;
+  // jogador.partidas está em ordem de data decrescente
+  const i = jogador.partidas.findIndex((x) => x.data === p.data);
+  const seguinte = jogador.partidas[i - 1]?.data;
+  const anterior = jogador.partidas[i + 1]?.data;
+  const sufixo = tema === temaPadrao ? '' : `?tema=${tema}`;
+  const quando = dataExtenso(p.data);
+
+  const corpo = html`<p class="voltar"><a href="${urlJogador(login)}">‹ ${login}</a></p>
+<div class="dia-nav">
+  ${seta(anterior, 'Dia anterior', '‹', login, sufixo)}
+  <h1><span class="sr">${login}, </span>${quando}</h1>
+  ${seta(seguinte, 'Dia seguinte', '›', login, sufixo)}
+</div>
+${podeDesenhar
+  ? html`<div class="cartao palco">
+  <img src="/api/partida/${encodeURIComponent(login)}/${p.data}?tema=${tema}" alt="Partida de ${login} em ${quando}" width="1166" height="229" class="partida-svg">
+</div>
+<form class="tema-form" method="get" action="${urlPartida(login, p.data)}">
+  <label for="tema">Tema da animação</label>
+  <div class="tema-campos">
+    <select id="tema" name="tema">
+      ${(Object.keys(NOMES_TEMAS) as ThemeKeys[]).map(
+        (t) => html`<option value="${t}"${t === tema ? html` selected` : ''}>${NOMES_TEMAS[t]}</option>`
+      )}
+    </select>
+    <button class="botao" type="submit">Mudar</button>
+  </div>
+</form>`
+  : html`<p class="cartao vazio">A animação não está disponível neste servidor.</p>`}
+${p.interrompida
+  ? html`<p class="cartao aviso">Partida interrompida no limite de quadros: conta no dia e nos 7 dias, mas fica fora do recorde.</p>`
+  : ''}
+<div class="tiles tiles-6">
+  ${stat('Pontos', inteiro(p.pontos))}
+  ${stat('Eficiência', decimal(p.eficiencia))}
+  ${stat('Fantasmas', String(p.fantasmas))}
+  ${stat('Maior combo', `×${p.maior_combo}`)}
+  ${stat('Mortes', String(p.mortes))}
+  ${stat('Duração', duracao(p.quadros))}
+</div>
+${jogador.publicado && p.publicado_sha
+  ? html`<p><a class="botao botao-sec" href="${urlPublicado(jogador.publicado, p.publicado_sha)}">Ver como foi publicado neste dia</a></p>`
+  : ''}`;
+  return layout({ titulo: `${login} em ${quando}`, corpo });
+}

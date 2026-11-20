@@ -95,15 +95,25 @@ const startGame = async (store: StoreType) => {
     while (remainingCells() && store.frameCount < MAX_FRAMES) updateGame(store);
     if (remainingCells()) {
       // Salvaguarda: nunca gerar uma animação infinita; encerra limpando o que sobrou.
-      console.warn(`Partida interrompida em ${MAX_FRAMES} frames; células restantes foram limpas.`);
+      if (store.config.debug) console.warn(`Partida interrompida em ${MAX_FRAMES} frames; células restantes foram limpas.`);
+      if (store.statistics) store.statistics.interrupted = true;
       const empty = Utils.getCurrentTheme(store).intensityColors[0];
       store.grid.forEach(col => col.forEach(c => { c.commitsCount = 0; c.level = 'NONE'; c.color = empty; }));
     }
-    updateGame(store); // snapshot final + callbacks
+    finishGame(store); // snapshot final + callbacks
   } else {
     clearInterval(store.gameInterval as number);
     store.gameInterval = setInterval(() => updateGame(store), DELTA_TIME) as unknown as number;
   }
+};
+
+/**
+ * Roda quadros até o bloco de fim de jogo executar (grid já vazio). Um quadro só
+ * nem sempre basta: o do renascimento do Pac-Man e os do frame-skip retornam antes.
+ */
+const finishGame = (store: StoreType) => {
+  const limit = 3 * Math.max(1, store.config.gameSpeed) + 3;
+  for (let i = 0; !store.game.over && i < limit; i++) updateGame(store);
 };
 
 /* ---------- utilidades ---------- */
@@ -308,6 +318,8 @@ const updateGame = (store: StoreType) => {
   /* -------- fim de jogo -------- */
   const remaining = store.grid.some(row => row.some(c => c.commitsCount > 0));
   if (!remaining && store.statistics) { // Verifica se statistics existe
+    if (store.game.over) return;
+    store.game.over = true;
     // Calcular Bônus de Tempo
     const actualFrames = store.frameCount;
     const timeBonus = Math.max(0, 10000 - (actualFrames * 10));
@@ -371,4 +383,4 @@ const releaseGhostFromHouse = (store: StoreType, name: GhostName) => {
   }
 };
 
-export const Game = { startGame, stopGame, initRound, step: updateGame, eatCell, checkCollisions, checkSwapCollisions };
+export const Game = { startGame, finishGame, stopGame, initRound, step: updateGame, eatCell, checkCollisions, checkSwapCollisions };

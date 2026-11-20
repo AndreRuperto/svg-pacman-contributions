@@ -1,0 +1,9 @@
+{
+  "jogadores": [
+    {
+      "login": "AndreRuperto",
+      "desde": "2025-04-08",
+      "publicado": { "repo": "AndreRuperto/AndreRuperto", "branch": "output", "path": "dist/pacman-contribution-graph-dark.svg" }
+    }
+  ]
+}

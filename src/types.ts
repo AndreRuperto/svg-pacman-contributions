@@ -78,6 +78,8 @@ export interface GameStatistics {
   pointsFromContributions?: number;
   pointsFromGhosts?: number;
   pointsFromPowerUps?: number;
+  /** A partida bateu o limite de quadros e as células restantes foram limpas. */
+  interrupted?: boolean;
 }
 
 export interface GameState {
@@ -85,6 +87,8 @@ export interface GameState {
   combo: number;                 // fantasmas comidos no power-up atual
   mode: 'scatter' | 'chase';
   modeTimer: number;
+  /** O bloco de fim de jogo já rodou (pontuação final + callbacks). */
+  over?: boolean;
 }
 
 export interface StoreType {
@@ -132,6 +136,8 @@ export interface Config {
   /** Velocidade da animação: 'slow' (½×), 'normal' (1×), 'fast' (2×) ou um multiplicador > 0. */
   animationSpeed?: AnimationSpeed;     // sobrepõe a semente padrão (usuário + dia)
   debug?: boolean;   // liga logs de diagnóstico
+  /** Dia a jogar (AAAA-MM-DD, UTC); padrão = hoje. Define a janela do gráfico e a semente padrão. */
+  date?: string;
 }
 
 /* ───────────────────────── Temas ──────────────────────────────────── */
