@@ -1,7 +1,7 @@
 # Próximos passos
 
 - **Data:** 2026-11-20
-- **Branch:** `claude/revisao-fantasmas-temas`. Todo o código está na `main` (PRs #2 a #8 mergeados).
+- **Branch:** `claude/site-ranking`. Todo o código está na `main` (PRs #2 a #8 mergeados).
 - **Plano e desenho da rodada 1:** `docs/plans/2026-11-19-jogabilidade.md` · `docs/plans/2026-11-19-jogabilidade-design.md`
 - **Prancha de design (privada):** "SVG Pac-Man · Identidade e sistema de design", https://claude.ai/artifact/JMgq2AGqBKnyHFRLNT92cj. Cópia local dos arquivos em `C:\tmp\prancha-pacman\project\` (temporária).
 
@@ -28,6 +28,7 @@ Também: a Action rodou de verdade no repositório do perfil (`AndreRuperto/Andr
 
 ## Próximos passos (prioridade)
 
+- [ ] **Site do ranking** (desenho aprovado em `docs/plans/2026-11-20-site-ranking-design.md`): telas na prancha → plano de implementação → código em `site/` → deploy no Railway (`web`, `cron`, Postgres).
 - [ ] Decidir se apaga os assets antigos que o código não usa mais (`src/assets/img/ghosts/*.png`, `src/assets/gifs/*.gif`, `src/assets/ghosts_constants.txt`). São cópias da arte do fliperama; por ora ficam (decisão de 20/11).
 - [ ] Opcional: rodar `pnpm format` no projeto inteiro num PR só de formatação e então ativar `pnpm format:check` no CI.
 - [ ] Opcional: SVG responsivo (`viewBox` + largura 100%) e acessibilidade (`<title>`/`aria-label` no SVG, `prefers-reduced-motion`), itens 41–42 do `TODO2.TXT`.
