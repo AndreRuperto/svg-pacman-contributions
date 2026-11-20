@@ -19817,7 +19817,7 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
 });
 
 // src/core/constants.ts
-var CELL_SIZE, GAP_SIZE, GRID_WIDTH, GRID_HEIGHT, TUNNEL_ROW, isTunnelCell, PACMAN_COLOR_DEAD, DELTA_TIME, PACMAN_DEATH_DURATION, PACMAN_POWERUP_DURATION, POWERUP_FLASH_FRAMES, GITHUB_LIGHT, GITHUB_DARK, BRASA, ARCADE, NEON, ALTO_CONTRASTE, GITLAB_LIGHT, GITLAB_DARK, DARK_CHARACTERS, LIGHT_GHOSTS, GAME_THEMES, WALLS, setWall;
+var CELL_SIZE, GAP_SIZE, GRID_WIDTH, GRID_HEIGHT, TUNNEL_ROW, isTunnelCell, PACMAN_COLOR_DEAD, MONTHS, DELTA_TIME, PACMAN_DEATH_DURATION, PACMAN_POWERUP_DURATION, POWERUP_FLASH_FRAMES, GITHUB_LIGHT, GITHUB_DARK, BRASA, ARCADE, NEON, ALTO_CONTRASTE, GITLAB_LIGHT, GITLAB_DARK, DARK_CHARACTERS, LIGHT_GHOSTS, GAME_THEMES, WALLS, setWall;
 var init_constants = __esm({
   "src/core/constants.ts"() {
     "use strict";
@@ -19828,6 +19828,7 @@ var init_constants = __esm({
     TUNNEL_ROW = 3;
     isTunnelCell = (x2, y) => y === TUNNEL_ROW && (x2 <= 1 || x2 >= GRID_WIDTH - 2);
     PACMAN_COLOR_DEAD = "#80808064";
+    MONTHS = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."];
     DELTA_TIME = 200;
     PACMAN_DEATH_DURATION = 10;
     PACMAN_POWERUP_DURATION = 30;
@@ -20194,7 +20195,7 @@ var init_utils = __esm({
       for (let week = 0; week < realWidth; week++) {
         const date = new Date(startDate);
         date.setUTCDate(date.getUTCDate() + week * 7);
-        const currentMonth = date.toLocaleString("default", { month: "short" });
+        const currentMonth = MONTHS[date.getUTCMonth()];
         if (currentMonth !== lastMonth) {
           labels[week] = currentMonth;
           lastMonth = currentMonth;
