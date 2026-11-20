@@ -1,12 +1,8 @@
 import { pathToFileURL } from 'node:url';
 import { ENGINE_VERSION, playDay, type PlayDayOptions, type Partida } from '../../src/runner.js';
-import {
-  fetchContributionsWindow,
-  type FetchLike,
-  type RateLimit
-} from '../../src/providers/github-contributions.js';
+import { fetchContributionsWindow, type FetchLike, type RateLimit } from '../../src/providers/github-contributions.js';
 import type { Contribution } from '../../src/types.js';
-import { addDays, dataValida, exigirHoje } from './datas.js';
+import { addDays, dataValida, ultimoDiaCompleto } from './datas.js';
 import { loadJogadores, type Jogador, type Publicado } from './jogadores.js';
 import { listPublished, type CommitPublicado } from './publicados.js';
 import type { PartidaRepo } from './repo.js';
@@ -16,6 +12,8 @@ import { PgRepo } from './repo-pg.js';
 export const RESERVA = 50;
 /** Depois de tantos erros seguidos num jogador (ex.: GitHub fora do ar), ele fica para a próxima rodada. */
 export const MAX_ERROS_SEGUIDOS = 5;
+/** Quando o jogador já tem SVGs publicados marcados, só os commits destes últimos dias são relidos. */
+export const JANELA_PUBLICADOS = 14;
 
 export const JOGADORES_URL =
   'https://raw.githubusercontent.com/AndreRuperto/svg-pacman-contributions/main/ranking/jogadores.json';
@@ -25,13 +23,19 @@ export type FetchWindow = (
   date: string
 ) => Promise<{ contributions: Contribution[]; rateLimit: RateLimit | null }>;
 
-export type ListPublished = (publicado: Publicado, desde: string) => Promise<CommitPublicado[]>;
+/** Commits do SVG publicado a partir de `since` (AAAA-MM-DD). */
+export type ListPublished = (publicado: Publicado, since: string) => Promise<CommitPublicado[]>;
 
 export interface CronDeps {
   repo: PartidaRepo;
   jogadores: Jogador[];
-  /** AAAA-MM-DD (UTC). */
-  hoje: string;
+  /**
+   * Último dia a jogar (AAAA-MM-DD, UTC). Padrão: `ultimoDiaCompleto(agora)`.
+   * Nunca passa da véspera do dia corrente: o dia corrente ainda pode ganhar contribuições.
+   */
+  ultimo?: string;
+  /** Relógio, para os testes. */
+  agora?: Date;
   fetchWindow: FetchWindow;
   listPublished?: ListPublished;
   play?: (opts: PlayDayOptions) => Promise<Partida | null>;
@@ -54,6 +58,8 @@ export interface ResumoJogador {
 
 export interface CronResult {
   parou: 'limite' | null;
+  /** Último dia jogado (AAAA-MM-DD). */
+  ultimo: string;
   jogadores: ResumoJogador[];
   avisos: string[];
   total: { jogadas: number; semJogo: number; erros: number; publicados: number; pendentes: number };
@@ -61,27 +67,38 @@ export interface CronResult {
 
 const mensagem = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-/** Dias de `desde` até `hoje`, do mais recente para o mais antigo. */
-function diasAte(desde: string, hoje: string): string[] {
+/** 403 e 429 são o limite secundário do GitHub: insistir só piora. */
+const ehLimite = (msg: string) => msg === 'GITHUB_403' || msg === 'GITHUB_429';
+
+/** Dias de `desde` até `ultimo`, do mais recente para o mais antigo. */
+function diasAte(desde: string, ultimo: string): string[] {
   const dias: string[] = [];
-  for (let d = hoje; d >= desde; d = addDays(d, -1)) dias.push(d);
+  for (let d = ultimo; d >= desde; d = addDays(d, -1)) dias.push(d);
   return dias;
 }
 
 /**
- * Joga os dias que faltam de cada jogador e grava no repositório.
- * Para (com `parou: 'limite'`) quando o saldo da API fica abaixo de `RESERVA`;
- * a rodada seguinte continua de onde esta parou.
+ * Joga os dias que faltam de cada jogador, de `desde` até o último dia completo, e grava no repositório.
+ * Para (com `parou: 'limite'`) quando o saldo da API fica abaixo de `RESERVA` ou o GitHub
+ * responde 403/429; a rodada seguinte continua de onde esta parou.
  */
 export async function runCron(deps: CronDeps): Promise<CronResult> {
-  const { repo, jogadores, hoje, fetchWindow } = deps;
-  exigirHoje(hoje);
+  const { repo, jogadores, fetchWindow } = deps;
   const play = deps.play ?? playDay;
   const versao = deps.versao ?? ENGINE_VERSION;
   const log = deps.log ?? (() => {});
 
+  const vespera = ultimoDiaCompleto(deps.agora ?? new Date());
+  let ultimo = deps.ultimo ?? vespera;
+  if (!dataValida(ultimo)) throw new Error(`"ultimo" deve ser uma data AAAA-MM-DD válida (${JSON.stringify(ultimo)})`);
+  if (ultimo > vespera) {
+    log(`[cron] ${ultimo} ainda não terminou em UTC; jogando só até ${vespera}`);
+    ultimo = vespera;
+  }
+
   const resultado: CronResult = {
     parou: null,
+    ultimo,
     jogadores: [],
     avisos: [],
     total: { jogadas: 0, semJogo: 0, erros: 0, publicados: 0, pendentes: 0 }
@@ -91,14 +108,21 @@ export async function runCron(deps: CronDeps): Promise<CronResult> {
     resultado.avisos.push(`${r.login}: ${aviso}`);
     log(`[cron] aviso ${r.login}: ${aviso}`);
   };
+  const pararPeloLimite = (motivo: string) => {
+    resultado.parou = 'limite';
+    log(`[cron] ${motivo}; parando a rodada`);
+  };
 
   for (const jogador of jogadores) {
     const { login } = jogador;
     const r: ResumoJogador = { login, jogadas: 0, semJogo: 0, erros: 0, publicados: 0, pendentes: 0 };
     resultado.jogadores.push(r);
 
-    const feitos = new Set([...(await repo.datasExistentes(login, versao)), ...(await repo.diasSemJogo(login, versao))]);
-    const faltam = diasAte(jogador.desde, hoje).filter((d) => !feitos.has(d));
+    const feitos = new Set([
+      ...(await repo.datasExistentes(login, versao)),
+      ...(await repo.diasSemJogo(login, versao))
+    ]);
+    const faltam = diasAte(jogador.desde, ultimo).filter((d) => !feitos.has(d));
     if (resultado.parou) {
       r.pendentes = faltam.length;
       continue;
@@ -108,10 +132,43 @@ export async function runCron(deps: CronDeps): Promise<CronResult> {
     let saldoDesconhecidoLogado = false;
     let naoEncontrado = false;
     let i = 0;
-    for (; i < faltam.length; i++) {
+    for (; i < faltam.length && !resultado.parou; i++) {
       const data = faltam[i];
+      let janela: Awaited<ReturnType<FetchWindow>>;
       try {
-        const { contributions, rateLimit } = await fetchWindow(login, data);
+        janela = await fetchWindow(login, data);
+      } catch (e) {
+        const msg = mensagem(e);
+        if (msg === 'USUARIO_NAO_ENCONTRADO') {
+          naoEncontrado = true;
+          avisar(r, 'usuário não encontrado no GitHub; pulado');
+          break;
+        }
+        if (ehLimite(msg)) {
+          pararPeloLimite(`GitHub respondeu ${msg} (limite secundário) em ${login} ${data}`);
+          break; // o dia não foi buscado: continua pendente
+        }
+        r.erros++;
+        errosSeguidos++;
+        log(`[cron] erro ${login} ${data}: ${msg}`);
+        if (errosSeguidos >= MAX_ERROS_SEGUIDOS) {
+          avisar(r, `${MAX_ERROS_SEGUIDOS} erros seguidos (último: ${msg}); fica para a próxima rodada`);
+          i++;
+          break;
+        }
+        continue;
+      }
+
+      // O saldo é conferido antes do play; o dia já buscado ainda é jogado e gravado.
+      const { contributions, rateLimit } = janela;
+      if (rateLimit === null) {
+        if (!saldoDesconhecidoLogado) log(`[cron] ${login}: saldo da API desconhecido (resposta sem rateLimit)`);
+        saldoDesconhecidoLogado = true;
+      } else if (rateLimit.remaining < RESERVA) {
+        pararPeloLimite(`saldo da API em ${rateLimit.remaining} (< ${RESERVA}), renova em ${rateLimit.resetAt}`);
+      }
+
+      try {
         const p = await play({ login, date: data, contributions });
         if (p) {
           await repo.upsert(p);
@@ -121,22 +178,8 @@ export async function runCron(deps: CronDeps): Promise<CronResult> {
           r.semJogo++;
         }
         errosSeguidos = 0;
-        if (rateLimit === null) {
-          if (!saldoDesconhecidoLogado) log(`[cron] ${login}: saldo da API desconhecido (resposta sem rateLimit)`);
-          saldoDesconhecidoLogado = true;
-        } else if (rateLimit.remaining < RESERVA) {
-          resultado.parou = 'limite';
-          log(`[cron] saldo da API em ${rateLimit.remaining} (< ${RESERVA}); parando até ${rateLimit.resetAt}`);
-          i++;
-          break;
-        }
       } catch (e) {
         const msg = mensagem(e);
-        if (msg === 'USUARIO_NAO_ENCONTRADO') {
-          naoEncontrado = true;
-          avisar(r, 'usuário não encontrado no GitHub; pulado');
-          break;
-        }
         r.erros++;
         errosSeguidos++;
         log(`[cron] erro ${login} ${data}: ${msg}`);
@@ -151,10 +194,14 @@ export async function runCron(deps: CronDeps): Promise<CronResult> {
 
     if (jogador.publicado && deps.listPublished && !naoEncontrado) {
       try {
-        const commits = await deps.listPublished(jogador.publicado, jogador.desde);
-        const shaAtual = new Map((await repo.porJogador(login)).map((p) => [p.data, p.publicado_sha]));
+        const partidas = await repo.porJogador(login);
+        const jaMarcou = partidas.some((p) => p.publicado_sha !== null);
+        const curto = addDays(ultimo, -JANELA_PUBLICADOS);
+        const since = jaMarcou && curto > jogador.desde ? curto : jogador.desde;
+        const commits = await deps.listPublished(jogador.publicado, since);
+        const shaAtual = new Map(partidas.map((p) => [p.data, p.publicado_sha]));
         for (const { date, sha } of commits) {
-          if (!dataValida(date) || date < jogador.desde || date > hoje) continue;
+          if (!dataValida(date) || date < jogador.desde || date > ultimo) continue;
           if (!shaAtual.has(date) || shaAtual.get(date) === sha) continue;
           await repo.marcarPublicado(login, date, sha);
           r.publicados++;
@@ -177,22 +224,25 @@ export async function runCron(deps: CronDeps): Promise<CronResult> {
 
 const linha = (nome: string, r: Omit<ResumoJogador, 'login'>) =>
   `[cron] ${nome}: ${r.jogadas} jogadas, ${r.semJogo} sem jogo, ${r.erros} erros, ` +
-  `${r.publicados} publicados, ${r.pendentes} pendentes` + (r.aviso ? ` (${r.aviso})` : '');
+  `${r.publicados} publicados, ${r.pendentes} pendentes` +
+  (r.aviso ? ` (${r.aviso})` : '');
 
 /** fetch com timeout, no formato que `fetchContributionsWindow` espera. */
-const fetchComTimeout: FetchLike = (url, init) =>
-  fetch(url, { ...init, signal: AbortSignal.timeout(15_000) });
+const fetchComTimeout: FetchLike = (url, init) => fetch(url, { ...init, signal: AbortSignal.timeout(15_000) });
 
-/** Liga as dependências reais. Devolve o código de saída. */
+/**
+ * Liga as dependências reais. Devolve o código de saída.
+ * `HOJE` (opcional, para testes) é o último dia a jogar; o padrão é `ultimoDiaCompleto()`.
+ */
 export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number> {
   const { DATABASE_URL, GITHUB_TOKEN } = env;
   if (!DATABASE_URL || !GITHUB_TOKEN) {
     console.error('[cron] faltam variáveis: DATABASE_URL e GITHUB_TOKEN são obrigatórias');
     return 1;
   }
-  const hoje = env.HOJE || new Date().toISOString().slice(0, 10);
-  if (!dataValida(hoje)) {
-    console.error(`[cron] HOJE inválido: ${JSON.stringify(hoje)} (esperado AAAA-MM-DD)`);
+  const ultimo = env.HOJE || ultimoDiaCompleto();
+  if (!dataValida(ultimo)) {
+    console.error(`[cron] HOJE inválido: ${JSON.stringify(ultimo)} (esperado AAAA-MM-DD)`);
     return 1;
   }
 
@@ -206,25 +256,28 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
     }
     let jogadores: Jogador[];
     try {
-      jogadores = await loadJogadores({ url: env.JOGADORES_URL || JOGADORES_URL, hoje });
+      jogadores = await loadJogadores({ url: env.JOGADORES_URL || JOGADORES_URL, hoje: ultimo });
     } catch (e) {
       console.error(`[cron] ${mensagem(e)}`);
       return 1;
     }
 
     const inicio = Date.now();
+    const log = (m: string) => console.log(m);
     const r = await runCron({
       repo,
       jogadores,
-      hoje,
+      ultimo,
       fetchWindow: (login, date) => fetchContributionsWindow(login, date, GITHUB_TOKEN, fetchComTimeout),
-      listPublished: (p, desde) => listPublished(p.repo, p.branch, p.path, GITHUB_TOKEN, { since: desde }),
-      log: (m) => console.log(m)
+      listPublished: (p, since) => listPublished(p.repo, p.branch, p.path, GITHUB_TOKEN, { since, log }),
+      log
     });
     for (const j of r.jogadores) console.log(linha(j.login, j));
     console.log(
-      linha(`total (${r.jogadores.length} jogadores, ${Math.round((Date.now() - inicio) / 1000)} s)`, r.total) +
-        (r.parou === 'limite' ? ' — parou pelo limite da API' : '')
+      linha(
+        `total até ${r.ultimo} (${r.jogadores.length} jogadores, ${Math.round((Date.now() - inicio) / 1000)} s)`,
+        r.total
+      ) + (r.parou === 'limite' ? ' — parou pelo limite da API' : '')
     );
     return 0;
   } catch (e) {

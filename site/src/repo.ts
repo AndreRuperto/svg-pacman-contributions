@@ -40,9 +40,22 @@ export class MemoryRepo implements PartidaRepo {
 
   async upsert(p: PartidaNova): Promise<void> {
     const k = chave(p.login, p.data);
-    const { svg: _svg, publicado_sha, ...numeros } = p;
     const anterior = this.partidas.get(k);
-    this.partidas.set(k, { ...numeros, publicado_sha: publicado_sha ?? anterior?.publicado_sha ?? null });
+    // Só as colunas da tabela, como no PgRepo: campos a mais (svg ou outros) não são guardados.
+    this.partidas.set(k, {
+      login: p.login,
+      data: p.data,
+      pontos: p.pontos,
+      fantasmas: p.fantasmas,
+      mortes: p.mortes,
+      maior_combo: p.maior_combo,
+      quadros: p.quadros,
+      celulas: p.celulas,
+      eficiencia: p.eficiencia,
+      interrompida: p.interrompida,
+      versao_motor: p.versao_motor,
+      publicado_sha: p.publicado_sha ?? anterior?.publicado_sha ?? null
+    });
   }
 
   async porJogador(login: string): Promise<PartidaSalva[]> {

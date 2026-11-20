@@ -361,26 +361,31 @@ export interface PartidaRepo {
 - Create: `site/src/cron.ts`, com `runCron(deps)` testável e `main()` que liga as dependências reais.
 - Test: `tests/site/cron.test.ts`
 
-**Step 1: Teste**, com `MemoryRepo`, um `fetchWindow` falso e `hoje` fixo:
-- **jogador novo:** joga cada dia de `desde` até `hoje`. O `fetchWindow` falso conta as chamadas e devolve contribuições fixas.
+**Último dia completo:** o site trabalha com `ultimoDiaCompleto()` (em `site/src/datas.ts`: a véspera do dia corrente em UTC). O dia corrente ainda pode ganhar contribuições, então nunca é jogado nem marcado como sem jogo.
+
+**Step 1: Teste**, com `MemoryRepo`, um `fetchWindow` falso, `ultimo` fixo e um relógio (`agora`) fixo:
+- **jogador novo:** joga cada dia de `desde` até `ultimo`, do mais recente para o mais antigo. O `fetchWindow` falso conta as chamadas e devolve contribuições fixas.
 - **segunda rodada:** não chama o `fetchWindow` de novo e não duplica partidas.
-- **saldo da API:** quando `rateLimit.remaining` cai abaixo de `RESERVA = 50`, a rodada para e devolve `{ parou: 'limite' }`. A rodada seguinte continua de onde parou.
+- **dia corrente:** sem `ultimo`, joga só até a véspera; um `ultimo` no dia corrente ou depois é trazido para a véspera.
+- **saldo da API:** o saldo é conferido logo depois do `fetchWindow`. Abaixo de `RESERVA = 50`, o dia já buscado ainda é jogado e gravado, e a rodada para com `{ parou: 'limite' }`. A rodada seguinte continua de onde parou.
+- **limite secundário:** `GITHUB_403` ou `GITHUB_429` param a rodada com `parou: 'limite'`, sem contar como erro.
+- **erros:** outros erros num dia são registrados e a rodada segue; depois de 5 seguidos, o jogador fica para a próxima rodada.
 - **login inexistente:** com `USUARIO_NAO_ENCONTRADO`, o login é pulado, o resultado registra o aviso e os outros jogadores são jogados normalmente.
 - **dia sem contribuições:** `playDay` devolve `null` e nada é gravado. Esse dia não deve ser tentado de novo na mesma rodada.
 - **mudança de versão:** quando `ENGINE_VERSION` muda, as partidas antigas voltam a ser jogadas. Isso já sai de graça porque `datasExistentes` filtra pela versão.
-- **SVG publicado:** um jogador com `publicado` recebe `publicado_sha` para os dias que têm commit naquele caminho. O `listPublished` falso devolve `[{ date: '2026-11-19', sha: 'abc' }]`.
+- **SVG publicado:** um jogador com `publicado` recebe `publicado_sha` para os dias que têm commit naquele caminho. O `listPublished` falso devolve `[{ date: '2026-11-19', sha: 'abc' }]`. Na primeira vez ele é chamado com `since = desde`; quando o jogador já tem algum `publicado_sha`, com `since = ultimo − 14`.
 
 **Step 2:** Rodar o teste → FAIL.
 
 **Step 3: Implementação**
 
-`runCron({ repo, jogadores, hoje, fetchWindow, listPublished, play = playDay, log })`. Para cada jogador:
-1. calcula os dias de `desde` até `hoje`, menos os de `datasExistentes(login, ENGINE_VERSION)`, do mais recente para o mais antigo;
-2. para cada dia, chama `fetchWindow`, confere o saldo, chama `play` e faz o `upsert`;
+`runCron({ repo, jogadores, ultimo = ultimoDiaCompleto(), fetchWindow, listPublished, play = playDay, log })`. Para cada jogador:
+1. calcula os dias de `desde` até `ultimo`, menos os de `datasExistentes` e `diasSemJogo` na versão do motor, do mais recente para o mais antigo;
+2. para cada dia, chama `fetchWindow`, confere o saldo, chama `play` e faz o `upsert` (ou `marcarSemJogo`, se `play` devolver `null`);
 3. no fim, se o jogador tem `publicado`, chama `listPublished`, que lista os commits daquele caminho na branch (data UTC do commit e sha), e grava `marcarPublicado`.
 
 O `main()`:
-- lê `DATABASE_URL` e `GITHUB_TOKEN`;
+- lê `DATABASE_URL` e `GITHUB_TOKEN` (e, para testes, `HOJE`, que é o último dia a jogar; o padrão é `ultimoDiaCompleto()`);
 - roda `migrate()`;
 - carrega a lista pela URL;
 - loga um resumo e sai com código 0. Ele só sai com código 1 se faltar uma variável ou se o banco não responder.
@@ -394,13 +399,13 @@ O `main()`:
 ### Task 8: API JSON
 
 **Files:**
-- Create: `site/src/app.ts` (`createApp({ repo, jogadores, hoje, renderSvg })`, retorna `Hono`)
+- Create: `site/src/app.ts` (`createApp({ repo, jogadores, hoje, renderSvg })`, retorna `Hono`). Em produção, `hoje` é `ultimoDiaCompleto()`: o "dia" do ranking é o último dia completo em UTC, nunca o dia corrente.
 - Create: `site/src/cache.ts` (LRU com limite de itens)
 - Create: `site/src/ratelimit.ts` (janela fixa por IP)
 - Test: `tests/site/api.test.ts` (`app.request('/api/…')`, sem subir servidor)
 
 **Step 1: Testes**
-- `GET /api/ranking?aba=pontos&periodo=hoje` → 200, com `{ aba, periodo, hoje, linhas: [{ posicao, login, valor, fantasmas, mortes, quadros }] }`.
+- `GET /api/ranking?aba=pontos&periodo=hoje` → 200, com `{ aba, periodo, hoje, linhas: [{ posicao, login, valor, fantasmas, mortes, quadros }] }`. O período `hoje` é o último dia completo, e o campo `hoje` traz essa data.
 - `aba` ou `periodo` inválidos → 400.
 - `GET /api/jogador/AndreRuperto` → 200, com `{ login, partidas, recorde, media30, posicaoHoje: { pontos, eficiencia } }`.
 - `GET /api/jogador/fulano` (fora da lista) → 404.
@@ -438,6 +443,7 @@ O `main()`:
 **Step 1: Testes.** O HTML de cada rota deve conter:
 - **`/`:**
   - abas e períodos são links `?aba=…&periodo=…` com `aria-current="page"` no ativo;
+  - o período `hoje` aparece como **"Último dia"** e mostra a data (ex.: `Último dia · 19 nov. 2026`), nunca "Hoje";
   - a tabela tem `<th scope="col">`;
   - o link "Como entrar" aponta para `https://github.com/AndreRuperto/svg-pacman-contributions/edit/main/ranking/jogadores.json`.
 - **`/jogador/AndreRuperto`:**

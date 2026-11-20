@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addDays, dataValida } from '../../site/src/datas.js';
+import { addDays, dataValida, ultimoDiaCompleto } from '../../site/src/datas.js';
 
 describe('addDays', () => {
   it('vira o mês, o ano e respeita o 29/02', () => {
@@ -21,5 +21,14 @@ describe('dataValida', () => {
     expect(dataValida('2026-13-01')).toBe(false);
     expect(dataValida('20/11/2026')).toBe(false);
     expect(dataValida(20261120)).toBe(false);
+  });
+});
+
+describe('ultimoDiaCompleto', () => {
+  it('é a véspera do dia corrente em UTC', () => {
+    expect(ultimoDiaCompleto(new Date('2026-11-20T00:00:00Z'))).toBe('2026-11-19');
+    expect(ultimoDiaCompleto(new Date('2026-11-20T23:59:59Z'))).toBe('2026-11-19');
+    expect(ultimoDiaCompleto(new Date('2026-03-01T02:00:00-03:00'))).toBe('2026-02-28'); // 05:00Z de 01/03
+    expect(ultimoDiaCompleto(new Date('2026-01-01T12:00:00Z'))).toBe('2025-12-31');
   });
 });

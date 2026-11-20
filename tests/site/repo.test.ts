@@ -36,6 +36,12 @@ function contrato(nome: string, criar: () => Promise<PartidaRepo>) {
       expect(lida).toEqual({ ...p('ana', '2026-11-20'), interrompida: true, publicado_sha: null });
     });
 
+    it('guarda só as colunas da partida (svg e campos a mais ficam de fora)', async () => {
+      const extra = { ...p('ana', '2026-11-20'), svg: '<svg/>', qualquer: 1 } as Partida;
+      await repo.upsert(extra);
+      expect(await repo.porJogador('ana')).toEqual([{ ...p('ana', '2026-11-20'), publicado_sha: null }]);
+    });
+
     it('datasExistentes filtra pela versão', async () => {
       await repo.upsert(p('ana', '2026-11-19', 100, '1.0.0'));
       await repo.upsert(p('ana', '2026-11-20', 100, '1.1.0'));

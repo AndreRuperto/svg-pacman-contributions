@@ -19,3 +19,11 @@ export function addDays(date: string, n: number): string {
 export function exigirHoje(hoje: unknown): asserts hoje is string {
   if (!dataValida(hoje)) throw new Error(`"hoje" deve ser uma data AAAA-MM-DD válida (${JSON.stringify(hoje)})`);
 }
+
+/**
+ * Último dia completo em UTC (a véspera de hoje). O site trabalha com ele:
+ * o dia corrente ainda pode ganhar contribuições, então nunca é jogado.
+ */
+export function ultimoDiaCompleto(agora: Date = new Date()): string {
+  return addDays(agora.toISOString().slice(0, 10), -1);
+}

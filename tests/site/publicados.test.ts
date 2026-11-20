@@ -25,7 +25,7 @@ describe('listPublished', () => {
     await listPublished('Ana/Ana', 'out put', 'dist/meu svg#1.svg', 'tok', { since: '2026-11-01', fetchImpl: f.fn });
     const { url, init } = f.pedidos[0];
     expect(url).toBe(
-      'https://api.github.com/repos/Ana/Ana/commits?sha=out%20put&path=dist/meu%20svg%231.svg&per_page=100&since=2026-11-01T00:00:00Z'
+      'https://api.github.com/repos/Ana/Ana/commits?sha=out%20put&path=dist/meu%20svg%231.svg&per_page=100&since=2026-11-01T00%3A00%3A00Z'
     );
     expect((init?.headers as Record<string, string>).Authorization).toBe('Bearer tok');
     expect(init?.signal).toBeInstanceOf(AbortSignal);
@@ -67,5 +67,23 @@ describe('listPublished', () => {
     expect(await listPublished('a/b', 'main', 'x.svg', 't', { fetchImpl: fakeFetch([{ status: 409, body: {} }]).fn })).toEqual([]);
     await expect(listPublished('a/b', 'main', 'x.svg', 't', { fetchImpl: fakeFetch([{ status: 404, body: {} }]).fn }))
       .rejects.toThrow('GITHUB_404');
+  });
+
+  it('corta em maxPages e avisa no log', async () => {
+    const next = 'https://api.github.com/repositories/1/commits?page=2';
+    const f = fakeFetch([
+      { body: [commit('c2', '2026-11-20T10:00:00Z')], link: `<${next}>; rel="next"` },
+      { body: [commit('c1', '2026-11-19T10:00:00Z')], link: `<${next}>; rel="next"` }
+    ]);
+    const logs: string[] = [];
+    const r = await listPublished('a/b', 'main', 'x.svg', 't', { fetchImpl: f.fn, maxPages: 2, log: (m) => logs.push(m) });
+    expect(f.pedidos).toHaveLength(2);
+    expect(r).toHaveLength(2);
+    expect(logs).toEqual([expect.stringMatching(/2 páginas/)]);
+  });
+
+  it('recusa um since inválido', async () => {
+    await expect(listPublished('a/b', 'main', 'x.svg', 't', { since: '2026-11-01T00:00:00Z&x=1', fetchImpl: fakeFetch([]).fn }))
+      .rejects.toThrow(/since/);
   });
 });

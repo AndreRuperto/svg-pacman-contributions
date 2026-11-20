@@ -1,4 +1,5 @@
 /** Commits do SVG publicado de um jogador (API REST do GitHub). */
+import { dataValida } from './datas.js';
 
 export interface CommitPublicado {
   /** AAAA-MM-DD (UTC) do commit. */
@@ -12,6 +13,8 @@ export interface ListPublishedOptions {
   fetchImpl?: typeof fetch;
   /** Limite de páginas de 100 commits (padrão 30). */
   maxPages?: number;
+  /** Recebe um aviso quando a lista é cortada em `maxPages`. */
+  log?: (msg: string) => void;
 }
 
 const API = 'https://api.github.com/';
@@ -43,12 +46,19 @@ export async function listPublished(
 ): Promise<CommitPublicado[]> {
   const fetchImpl = opts.fetchImpl ?? fetch;
   const maxPages = opts.maxPages ?? 30;
+  if (opts.since !== undefined && !dataValida(opts.since)) {
+    throw new Error(`since deve ser uma data AAAA-MM-DD válida (${JSON.stringify(opts.since)})`);
+  }
   let url: string | null =
     `${API}repos/${segmentos(repo)}/commits?sha=${encodeURIComponent(branch)}&path=${segmentos(path)}&per_page=100` +
-    (opts.since ? `&since=${opts.since}T00:00:00Z` : '');
+    (opts.since ? `&since=${encodeURIComponent(`${opts.since}T00:00:00Z`)}` : '');
 
   const porDia = new Map<string, { quando: number; sha: string }>();
-  for (let pagina = 0; url && pagina < maxPages; pagina++) {
+  for (let pagina = 0; url; pagina++) {
+    if (pagina >= maxPages) {
+      opts.log?.(`[publicados] ${repo}:${path} tem mais de ${maxPages} páginas de commits; lista cortada`);
+      break;
+    }
     const res: Response = await fetchImpl(url, {
       headers: {
         Authorization: `Bearer ${token}`,

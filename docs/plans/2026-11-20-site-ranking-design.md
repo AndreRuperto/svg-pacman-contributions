@@ -13,6 +13,7 @@ Um site com duas coisas: o histórico das partidas de cada jogador e um ranking 
 | Histórico | Recalcular todos os dias com o jogo atual | Mesmas regras para todos (o jogo antigo tinha bugs de pontuação), vale para qualquer jogador, números exatos. |
 | SVGs já publicados | Link "ver como foi publicado" nos dias do perfil de André | Mostra o que de fato apareceu no README, sem misturar com os números recalculados. |
 | Hospedagem | Railway: serviços `web` e `cron` + Postgres | Escolha do usuário. |
+| Dia do ranking | O último dia completo em UTC (a véspera); o dia corrente nunca é jogado. A aba "Hoje" vira "Último dia" e mostra a data | O dia corrente ainda ganha contribuições: jogá-lo daria números que mudam e uma partida diferente da final. |
 | Confiança | O servidor roda o jogo, ninguém envia números | O jogo é determinístico (semente `login:AAAA-MM-DD`): mesmos dados, mesma partida. |
 
 Há 588 versões de `dist/pacman-contribution-graph-dark.svg` na branch `output` de `AndreRuperto/AndreRuperto`, de 2025-04-08 a 2026-11-19, e 4 de `-brasa.svg`. Elas não têm placar: o bundle antigo da Action não gerava.
