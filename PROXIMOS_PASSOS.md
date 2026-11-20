@@ -1,7 +1,7 @@
 # Próximos passos
 
 - **Data:** 2026-11-20
-- **Branch:** `claude/proximos-passos-2026-11-20` (só este arquivo). Todo o código está na `main` (PRs #2 a #7 mergeados).
+- **Branch:** `claude/revisao-fantasmas-temas`. Todo o código está na `main` (PRs #2 a #8 mergeados).
 - **Plano e desenho da rodada 1:** `docs/plans/2026-11-19-jogabilidade.md` · `docs/plans/2026-11-19-jogabilidade-design.md`
 - **Prancha de design (privada):** "SVG Pac-Man · Identidade e sistema de design", https://claude.ai/artifact/JMgq2AGqBKnyHFRLNT92cj. Cópia local dos arquivos em `C:\tmp\prancha-pacman\project\` (temporária).
 
@@ -15,6 +15,7 @@
 | #5 | Contorno nos sprites que sumiam (assustado no arcade, olhos nos temas claros). |
 | #6 | Fantasmas próprios em vetor (direção "A · Lençol" da prancha) no lugar dos 21 PNGs copiados do fliperama; cores dos fantasmas por tema. |
 | #7 | Meses do banner sempre em português (antes seguiam o idioma da máquina: no runner saíam em inglês). |
+| #8 | Este arquivo atualizado. |
 
 Também: a Action rodou de verdade no repositório do perfil (`AndreRuperto/AndreRuperto`, workflow "Alternador Snake/Pac-Man"). O README do perfil mostra o banner novo no tema `brasa`, com placar, fantasmas em vetor e meses em português.
 
@@ -22,12 +23,11 @@ Também: a Action rodou de verdade no repositório do perfil (`AndreRuperto/Andr
 
 - **Funciona:** `pnpm lint`, `pnpm exec tsc --noEmit` e `pnpm test` (132 testes) sem erros; CI verde na `main`; SVG publicado no perfil conferido (229 px de altura, placar, nenhum PNG embutido, meses `nov.` … `nov.`).
 - **Conferido no navegador:** salto do túnel, bocas em ciano, fantasmas assustados e piscando, os 8 temas com placar, fantasmas em vetor no `github-dark` e no `github`.
-- **Não conferido no navegador:** os fantasmas em vetor nos temas `brasa`, `neon`, `alto-contraste`, `gitlab` e `gitlab-dark` (os testes de cor e contraste passam nos 8).
+- **Fantasmas em vetor conferidos no navegador nos 8 temas** (20/11). No `neon`, o 4º fantasma era branco e se confundia com o fantasma piscando: virou coral claro `#FFC9C9`, e um teste novo garante que nenhum fantasma normal fique parecido com o pisca.
 - **Alternador do perfil:** alterna Snake e Pac-Man a cada execução (cron de 12 h). Para forçar o Pac-Man, pode ser preciso disparar duas vezes (ver `mode.txt` na branch `output`).
 
 ## Próximos passos (prioridade)
 
-- [ ] Conferir no navegador os fantasmas em vetor nos 5 temas que faltam (`pnpm preview --theme <tema>` e abrir `outputs/`).
 - [ ] Decidir se apaga os assets antigos que o código não usa mais (`src/assets/img/ghosts/*.png`, `src/assets/gifs/*.gif`, `src/assets/ghosts_constants.txt`). São cópias da arte do fliperama; por ora ficam (decisão de 20/11).
 - [ ] Opcional: rodar `pnpm format` no projeto inteiro num PR só de formatação e então ativar `pnpm format:check` no CI.
 - [ ] Opcional: SVG responsivo (`viewBox` + largura 100%) e acessibilidade (`<title>`/`aria-label` no SVG, `prefers-reduced-motion`), itens 41–42 do `TODO2.TXT`.
