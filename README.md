@@ -150,8 +150,8 @@ Todo sorteio do jogo (fuga dos fantasmas assustados, desempates) usa uma semente
 
 Esta versão inclui várias melhorias em relação à implementação original:
 
-- **Fantasmas Aprimorados**: Novas imagens e animações mais fiéis ao jogo original
-- **Olhos Direcionais**: Os olhos dos fantasmas se movem de acordo com a direção em que estão indo
+- **Fantasmas próprios em vetor**: desenho do projeto, nítido em qualquer tamanho, com as cores de cada tema
+- **Olhos Direcionais**: as pupilas acompanham a direção em que o fantasma está indo
 - **Power-up Aperfeiçoado**: Melhor lógica e feedback visual durante o modo de power-up
 - **Casa dos Fantasmas**: Design melhorado para a área inicial dos fantasmas
 - **Otimização SVG**: Geração de SVG mais eficiente e com animações mais suaves
@@ -160,15 +160,15 @@ Esta versão inclui várias melhorias em relação à implementação original:
   - **Agressivo**: Prioriza a coleta de pontos mesmo com fantasmas próximos. Ignora parcialmente o perigo e foca em maximizar a pontuação, criando uma animação mais dinâmica e arriscada.
   - **Conservador**: Extremamente cauteloso, prioriza a sobrevivência acima de tudo. Evita ativamente áreas com fantasmas mesmo que contenha muitos pontos, resultando em um jogo mais longo e seguro.
 
-## 👻 Fantasmas atualizados
-Cada fantasma ganhou novas imagens e personalidades fiéis aos do jogo original.
+## 👻 Fantasmas
+Os fantasmas são desenhados em vetor, com traço próprio: uma cúpula com a barra recortada de um jeito por personalidade (pontas, ondas, dois cortes, cauda torta), para distinguir mesmo sem cor. A cor de cada um vem do tema. As cores abaixo são as dos temas escuros.
 
-| Fantasma | Pré-visualização | Comportamento |
+| Fantasma | Silhueta | Comportamento |
 |:--------:|:----------------:|:-------------|
-| **Blinky** (vermelho) | <p align="center"><img src="src/assets/gifs/red_flip.gif" height="40" alt="Blinky"></p> | Perseguidor agressivo que mira diretamente no Pac-Man. Fica mais rápido quando restam poucos pontos no mapa, o que os jogadores chamam de "modo Elroy". |
-| **Pinky** (rosa) | <p align="center"><img src="src/assets/gifs/pink_flip.gif" height="40" alt="Pinky"></p> | Estrategista que tenta emboscar o Pac-Man se posicionando 4 casas à frente da direção atual dele. É especialista em armadilhas e emboscadas. |
-| **Inky** (ciano) | <p align="center"><img src="src/assets/gifs/cyan_flip.gif" height="40" alt="Inky"></p> | Imprevisível e complexo. Usa a posição do Blinky como referência para seu movimento, calculando um vetor que passa pelo Pac-Man e depois dobrando essa distância. |
-| **Clyde** (laranja) | <p align="center"><img src="src/assets/gifs/orange_flip.gif" height="40" alt="Clyde"></p> | Tímido e errático. Persegue o Pac-Man quando está longe, mas quando se aproxima a menos de 8 casas de distância, foge para seu canto. Esse comportamento "tímido" o torna menos previsível. |
+| **Blinky** (violeta) | pontas na barra | Perseguidor agressivo que mira diretamente no Pac-Man. Fica mais rápido quando restam poucos pontos no mapa, o que os jogadores chamam de "modo Elroy". |
+| **Pinky** (rosa) | barra em ondas | Estrategista que tenta emboscar o Pac-Man se posicionando 4 casas à frente da direção atual dele. É especialista em armadilhas e emboscadas. |
+| **Inky** (ciano) | barra com dois cortes | Imprevisível e complexo. Usa a posição do Blinky como referência para seu movimento, calculando um vetor que passa pelo Pac-Man e depois dobrando essa distância. |
+| **Clyde** (laranja) | cauda torta | Tímido e errático. Persegue o Pac-Man quando está longe, mas quando se aproxima a menos de 8 casas de distância, foge para seu canto. Esse comportamento "tímido" o torna menos previsível. |
 
 ## 🔧 Desenvolvimento
 

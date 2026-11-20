@@ -2,7 +2,6 @@ import {
 	CELL_SIZE,
 	DELTA_TIME,
 	GAP_SIZE,
-	GHOSTS,
 	GRID_HEIGHT,
 	GRID_WIDTH,
 	PACMAN_COLOR_DEAD,
@@ -10,7 +9,7 @@ import {
 	WALLS
 } from '../core/constants.js';
 import { MovementUtils } from '../movement/movement-utils.js';
-import { AnimationData, Config, Ghost, GhostName, StoreType } from '../types.js';
+import { AnimationData, Config, GameTheme, Ghost, GhostName, StoreType } from '../types.js';
 import { Utils } from '../utils/utils.js';
 
 const SPEED_PRESETS: Record<string, number> = { slow: 0.5, normal: 1, fast: 2 };
@@ -83,7 +82,7 @@ const generateAnimatedSVG = (store: StoreType) => {
 	</metadata>`;
 	svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
 	
-	svg += generateGhostsPredefinition(theme.flashColor, theme.spriteOutline);
+	svg += generateGhostsPredefinition(theme);
 	const arenaHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE);
 	svg += `<defs><clipPath id="arena"><rect x="0" y="15" width="${svgWidth}" height="${arenaHeight}"/></clipPath></defs>`;
   
@@ -361,73 +360,60 @@ const generateCellColorValues = (store: StoreType, x: number, y: number): string
 	return store.gameHistory.map((state) => state.grid[x][y].color);
 };
 
-/** Matriz que pinta toda a figura com uma cor só (mantém a transparência). */
-const flashMatrix = (hex: string) => {
-	const [r, g, b] = [1, 3, 5].map(i => (parseInt(hex.slice(i, i + 2), 16) / 255).toFixed(3));
-	return `0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}  0 0 0 1 0`;
+/* ───────────── Fantasmas em vetor (prancha: "4 · Fantasmas", direção A · Lençol) ─────────────
+   Desenho próprio numa grade de 20 × 20: cúpula + barra recortada de um jeito por personalidade.
+   Direção do olhar = deslocar as pupilas. Cores vêm do tema. */
+const r2 = (n: number) => Math.round(n * 100) / 100;
+const ellipsePath = (cx: number, cy: number, rx: number, ry: number) =>
+	`M${r2(cx - rx)} ${r2(cy)}a${rx} ${ry} 0 1 0 ${r2(2 * rx)} 0a${rx} ${ry} 0 1 0 ${r2(-2 * rx)} 0Z`;
+
+/** Corpos: perseguidor (pontas), emboscada (ondas), imprevisível (dois cortes), tímido (cauda torta). */
+const BODIES = [
+	'M3 18.5V9a7 7 0 0 1 14 0v9.5l-2.33-2-2.34 2-2.33-2-2.33 2-2.34-2Z',
+	'M3 18.5V9a7 7 0 0 1 14 0v9.5q-1.75-2.5-3.5 0t-3.5 0t-3.5 0t-3.5 0Z',
+	'M3 18.5V9a7 7 0 0 1 14 0v9.5h-3.5l-1-2-1 2h-3l-1-2-1 2Z',
+	'M3 18.5V9a7 7 0 0 1 14 0v7c-1.5 3.5-4 .5-6.5 1.8S5 19.5 3 18.5Z'
+] as const;
+const GHOST_ORDER: GhostName[] = ['blinky', 'pinky', 'inky', 'clyde'];
+const DIRS: Record<string, [number, number]> = { right: [1, 0], left: [-1, 0], up: [0, -1], down: [0, 1] };
+const EYE_WHITE = '#FFFFFF';
+const PUPIL = '#1F2A6B';
+
+const strokeAttr = (color?: string, width = 0.8) => (color ? ` stroke="${color}" stroke-width="${width}" stroke-linejoin="round"` : '');
+
+const eyesMarkup = (dir: string, outline?: string) => {
+	const [dx, dy] = DIRS[dir];
+	return `<path d="${ellipsePath(7.3, 9.4, 2.3, 2.7)}${ellipsePath(12.7, 9.4, 2.3, 2.7)}" fill="${EYE_WHITE}"${strokeAttr(outline, 0.7)}/>`
+		+ `<path d="${ellipsePath(r2(7.3 + dx * 1.1), r2(9.6 + dy * 1.3), 1.25, 1.25)}${ellipsePath(r2(12.7 + dx * 1.1), r2(9.6 + dy * 1.3), 1.25, 1.25)}" fill="${PUPIL}"/>`;
 };
 
-const generateGhostsPredefinition = (flashColor: string, outline?: string) => {
-    // Contorno de 1 px (dilata a silhueta do sprite e pinta por baixo dele)
-    const outlined = outline ? ' filter="url(#sprite-outline)"' : '';
-	// console.log("Definindo símbolos dos fantasmas");
-    let defs = `<defs>`;
-    if (outline) {
-        defs += `<filter id="sprite-outline" x="-20%" y="-20%" width="140%" height="140%"><feMorphology in="SourceAlpha" operator="dilate" radius="1" result="wide"/><feFlood flood-color="${outline}"/><feComposite in2="wide" operator="in" result="line"/><feMerge><feMergeNode in="line"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
-    }
-    
-    // Para cada fantasma regular
-    ['blinky', 'inky', 'pinky', 'clyde'].forEach(ghostName => {
-        // Para cada direção
-        ['up', 'down', 'left', 'right'].forEach(direction => {
-            const ghostObj = GHOSTS[ghostName as GhostName] as Record<string, string>;
-            
-            if (direction in ghostObj) {
-                defs += `
-                <symbol id="ghost-${ghostName}-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                    <image href="${ghostObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
-                </symbol>
-                `;
-            }
-        });
-    });
-    
-    // Adicionar o fantasma assustado
-    defs += `
-    <symbol id="ghost-scared" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-        <image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"${outlined}/>
-    </symbol>`;
+const scaredFaceMarkup = (face: string) =>
+	`<path d="${ellipsePath(7.3, 9, 1.1, 1.1)}${ellipsePath(12.7, 9, 1.1, 1.1)}" fill="${face}"/>`
+	+ `<path d="M5.5 13.6l1.5-1.1 1.5 1.1 1.5-1.1 1.5 1.1 1.5-1.1 1.5 1.1" fill="none" stroke="${face}" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>`;
 
-    // Fantasma assustado piscando (mesma imagem, toda branca)
-    defs += `
-    <filter id="flash-white"><feColorMatrix type="matrix" values="${flashMatrix(flashColor)}"/></filter>
-    <symbol id="ghost-scared-flash" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-        <g${outlined}><image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/></g>
-    </symbol>`;
-    
-    // Adicionar os olhos do fantasma (para cada direção)
-    ['up', 'down', 'left', 'right'].forEach(direction => {
-        if (GHOSTS['eyes'] && direction in (GHOSTS['eyes'] as Record<string, string>)) {
-            const eyesObj = GHOSTS['eyes'] as Record<string, string>;
-            defs += `
-            <symbol id="ghost-eyes-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                <image href="${eyesObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"${outlined}/>
-            </symbol>
-            `;
-        } else {
-            // Fallback caso a direção não esteja definida
-            console.warn(`Imagem para eyes-${direction} não encontrada, usando placeholder`);
-            defs += `
-            <symbol id="ghost-eyes-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                <circle cx="${CELL_SIZE/2}" cy="${CELL_SIZE/2}" r="${CELL_SIZE/3}" fill="white"/>
-            </symbol>
-            `;
-        }
-    });
-    
-    defs += `</defs>`;
-    return defs;
+const symbolMarkup = (id: string, inner: string) =>
+	`<symbol id="${id}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">${inner}</symbol>`;
+
+const generateGhostsPredefinition = (theme: GameTheme) => {
+	let defs = '<defs>';
+	GHOST_ORDER.forEach((name, i) => {
+		for (const dir of Object.keys(DIRS)) {
+			defs += symbolMarkup(`ghost-${name}-${dir}`,
+				`<path d="${BODIES[i]}" fill="${theme.ghostColors[i]}"${strokeAttr(theme.ghostOutline)}/>${eyesMarkup(dir)}`);
+		}
+	});
+	defs += symbolMarkup('ghost-scared',
+		`<path d="${BODIES[0]}" fill="${theme.scaredColor}"${strokeAttr(theme.spriteOutline)}/>${scaredFaceMarkup(theme.scaredFace)}`);
+	// Piscando: sem contorno quando ele teria a mesma cor do corpo
+	const flashOutline = theme.spriteOutline && theme.spriteOutline.toUpperCase() !== theme.flashColor.toUpperCase() ? theme.spriteOutline : undefined;
+	defs += symbolMarkup('ghost-scared-flash',
+		`<path d="${BODIES[0]}" fill="${theme.flashColor}"${strokeAttr(flashOutline)}/>${scaredFaceMarkup(theme.flashFace)}`);
+	for (const dir of Object.keys(DIRS)) defs += symbolMarkup(`ghost-eyes-${dir}`, eyesMarkup(dir, theme.spriteOutline));
+	return defs + '</defs>';
 };
+
+export const GhostArt = { BODIES };
+
 
 const generateChangingValuesAnimation = (store: StoreType, changingValues: string[]): AnimationData => {
 	if (store.gameHistory.length !== changingValues.length) {

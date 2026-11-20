@@ -61,6 +61,8 @@ Pendente:
 - [x] Fliperama: o fantasma assustado sumia nas células azuis → contorno branco de 1 px (token `spriteOutline`).
 - [x] Temas claros: os olhos do fantasma comido sumiam no branco → contorno escuro de 1 px (`spriteOutline`).
 - [x] ESLint (typescript-eslint) no CI com `pnpm lint`; Prettier configurado (`pnpm format`), sem reformatar o código existente.
+- [x] Fantasmas próprios em vetor (prancha "4 · Fantasmas", direção A · Lençol): substituem os 21 PNGs copiados do fliperama; cores por tema (`ghostColors`, `ghostOutline`, `scaredColor`, `scaredFace`, `flashFace`).
+- [ ] Decidir: apagar os assets antigos que não são mais usados pelo código (`src/assets/img/ghosts/*.png`, `src/assets/gifs/*.gif`, `src/assets/ghosts_constants.txt`). São cópias da arte do fliperama.
 - [ ] Opcional: aplicar `pnpm format` no projeto inteiro num PR só de formatação e então ativar `format:check` no CI.
 
 ## Decisões tomadas
