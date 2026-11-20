@@ -83,7 +83,7 @@ const generateAnimatedSVG = (store: StoreType) => {
 	</metadata>`;
 	svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
 	
-	svg += generateGhostsPredefinition(theme.flashColor);
+	svg += generateGhostsPredefinition(theme.flashColor, theme.spriteOutline);
 	const arenaHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE);
 	svg += `<defs><clipPath id="arena"><rect x="0" y="15" width="${svgWidth}" height="${arenaHeight}"/></clipPath></defs>`;
   
@@ -367,9 +367,14 @@ const flashMatrix = (hex: string) => {
 	return `0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}  0 0 0 1 0`;
 };
 
-const generateGhostsPredefinition = (flashColor: string) => {
+const generateGhostsPredefinition = (flashColor: string, outline?: string) => {
+    // Contorno de 1 px (dilata a silhueta do sprite e pinta por baixo dele)
+    const outlined = outline ? ' filter="url(#sprite-outline)"' : '';
 	// console.log("Definindo símbolos dos fantasmas");
     let defs = `<defs>`;
+    if (outline) {
+        defs += `<filter id="sprite-outline" x="-20%" y="-20%" width="140%" height="140%"><feMorphology in="SourceAlpha" operator="dilate" radius="1" result="wide"/><feFlood flood-color="${outline}"/><feComposite in2="wide" operator="in" result="line"/><feMerge><feMergeNode in="line"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+    }
     
     // Para cada fantasma regular
     ['blinky', 'inky', 'pinky', 'clyde'].forEach(ghostName => {
@@ -390,14 +395,14 @@ const generateGhostsPredefinition = (flashColor: string) => {
     // Adicionar o fantasma assustado
     defs += `
     <symbol id="ghost-scared" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-        <image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
+        <image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"${outlined}/>
     </symbol>`;
 
     // Fantasma assustado piscando (mesma imagem, toda branca)
     defs += `
     <filter id="flash-white"><feColorMatrix type="matrix" values="${flashMatrix(flashColor)}"/></filter>
     <symbol id="ghost-scared-flash" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-        <image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/>
+        <g${outlined}><image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}" filter="url(#flash-white)"/></g>
     </symbol>`;
     
     // Adicionar os olhos do fantasma (para cada direção)
@@ -406,7 +411,7 @@ const generateGhostsPredefinition = (flashColor: string) => {
             const eyesObj = GHOSTS['eyes'] as Record<string, string>;
             defs += `
             <symbol id="ghost-eyes-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                <image href="${eyesObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
+                <image href="${eyesObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"${outlined}/>
             </symbol>
             `;
         } else {

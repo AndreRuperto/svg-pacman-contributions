@@ -57,7 +57,8 @@ export const GAME_THEMES: { [key in ThemeKeys]: GameTheme } = {
     pacmanColor:       '#F2C200',
     pacmanStroke:      '#1f2328',
     pacmanPowerupColor:'#CF222E',
-    flashColor:        '#24292F'
+    flashColor:        '#24292F',
+    spriteOutline:     '#1f2328' // olhos brancos somem no fundo branco
   },
   'github-dark': {
     textColor:      '#8b949e',
@@ -87,7 +88,8 @@ export const GAME_THEMES: { [key in ThemeKeys]: GameTheme } = {
     wallColor:      '#4D4DFF',
     intensityColors: ARCADE,
     tunnelColor:    '#555555',
-    ...DARK_CHARACTERS
+    ...DARK_CHARACTERS,
+    spriteOutline:  '#FFFFFF' // o assustado azul some nas células azuis
   },
   /* ---------- Neon ---------- */
   neon: {
@@ -121,7 +123,8 @@ export const GAME_THEMES: { [key in ThemeKeys]: GameTheme } = {
     pacmanColor:       '#F2C200',
     pacmanStroke:      '#1F1E24',
     pacmanPowerupColor:'#DD2B0E',
-    flashColor:        '#1F1E24'
+    flashColor:        '#1F1E24',
+    spriteOutline:     '#1F1E24'
   },
   'gitlab-dark': {
     textColor:      '#a4a3a8',
