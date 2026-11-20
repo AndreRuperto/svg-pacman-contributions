@@ -48,6 +48,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "tsx tools/preview.ts",
+    "site:web": "tsx site/src/web.ts",
+    "site:cron": "tsx site/src/cron.ts",
+    "site:dev": "tsx watch site/src/web.ts",
     "lint": "eslint .",
     "format": "prettier --write",
     "format:check": "prettier --check"
@@ -59,7 +62,8 @@
     "dotenv": "^16.5.0",
     "hono": "^4.13.19",
     "node-fetch": "^3.3.2",
-    "postgres": "^4.1.1"
+    "postgres": "^4.1.1",
+    "tsx": "^4.6.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -72,7 +76,6 @@
     "prettier": "^3.10.1",
     "rimraf": "^6.0.1",
     "ts-loader": "^9.5.2",
-    "tsx": "^4.6.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.73.0",
     "vitest": "^3.2.7",

@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'github-action/dist/**', 'node_modules/**', 'outputs/**', 'logs/**', 'scripts/**', 'webpack.*'] },
+  { ignores: ['dist/**', 'github-action/dist/**', 'node_modules/**', 'outputs/**', 'logs/**', 'scripts/**', 'webpack.*', 'site/public/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

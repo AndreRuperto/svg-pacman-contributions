@@ -228,7 +228,7 @@ const linha = (nome: string, r: Omit<ResumoJogador, 'login'>) =>
   (r.aviso ? ` (${r.aviso})` : '');
 
 /** fetch com timeout, no formato que `fetchContributionsWindow` espera. */
-const fetchComTimeout: FetchLike = (url, init) => fetch(url, { ...init, signal: AbortSignal.timeout(15_000) });
+export const fetchComTimeout: FetchLike = (url, init) => fetch(url, { ...init, signal: AbortSignal.timeout(15_000) });
 
 /**
  * Liga as dependências reais. Devolve o código de saída.

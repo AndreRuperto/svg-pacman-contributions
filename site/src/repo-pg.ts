@@ -18,8 +18,22 @@ export class PgRepo implements PartidaRepo {
   }
 
   /** Cria as tabelas se não existirem (idempotente). */
+  /**
+   * Cria as tabelas. Web e cron podem subir juntos: um advisory lock (numa conexão
+   * reservada, porque o lock é da sessão) faz um esperar o outro.
+   */
   async migrate(): Promise<void> {
-    await this.sql.file(SCHEMA);
+    const conexao = await this.sql.reserve();
+    try {
+      await conexao`SELECT pg_advisory_lock(hashtext('pacman-migrate'))`;
+      try {
+        await conexao.file(SCHEMA);
+      } finally {
+        await conexao`SELECT pg_advisory_unlock(hashtext('pacman-migrate'))`;
+      }
+    } finally {
+      conexao.release();
+    }
   }
 
   async close(): Promise<void> {
