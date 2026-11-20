@@ -55,7 +55,11 @@ Pendente:
 - [x] Pontuação final: multiplicador de eficiência `1 + fantasmas/mortes` com teto de ×3 (antes chegava a ×28).
 - [x] Revisão visual no navegador (servidor local em `outputs/`, `.claude/launch.json`): salto do túnel (x 1160 → −24 → 6, sem cruzar a tela), bocas em ciano, fantasmas azuis e piscando em branco. Achou e corrigiu o combo sem teto (482.850 → 84.450 pts).
 - [ ] Rodar a Action de verdade no GitHub (workflow do perfil) e conferir o SVG publicado.
-- [ ] Temas novos e painel de estatísticas no SVG: são visuais; pela regra global, antes montar a prancha de identidade e sistema de design do projeto (`/prancha`).
+- [x] Prancha "SVG Pac-Man · Identidade e sistema de design": https://claude.ai/artifact/JMgq2AGqBKnyHFRLNT92cj (privada). O código segue os tokens dela; se mudar cor ou medida no código, atualizar a prancha.
+- [x] 5 temas novos (`arcade`, `neon`, `alto-contraste`, `gitlab`, `gitlab-dark`) e tokens novos em todo tema (`textStrong`, `pacmanColor`, `pacmanStroke`, `pacmanPowerupColor`, `flashColor`); testes de contraste para os 8 temas.
+- [x] Placar no fim do SVG (pontos, fantasmas, maior combo, mortes, duração), fonte monoespaçada do sistema, SVG com 229 px de altura.
+- [ ] Fliperama: o fantasma assustado (PNG azul fixo) some nas células azuis. Opção: recolorir o sprite assustado por tema com filtro, como já é feito no piscar.
+- [ ] Temas claros: os olhos do fantasma comido são brancos e só as pupilas aparecem. Opção: contorno escuro nos olhos via filtro.
 - [x] ESLint (typescript-eslint) no CI com `pnpm lint`; Prettier configurado (`pnpm format`), sem reformatar o código existente.
 - [ ] Opcional: aplicar `pnpm format` no projeto inteiro num PR só de formatação e então ativar `format:check` no CI.
 

@@ -33,33 +33,104 @@ const GITHUB_DARK  = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'/*'#F
 /* Carvão → laranja Brasa, a paleta do portfólio andreruperto.dev */
 const BRASA        = ['#1A1614', '#5C2D0F', '#994B19', '#CC6521', '#FF7E29'];
 
+/* Fliperama, neon, alto contraste e GitLab: prancha "SVG Pac-Man · Identidade e sistema de design" */
+const ARCADE         = ['#0B0B14', '#14145C', '#22229A', '#3333CC', '#FFB8AE'];
+const NEON           = ['#1A0F33', '#3B1D6B', '#6A2BA8', '#A63BD0', '#FF6EC7'];
+const ALTO_CONTRASTE = ['#262626', '#003D80', '#0066D6', '#66B2FF', '#FFFFFF'];
+const GITLAB_LIGHT   = ['#ececef', '#d2dcff', '#7992f5', '#3f51ae', '#2a2b59'];
+const GITLAB_DARK    = ['#28272d', '#2f2a6b', '#4b4fc8', '#7992f5', '#d2dcff'];
+
+/** Padrão dos temas escuros: Pac-Man amarelo sem contorno, poder vermelho, pisca em branco. */
+const DARK_CHARACTERS = { pacmanColor: '#FFFF00', pacmanPowerupColor: '#FF4D4D', flashColor: '#FFFFFF', tunnelActiveColor: '#00FFFF' };
+
 /* ───────────── Temas do jogo ───────────── */
 export const GAME_THEMES: { [key in ThemeKeys]: GameTheme } = {
   /* ---------- GitHub ---------- */
   github: {
     textColor:      '#57606a',
+    textStrong:     '#1f2328',
     gridBackground: '#ffffff',
     wallColor:      '#000000',
     intensityColors: GITHUB_LIGHT,
     tunnelColor:       '#8c959f',
-    tunnelActiveColor: '#00FFFF'
+    tunnelActiveColor: '#0598BC',
+    pacmanColor:       '#F2C200',
+    pacmanStroke:      '#1f2328',
+    pacmanPowerupColor:'#CF222E',
+    flashColor:        '#24292F'
   },
   'github-dark': {
     textColor:      '#8b949e',
+    textStrong:     '#e6edf3',
     gridBackground: '#0d1117',
     wallColor:      '#ffffff',
     intensityColors: GITHUB_DARK,
-    tunnelColor:       '#6e7681',
-    tunnelActiveColor: '#00FFFF'
+    tunnelColor:    '#6e7681',
+    ...DARK_CHARACTERS
   },
   /* ---------- Brasa (escuro, em laranja) ---------- */
   brasa: {
     textColor:      '#988881',
+    textStrong:     '#FBFAF9',
     gridBackground: '#120F0D',
     wallColor:      '#FBFAF9',
     intensityColors: BRASA,
-    tunnelColor:       '#5C4F49',
-    tunnelActiveColor: '#00FFFF'
+    tunnelColor:    '#5C4F49',
+    ...DARK_CHARACTERS,
+    pacmanPowerupColor: '#FF3B5C' // vermelho puxado para o rosa: não some no laranja das células
+  },
+  /* ---------- Fliperama ---------- */
+  arcade: {
+    textColor:      '#BDBDBD',
+    textStrong:     '#FFFFFF',
+    gridBackground: '#000000',
+    wallColor:      '#4D4DFF',
+    intensityColors: ARCADE,
+    tunnelColor:    '#555555',
+    ...DARK_CHARACTERS
+  },
+  /* ---------- Neon ---------- */
+  neon: {
+    textColor:      '#B3A3D9',
+    textStrong:     '#F5F0FF',
+    gridBackground: '#0B0420',
+    wallColor:      '#FF2E97',
+    intensityColors: NEON,
+    tunnelColor:    '#4A3A70',
+    ...DARK_CHARACTERS
+  },
+  /* ---------- Alto contraste: rampa de azul por claridade, paredes laranja ---------- */
+  'alto-contraste': {
+    textColor:      '#FFFFFF',
+    textStrong:     '#FFFFFF',
+    gridBackground: '#000000',
+    wallColor:      '#FF9F1C',
+    intensityColors: ALTO_CONTRASTE,
+    tunnelColor:    '#8A8A8A',
+    ...DARK_CHARACTERS
+  },
+  /* ---------- GitLab ---------- */
+  gitlab: {
+    textColor:      '#626168',
+    textStrong:     '#1F1E24',
+    gridBackground: '#ffffff',
+    wallColor:      '#1F1E24',
+    intensityColors: GITLAB_LIGHT,
+    tunnelColor:       '#89888d',
+    tunnelActiveColor: '#0598BC',
+    pacmanColor:       '#F2C200',
+    pacmanStroke:      '#1F1E24',
+    pacmanPowerupColor:'#DD2B0E',
+    flashColor:        '#1F1E24'
+  },
+  'gitlab-dark': {
+    textColor:      '#a4a3a8',
+    textStrong:     '#ececef',
+    gridBackground: '#18171d',
+    wallColor:      '#ececef',
+    intensityColors: GITLAB_DARK,
+    tunnelColor:    '#737278',
+    ...DARK_CHARACTERS
   }
 };
 

@@ -110,7 +110,7 @@ Esses níveis são relativos ao padrão de contribuições de cada usuário e ca
 |--------------------|------------------------------------------|----------------|-----------------------------------------------|
 | `github_user_name` | Usuário do GitHub                        | (obrigatório)  | Qualquer nome de usuário válido do GitHub     |
 | `github_token`     | Token do GitHub para acesso à API        | (obrigatório)  | `secrets.GITHUB_TOKEN` ou token pessoal com leitura pública |
-| `theme`            | Tema de cores                            | `github-dark`  | `github`, `github-dark`, `brasa`              |
+| `theme`            | Tema de cores                            | `github-dark`  | `github`, `github-dark`, `brasa`, `arcade`, `neon`, `alto-contraste`, `gitlab`, `gitlab-dark` |
 | `output_directory` | Pasta de saída dos SVGs                  | `dist`         | Qualquer caminho local válido                 |
 | `player_style`     | Estilo de jogo do Pac-Man                | `oportunista`  | `oportunista`, `agressivo`, `conservador`     |
 | `speed`            | Velocidade da animação                   | `normal`       | `slow` (½×), `normal`, `fast` (2×) ou um multiplicador (ex.: `1.5`) |
@@ -120,12 +120,27 @@ Esses níveis são relativos ao padrão de contribuições de cada usuário e ca
 | Opção             | Descrição                                 | Padrão         | Valores Possíveis                             |
 |-------------------|-------------------------------------------|----------------|-----------------------------------------------|
 | `username`        | Nome de usuário do GitHub                 | (obrigatório)  | Qualquer nome de usuário válido do GitHub     |
-| `gameTheme`       | Tema de cores                             | `github`       | `github`, `github-dark`, `brasa`              |
+| `gameTheme`       | Tema de cores                             | `github`       | `github`, `github-dark`, `brasa`, `arcade`, `neon`, `alto-contraste`, `gitlab`, `gitlab-dark` |
 | `githubSettings.accessToken` | Token do GitHub para acesso à API | —        | Token pessoal válido (com permissão de leitura pública) |
 | `playerStyle`     | Estilo do Pac-Man                         | `oportunista`  | `oportunista`, `agressivo`, `conservador`     |
 | `seed`            | Semente da partida                        | usuário + data (UTC) | Qualquer string — a mesma semente gera a mesma partida |
 | `animationSpeed`  | Velocidade da animação                    | `normal`       | `'slow'`, `'normal'`, `'fast'` ou um número > 0 |
 | `debug`           | Liga logs de diagnóstico da IA            | `false`        | `true`, `false`                               |
+
+### 🎨 Temas
+
+| Tema | Visual |
+|------|--------|
+| `github` / `github-dark` | Verdes do GitHub (claro e escuro) |
+| `brasa` | Carvão e laranja |
+| `arcade` | Fundo preto, paredes azuis, power-up cor de pêssego |
+| `neon` | Roxo noturno com paredes magenta |
+| `alto-contraste` | Preto, rampa de azul por claridade e paredes laranja |
+| `gitlab` / `gitlab-dark` | Roxo-azulado do calendário do GitLab |
+
+Todo tema define as mesmas cores (fundo, células, paredes, textos, túnel, Pac-Man, power-up e fantasma piscando) e passa nos testes de contraste: texto ≥ 4,5:1 e paredes ≥ 3:1 sobre o fundo. Nos temas claros, o Pac-Man ganha contorno escuro para não sumir no branco.
+
+No fim da animação, um placar mostra pontos, fantasmas comidos, maior combo, mortes e duração.
 
 ### 🎲 Partida estável durante o dia
 
