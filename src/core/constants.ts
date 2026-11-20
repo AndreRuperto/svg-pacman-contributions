@@ -19,7 +19,8 @@ export const PACMAN_COLOR_DEAD     = '#80808064';
 
 export const GHOST_NAMES: GhostName[] = ['blinky', 'clyde', 'inky', 'pinky', 'eyes'];
 
-export const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+/** Meses do banner, fixos em português: não dependem do idioma da máquina que gera o SVG. */
+export const MONTHS = ['jan.', 'fev.', 'mar.', 'abr.', 'mai.', 'jun.', 'jul.', 'ago.', 'set.', 'out.', 'nov.', 'dez.'];
 
 export const DELTA_TIME              = 200;
 export const PACMAN_DEATH_DURATION   = 10;

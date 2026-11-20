@@ -1,5 +1,5 @@
 // src/utils.ts
-import { GAME_THEMES, GRID_HEIGHT, GRID_WIDTH } from '../core/constants.js';
+import { GAME_THEMES, GRID_HEIGHT, GRID_WIDTH, MONTHS } from '../core/constants.js';
 import type { StoreType, GameTheme, ContributionLevel, Contribution } from '../types.js';
 import { writeFileSync } from 'fs';
 
@@ -143,7 +143,7 @@ export const buildMonthLabels = (store: StoreType) => {
     const date = new Date(startDate);
     date.setUTCDate(date.getUTCDate() + week * 7); // ✅ corrigido: avanço correto
 
-    const currentMonth = date.toLocaleString('default', { month: 'short' });
+    const currentMonth = MONTHS[date.getUTCMonth()];
 
     // Só coloca o nome se mudou de mês em relação ao último
     if (currentMonth !== lastMonth) {
