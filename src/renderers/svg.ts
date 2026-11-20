@@ -71,13 +71,15 @@ const generateAnimatedSVG = (store: StoreType) => {
 	
 	// Estrutura básica do SVG
 	let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
-	svg += `<desc>Generated with pacman-contribution-graph on ${new Date()}</desc>`;
+	// Com config.date, a data vem do dia jogado: o SVG de um dia fica estável.
+	const day = store.config.date;
+	svg += `<desc>Generated with pacman-contribution-graph on ${day ?? new Date()}</desc>`;
 	svg += `<metadata>
 	  <info>
 		<frames>${store.gameHistory.length}</frames>
 		<frameRate>${1000 / frameMs}</frameRate>
 		<durationMs>${totalDurationMs}</durationMs>
-		<generatedOn>${new Date().toISOString()}</generatedOn>
+		<generatedOn>${day ? `${day}T00:00:00.000Z` : new Date().toISOString()}</generatedOn>
 	  </info>
 	</metadata>`;
 	svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;

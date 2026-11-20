@@ -59,8 +59,6 @@ export interface PlayDayOptions {
 export async function playDay(opts: PlayDayOptions): Promise<Partida | null> {
   const { login, date, contributions, theme, style, withSvg } = opts;
   let svg = '';
-  let resolveOver!: () => void;
-  const over = new Promise<void>((resolve) => { resolveOver = resolve; });
 
   const config: Config = {
     platform: 'github',
@@ -69,7 +67,7 @@ export async function playDay(opts: PlayDayOptions): Promise<Partida | null> {
     canvas: undefined as unknown as HTMLCanvasElement,
     outputFormat: 'svg',
     svgCallback: (s: string) => { svg = s; },
-    gameOverCallback: () => resolveOver(),
+    gameOverCallback: () => {},
     gameTheme: theme ?? 'github-dark',
     gameSpeed: 1,
     enableSounds: false,
@@ -85,13 +83,14 @@ export async function playDay(opts: PlayDayOptions): Promise<Partida | null> {
   Utils.buildGrid(store);
   Utils.buildMonthLabels(store);
 
-  const celulas = store.grid.flat().filter((c) => c.level !== 'NONE').length;
+  const celulas = store.grid.flat().filter((c) => c.level !== 'NONE' && c.commitsCount > 0).length;
   if (celulas === 0) return null;
 
+  // No modo svg, startGame roda a partida inteira (inclusive o fim) antes de resolver.
   await Game.startGame(store);
-  await over;
 
-  const stats = store.statistics!;
+  const stats = store.statistics;
+  if (!stats || !store.game.over) throw new Error('PARTIDA_NAO_TERMINOU');
   const partida: Partida = {
     login,
     data: date,

@@ -11,6 +11,7 @@ interface ContributionDay {
 }
 
 interface GraphQLResponse {
+  errors?: { type?: string; message?: string }[];
   data?: {
     rateLimit?: RateLimit;
     user: {
@@ -62,14 +63,15 @@ const todayUTC = () => new Date().toISOString().slice(0, 10);
 /**
  * Contribuições da janela do gráfico de um dia (AAAA-MM-DD, UTC) e o saldo da API.
  * `color` vem vazio: quem desenha aplica o tema.
- * Erros: `USUARIO_NAO_ENCONTRADO` e `GITHUB_<status>`.
+ * `rateLimit` é null se a resposta não o trouxer.
+ * Erros: `USUARIO_NAO_ENCONTRADO`, `GITHUB_<status>` e `GITHUB_GRAPHQL: <mensagem>`.
  */
 export async function fetchContributionsWindow(
   login: string,
   date: string,
   token: string,
   fetchImpl: FetchLike = fetch as unknown as FetchLike
-): Promise<{ contributions: Contribution[]; rateLimit: RateLimit }> {
+): Promise<{ contributions: Contribution[]; rateLimit: RateLimit | null }> {
   const variables = {
     login,
     from: gridWindow(date).start.toISOString(),
@@ -89,7 +91,14 @@ export async function fetchContributionsWindow(
 
   const json = (await response.json()) as GraphQLResponse;
   const user = json.data?.user;
-  if (!user) throw new Error('USUARIO_NAO_ENCONTRADO');
+  const errors = json.errors ?? [];
+  if (errors.some((e) => e.type === 'NOT_FOUND') || (!user && errors.length === 0)) {
+    throw new Error('USUARIO_NAO_ENCONTRADO');
+  }
+  // GitHub responde 200 com `errors` para falhas de validação (ex.: janela > 1 ano).
+  if (errors.length > 0 || !user) {
+    throw new Error(`GITHUB_GRAPHQL: ${errors.map((e) => e.message ?? '').join('; ')}`);
+  }
 
   const contributions = user.contributionsCollection.contributionCalendar.weeks
     .flatMap((week) => week.contributionDays)
@@ -102,7 +111,7 @@ export async function fetchContributionsWindow(
 
   return {
     contributions,
-    rateLimit: json.data?.rateLimit ?? { remaining: 0, resetAt: '' }
+    rateLimit: json.data?.rateLimit ?? null
   };
 }
 

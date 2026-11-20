@@ -36,4 +36,8 @@ describe('playDay', () => {
     const r = await playDay({ login: 'ana', date: '2025-06-15', contributions: contribs('2025-06-15'), theme: 'neon', withSvg: true });
     expect(r!.svg).toMatch(/^<svg/);
   });
+  it('o SVG de um dia é estável entre execuções', async () => {
+    const o = { login: 'ana', date: '2025-06-15', contributions: contribs('2025-06-15'), withSvg: true };
+    expect((await playDay(o))!.svg).toBe((await playDay(o))!.svg);
+  });
 });

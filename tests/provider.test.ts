@@ -32,4 +32,24 @@ describe('fetchContributionsWindow', () => {
     const fake: FetchLike = async () => ok({}, 502);
     await expect(fetchContributionsWindow('ana', '2025-06-15', 'tok', fake)).rejects.toThrow('GITHUB_502');
   });
+  it('erro NOT_FOUND do GraphQL vira USUARIO_NAO_ENCONTRADO', async () => {
+    const fake: FetchLike = async () => ok({
+      data: { user: null, rateLimit: { remaining: 10, resetAt: '' } },
+      errors: [{ type: 'NOT_FOUND', message: "Could not resolve to a User with the login of 'x'." }]
+    });
+    await expect(fetchContributionsWindow('x', '2025-06-15', 'tok', fake)).rejects.toThrow('USUARIO_NAO_ENCONTRADO');
+  });
+  it('outros erros do GraphQL (HTTP 200) viram GITHUB_GRAPHQL com a mensagem', async () => {
+    const fake: FetchLike = async () => ok({
+      data: { user: null },
+      errors: [{ message: "The total time spanned by 'from' and 'to' must not exceed 1 year" }]
+    });
+    await expect(fetchContributionsWindow('ana', '2025-06-15', 'tok', fake))
+      .rejects.toThrow("GITHUB_GRAPHQL: The total time spanned by 'from' and 'to' must not exceed 1 year");
+  });
+  it('sem rateLimit na resposta, o saldo vem nulo', async () => {
+    const semSaldo = { data: { user: resposta.data.user } };
+    const r = await fetchContributionsWindow('ana', '2025-06-15', 'tok', async () => ok(semSaldo));
+    expect(r.rateLimit).toBeNull();
+  });
 });

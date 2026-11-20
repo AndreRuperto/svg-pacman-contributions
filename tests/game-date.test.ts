@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildGrid, buildMonthLabels, gridWindow } from '../src/utils/utils.js';
 import { makeStore } from './helpers.js';
+import { SVG } from '../src/renderers/svg.js';
 
 describe('jogar um dia passado', () => {
   it('a janela termina no dia pedido e começa num domingo, ~1 ano antes', () => {
@@ -30,5 +31,29 @@ describe('jogar um dia passado', () => {
     const store = makeStore({ config: { date: '2025-06-15' } });
     buildMonthLabels(store);
     expect(store.monthLabels.filter(Boolean).at(-1)).toBe('jun.');
+  });
+  it('rejeita data mal formada ou inexistente', () => {
+    expect(() => gridWindow('2026-02-30')).toThrow('DATA_INVALIDA: 2026-02-30');
+    expect(() => gridWindow('2025-6-15')).toThrow('DATA_INVALIDA: 2025-6-15');
+    expect(() => gridWindow('ontem')).toThrow('DATA_INVALIDA: ontem');
+    expect(() => gridWindow('2024-02-29')).not.toThrow();
+  });
+  it('num sábado, o dia final cai na coluna 52 e o primeiro domingo na coluna 0', () => {
+    const store = makeStore({ config: { date: '2025-06-14' } }); // sábado
+    const { start } = gridWindow('2025-06-14');
+    store.contributions = [
+      { date: new Date('2025-06-14T00:00:00Z'), count: 1, color: '', level: 'FIRST_QUARTILE' },
+      { date: start, count: 1, color: '', level: 'SECOND_QUARTILE' }
+    ];
+    buildGrid(store);
+    expect(store.grid).toHaveLength(53);
+    expect(store.grid[52][6].level).toBe('FIRST_QUARTILE');
+    expect(store.grid[0][0].level).toBe('SECOND_QUARTILE');
+  });
+  it('o SVG de um dia passado traz a data do dia, não a de agora', () => {
+    const store = makeStore({ config: { date: '2025-06-15' } });
+    const svg = SVG.generateAnimatedSVG(store);
+    expect(svg).toContain('<generatedOn>2025-06-15T00:00:00.000Z</generatedOn>');
+    expect(svg).toContain('on 2025-06-15</desc>');
   });
 });

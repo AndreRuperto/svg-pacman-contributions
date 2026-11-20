@@ -87,6 +87,8 @@ export interface GameState {
   combo: number;                 // fantasmas comidos no power-up atual
   mode: 'scatter' | 'chase';
   modeTimer: number;
+  /** O bloco de fim de jogo já rodou (pontuação final + callbacks). */
+  over?: boolean;
 }
 
 export interface StoreType {
