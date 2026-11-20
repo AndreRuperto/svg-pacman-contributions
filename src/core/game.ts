@@ -142,7 +142,7 @@ const collideWith = (store: StoreType, ghost: Ghost) => {
     }
     
     // Pontuação que dobra a cada fantasma comido em sequência
-    const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, store.game.combo - 1);
+    const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, Math.min(store.game.combo, 4) - 1); // 200, 400, 800 e depois 1600 fixo
     store.pacman.points += ghostPoints;
     store.pacman.totalPoints += ghostPoints;
     

@@ -21390,7 +21390,7 @@ var init_game = __esm({
         if (store.statistics) {
           store.statistics.ghostsEaten++;
         }
-        const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, store.game.combo - 1);
+        const ghostPoints = GHOST_BASE_POINTS * Math.pow(2, Math.min(store.game.combo, 4) - 1);
         store.pacman.points += ghostPoints;
         store.pacman.totalPoints += ghostPoints;
         if (store.statistics) {
