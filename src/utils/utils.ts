@@ -86,11 +86,21 @@ export const levelToIndex = (level: ContributionLevel): number => {
   }
 };
 
+/**
+ * Janela do gráfico de um dia (AAAA-MM-DD, UTC; padrão = hoje): termina no dia e
+ * começa no domingo de ~1 ano antes. Recua 364 dias (e não 365) para que a janela
+ * caiba sempre nas 53 colunas: com 365, um dia pedido num domingo cairia na 54ª.
+ */
+export const gridWindow = (date?: string) => {
+  const end = date ? new Date(`${date}T00:00:00Z`) : truncateToUTCDate(new Date());
+  const start = new Date(end);
+  start.setUTCDate(end.getUTCDate() - 364);
+  start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+  return { start, end };
+};
+
 export const buildGrid = (store: StoreType) => {
-  const endDate = truncateToUTCDate(new Date());
-  const startDate = new Date(endDate);
-  startDate.setUTCDate(endDate.getUTCDate() - 365);
-  startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
+  const { start: startDate, end: endDate } = gridWindow(store.config.date);
 
   const realWidth = 53;
   const grid = Array.from({ length: realWidth }, () =>
@@ -129,10 +139,7 @@ export const buildGrid = (store: StoreType) => {
 };
 
 export const buildMonthLabels = (store: StoreType) => {
-  const endDate = truncateToUTCDate(new Date());
-  const startDate = new Date(endDate);
-  startDate.setUTCDate(endDate.getUTCDate() - 365);
-  startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
+  const { start: startDate, end: endDate } = gridWindow(store.config.date);
 
   const realWidth = weeksBetween(startDate, endDate) + 1;
   const labels = Array(realWidth).fill('');

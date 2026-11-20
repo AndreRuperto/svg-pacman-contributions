@@ -132,6 +132,8 @@ export interface Config {
   /** Velocidade da animação: 'slow' (½×), 'normal' (1×), 'fast' (2×) ou um multiplicador > 0. */
   animationSpeed?: AnimationSpeed;     // sobrepõe a semente padrão (usuário + dia)
   debug?: boolean;   // liga logs de diagnóstico
+  /** Dia a jogar (AAAA-MM-DD, UTC); padrão = hoje. Define a janela do gráfico e a semente padrão. */
+  date?: string;
 }
 
 /* ───────────────────────── Temas ──────────────────────────────────── */

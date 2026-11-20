@@ -32,7 +32,13 @@ export class PacmanRenderer {
     // Reinicializa o store a cada chamada de start()
     this.store = JSON.parse(JSON.stringify(Store));
     this.store.config = { ...defaultConfig, ...this.conf };
-    this.store.rng = createRng(this.store.config.seed ?? defaultSeed(this.store.config.username));
+    this.store.rng = createRng(
+      this.store.config.seed ??
+        defaultSeed(
+          this.store.config.username,
+          this.store.config.date ? new Date(`${this.store.config.date}T00:00:00Z`) : undefined
+        )
+    );
 
     switch (this.store.config.platform) {
       case 'github':
