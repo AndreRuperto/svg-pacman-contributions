@@ -1,0 +1,136 @@
+import { html } from 'hono/html';
+import { addDays } from '../datas.js';
+import type { DadosJogador } from '../dados.js';
+import type { PartidaSalva } from '../repo.js';
+import {
+  dataExtenso,
+  decimal,
+  duracao,
+  inteiro,
+  plural,
+  urlAvatar,
+  urlJogador,
+  urlPartida,
+  urlPublicado
+} from './formato.js';
+import { layout, type Html } from './layout.js';
+
+export const POR_PAGINA = 30;
+const DIAS_GRAFICO = 30;
+
+// Medidas do gráfico (unidades do viewBox).
+const L = 52;
+const R = 12;
+const T = 12;
+const B = 30;
+const W = 640;
+const H = 220;
+
+/** Teto "redondo" para o eixo: 9123 → 10000, 1240 → 1500. */
+function tetoRedondo(max: number): number {
+  if (max <= 0) return 100;
+  const passo = 10 ** Math.floor(Math.log10(max)) / 2;
+  return Math.ceil(max / passo) * passo;
+}
+
+const n1 = (v: number) => Math.round(v * 10) / 10;
+
+function grafico(partidas: PartidaSalva[], inicio: string, fim: string, media: number | null): Html {
+  const pontos = partidas.filter((p) => p.data >= inicio && p.data <= fim).sort((a, b) => a.data.localeCompare(b.data));
+  if (!pontos.length) return html`<p class="apoio">Nenhuma partida nos últimos ${DIAS_GRAFICO} dias.</p>`;
+
+  const teto = tetoRedondo(Math.max(...pontos.map((p) => p.pontos), media ?? 0));
+  const larg = W - L - R;
+  const alt = H - T - B;
+  const dia = (d: string) => (Date.parse(`${d}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86_400_000;
+  const x = (d: string) => n1(L + (dia(d) / (DIAS_GRAFICO - 1)) * larg);
+  const y = (v: number) => n1(T + alt - (v / teto) * alt);
+  const linhas = [0, 0.25, 0.5, 0.75, 1].map((f) => teto * f);
+  const rotulo = `Pontos por dia, de ${dataExtenso(inicio)} a ${dataExtenso(fim)}`;
+
+  return html`<svg class="grafico" viewBox="0 0 ${W} ${H}" role="img" aria-label="${rotulo}" xmlns="http://www.w3.org/2000/svg">
+  <g font-family="JetBrains Mono, monospace" font-size="11" fill="#9AA3B2">
+    ${linhas.map(
+      (v) => html`<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#2A303C" stroke-width="1"/>
+    <text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${inteiro(v)}</text>`
+    )}
+    <text x="${L}" y="${H - 8}">${dataExtenso(inicio)}</text>
+    <text x="${W - R}" y="${H - 8}" text-anchor="end">${dataExtenso(fim)}</text>
+  </g>
+  ${media !== null
+    ? html`<line x1="${L}" x2="${W - R}" y1="${y(media)}" y2="${y(media)}" stroke="#00E5FF" stroke-width="1.5" stroke-dasharray="6 4"/>`
+    : ''}
+  <polyline fill="none" stroke="#FFD23F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="${pontos
+    .map((p) => `${x(p.data)},${y(p.pontos)}`)
+    .join(' ')}"/>
+  ${pontos.map((p) => html`<circle cx="${x(p.data)}" cy="${y(p.pontos)}" r="3" fill="#FFD23F"/>`)}
+</svg>
+<ul class="legenda" aria-hidden="true">
+  <li><span class="traco traco-pontos"></span>Pontos</li>
+  ${media !== null ? html`<li><span class="traco traco-media"></span>Média 30 dias</li>` : ''}
+</ul>`;
+}
+
+function tile(rotulo: string, valor: string, nota: string): Html {
+  return html`<div class="tile"><p class="tile-rotulo">${rotulo}</p><p class="tile-valor">${valor}</p><p class="apoio">${nota}</p></div>`;
+}
+
+const lugar = (pos: number | null) => (pos === null ? 'sem partida no dia' : `${pos}º lugar`);
+
+function itemPartida(d: DadosJogador, p: PartidaSalva): Html {
+  const detalhes = [
+    `Eficiência ${decimal(p.eficiencia)}`,
+    plural(p.fantasmas, 'fantasma', 'fantasmas'),
+    plural(p.mortes, 'morte', 'mortes'),
+    duracao(p.quadros)
+  ].join(' · ');
+  return html`<li class="partida">
+  <div class="partida-topo"><span class="partida-data">${dataExtenso(p.data)}</span><span class="partida-pontos">${inteiro(p.pontos)}</span></div>
+  <p class="apoio">${detalhes}${p.interrompida ? html` · <span class="etiqueta">interrompida</span>` : ''}</p>
+  <p class="partida-links"><a href="${urlPartida(d.login, p.data)}">Ver a partida</a>${d.publicado && p.publicado_sha
+    ? html`<a href="${urlPublicado(d.publicado, p.publicado_sha)}">Ver como foi publicado</a>`
+    : ''}</p>
+</li>`;
+}
+
+export function paginaJogador(d: DadosJogador, hoje: string, paginaPedida: number): Html {
+  const total = d.partidas.length;
+  const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
+  const pagina = Math.min(Math.max(1, paginaPedida), paginas);
+  const daPagina = d.partidas.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
+  const urlPagina = (n: number) => (n === 1 ? urlJogador(d.login) : `${urlJogador(d.login)}?pagina=${n}`);
+  const doDia = d.partidas.find((p) => p.data === hoje);
+
+  const corpo = html`<p class="voltar"><a href="/">‹ Ranking</a></p>
+<div class="perfil">
+  <img class="avatar avatar-56" src="${urlAvatar(d.login, 112)}" alt="" width="56" height="56">
+  <div>
+    <h1>${d.login}</h1>
+    <p class="apoio">no ranking desde ${dataExtenso(d.desde)} · ${plural(total, 'partida', 'partidas')}</p>
+  </div>
+</div>
+<div class="tiles">
+  ${tile('Último dia · pontos', doDia ? inteiro(doDia.pontos) : '—', lugar(d.posicaoHoje.pontos))}
+  ${tile('Último dia · eficiência', doDia ? decimal(doDia.eficiencia) : '—', lugar(d.posicaoHoje.eficiencia))}
+  ${tile('Recorde', d.recorde ? inteiro(d.recorde.pontos) : '—', d.recorde ? `em ${dataExtenso(d.recorde.data)}` : 'sem partida completa')}
+  ${tile('Média 30 dias', d.media30 !== null ? inteiro(d.media30) : '—', 'pontos por partida')}
+</div>
+<section class="cartao" aria-labelledby="grafico-titulo">
+  <h2 id="grafico-titulo">Pontos por dia</h2>
+  ${grafico(d.partidas, addDays(hoje, -(DIAS_GRAFICO - 1)), hoje, d.media30)}
+</section>
+<section aria-labelledby="partidas-titulo">
+  <h2 id="partidas-titulo">Partidas</h2>
+  ${total
+    ? html`<ol class="partidas">${daPagina.map((p) => itemPartida(d, p))}</ol>`
+    : html`<p class="cartao vazio">Ainda não há partidas deste jogador.</p>`}
+  ${paginas > 1
+    ? html`<nav class="paginacao" aria-label="Páginas das partidas">
+    ${pagina > 1 ? html`<a href="${urlPagina(pagina - 1)}">‹ Mais recentes</a>` : html`<span></span>`}
+    <span class="apoio">Página ${pagina} de ${paginas}</span>
+    ${pagina < paginas ? html`<a href="${urlPagina(pagina + 1)}">Mais antigas ›</a>` : html`<span></span>`}
+  </nav>`
+    : ''}
+</section>`;
+  return layout({ titulo: d.login, corpo });
+}

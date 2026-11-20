@@ -3,11 +3,16 @@ import { getConnInfo } from '@hono/node-server/conninfo';
 import { GAME_THEMES } from '../../src/core/constants.js';
 import type { ThemeKeys } from '../../src/types.js';
 import { LruCache } from './cache.js';
-import { addDays, dataValida, exigirHoje } from './datas.js';
+import { ABAS, PERIODOS, acharJogador, carregarJogador, carregarRanking, type DadosJogador, type DadosRanking } from './dados.js';
+import { dataValida, exigirHoje } from './datas.js';
 import type { Jogador } from './jogadores.js';
-import { rankPlayers, type Aba, type Periodo } from './ranking.js';
+import type { Aba, Periodo } from './ranking.js';
 import { FilaCheia, RateLimiter, Semaforo } from './ratelimit.js';
-import { chaveLogin, type PartidaRepo, type PartidaSalva } from './repo.js';
+import { chaveLogin, type PartidaRepo } from './repo.js';
+import { paginaJogador } from './views/jogador.js';
+import { CSS, paginaErro, type Html } from './views/layout.js';
+import { paginaPartida } from './views/partida.js';
+import { paginaRanking } from './views/ranking.js';
 
 export interface AppDeps {
   repo: PartidaRepo;
@@ -35,8 +40,6 @@ export interface AppDeps {
   agora?: () => number;
 }
 
-const ABAS: readonly Aba[] = ['pontos', 'eficiencia'];
-const PERIODOS: readonly Periodo[] = ['hoje', '7d', 'recorde'];
 const TEMA_PADRAO: ThemeKeys = 'github-dark';
 const CACHE_ITENS = 200;
 const CACHE_BYTES = 32 * 1024 * 1024;
@@ -46,7 +49,17 @@ const MAX_AGE_JSON = 60;
 const MAX_AGE_PASSADO = 86_400;
 const MAX_AGE_HOJE = 300;
 const RETRY_FILA_S = 5;
+const MAX_AGE_CSS = 31_536_000;
 const CSP_SVG = "default-src 'none'; style-src 'unsafe-inline'";
+const CSP_HTML = [
+  "default-src 'none'",
+  "style-src 'self' https://fonts.googleapis.com",
+  'font-src https://fonts.gstatic.com',
+  "img-src 'self' https://github.com https://avatars.githubusercontent.com",
+  "base-uri 'none'",
+  "form-action 'self'",
+  "frame-ancestors 'none'"
+].join('; ');
 
 type Status = 400 | 404 | 429 | 500 | 503;
 const erro = (c: Context, status: Status, mensagem: string) => c.json({ erro: mensagem }, status);
@@ -78,24 +91,24 @@ function ipDe(c: Context, confiarProxy: boolean): string {
   return ipDoSocket(c);
 }
 
-/** Troca o login gravado pela grafia da lista (o repositório guarda a da última gravação). */
-function comGrafiaDaLista(partidas: PartidaSalva[], lista: Jogador[]): PartidaSalva[] {
-  const grafia = new Map(lista.map((j) => [chaveLogin(j.login), j.login]));
-  return partidas.map((p) => ({ ...p, login: grafia.get(chaveLogin(p.login)) ?? p.login }));
+const ehApi = (c: Context) => c.req.path === '/api' || c.req.path.startsWith('/api/');
+
+/** Página HTML com os cabeçalhos de segurança e um cache curto (as de erro, sem cache). */
+async function pagina(c: Context, corpo: Html, status: 200 | Status = 200): Promise<Response> {
+  c.header('Content-Security-Policy', CSP_HTML);
+  c.header('X-Content-Type-Options', 'nosniff');
+  c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  c.header('Cache-Control', status === 200 ? `public, max-age=${MAX_AGE_JSON}` : 'no-store');
+  return c.html(await corpo, status);
 }
 
-/** Melhor partida não interrompida por pontos; empate: menos mortes, depois a mais antiga. */
-function recordeDe(partidas: PartidaSalva[]): PartidaSalva | null {
-  const validas = partidas.filter((p) => !p.interrompida);
-  validas.sort((a, b) => b.pontos - a.pontos || a.mortes - b.mortes || a.data.localeCompare(b.data));
-  return validas[0] ?? null;
+/** Erro em JSON dentro de `/api`, em página HTML fora dela. */
+function falha(c: Context, status: Status, titulo: string, mensagem: string): Response | Promise<Response> {
+  return ehApi(c) ? erro(c, status, mensagem) : pagina(c, paginaErro(titulo, mensagem), status);
 }
 
-/** Resposta para rotas que não existem. Fora de `/api`, a Task 9 trocará o texto por HTML. */
-function naoEncontrada(c: Context): Response {
-  if (c.req.path === '/api' || c.req.path.startsWith('/api/')) return erro(c, 404, 'Rota não encontrada.');
-  return c.text('Página não encontrada.', 404);
-}
+const naoEncontrada = (c: Context) =>
+  falha(c, 404, 'Página não encontrada', ehApi(c) ? 'Rota não encontrada.' : 'O endereço não existe ou mudou de lugar.');
 
 export function createApp(deps: AppDeps): Hono {
   const app = new Hono();
@@ -113,17 +126,27 @@ export function createApp(deps: AppDeps): Hono {
     exigirHoje(h);
     return h;
   };
-  const acharJogador = (lista: Jogador[], login: string): Jogador | undefined => {
-    const k = chaveLogin(login);
-    return lista.find((j) => chaveLogin(j.login) === k);
-  };
-  /** Memo de 60 s do corpo das respostas 200 (as validações e os 404 ficam antes). */
-  const memorizado = async (chave: string, calcular: () => Promise<unknown>): Promise<unknown> => {
+  /** Memo de 60 s dos dados (as validações e os 404 ficam antes). API e telas usam o mesmo. */
+  const memorizado = async <T>(chave: string, calcular: () => Promise<T>): Promise<T> => {
     const guardado = memo.get(chave);
-    if (guardado && guardado.expira > agora()) return guardado.corpo;
+    if (guardado && guardado.expira > agora()) return guardado.corpo as T;
     const corpo = await calcular();
     memo.set(chave, { expira: agora() + MEMO_MS, corpo });
     return corpo;
+  };
+  const ranking = (aba: Aba, periodo: Periodo): Promise<DadosRanking> => {
+    const h = hoje();
+    return memorizado(`ranking|${aba}|${periodo}|${h}`, () =>
+      carregarRanking(deps.repo, deps.jogadores(), aba, periodo, h)
+    );
+  };
+  /** Dados do jogador, ou `undefined` se ele não estiver na lista. */
+  const dadosJogador = async (login: string): Promise<DadosJogador | undefined> => {
+    const lista = deps.jogadores();
+    const jogador = acharJogador(lista, login);
+    if (!jogador) return undefined;
+    const h = hoje();
+    return memorizado(`jogador|${chaveLogin(jogador.login)}|${h}`, () => carregarJogador(deps.repo, lista, jogador, h));
   };
   const json = (c: Context, corpo: unknown) => {
     c.header('Cache-Control', `public, max-age=${MAX_AGE_JSON}`);
@@ -131,17 +154,28 @@ export function createApp(deps: AppDeps): Hono {
   };
 
   app.onError((e, c) => {
-    console.error('[api]', e);
-    return erro(c, 500, 'Erro interno. Tente de novo em instantes.');
+    console.error(ehApi(c) ? '[api]' : '[web]', e);
+    return falha(c, 500, 'Algo deu errado', 'Erro interno. Tente de novo em instantes.');
   });
   app.notFound(naoEncontrada);
 
-  app.use('/api/*', async (c, next) => {
+  // O CSS tem o hash do conteúdo na URL do layout: pode ficar em cache por um ano.
+  app.get('/static/site.css', (c) =>
+    c.body(CSS, 200, {
+      'Content-Type': 'text/css; charset=utf-8',
+      'Cache-Control': `public, max-age=${MAX_AGE_CSS}, immutable`,
+      'X-Content-Type-Options': 'nosniff'
+    })
+  );
+
+  // Limite por IP: a partida (que desenha SVG) tem o seu; API JSON e telas dividem o outro.
+  app.use('*', async (c, next) => {
+    if (c.req.path.startsWith('/static/')) return next();
     const partida = c.req.path.startsWith('/api/partida/');
     const r = (partida ? limitePartida : limiteJson).consumir(ipDe(c, confiarProxy));
     if (!r.ok) {
       c.header('Retry-After', String(r.retryAfterS));
-      return erro(c, 429, 'Muitos pedidos. Espere um pouco e tente de novo.');
+      return falha(c, 429, 'Muitos pedidos', 'Muitos pedidos. Espere um pouco e tente de novo.');
     }
     await next();
   });
@@ -153,61 +187,12 @@ export function createApp(deps: AppDeps): Hono {
     if (!PERIODOS.includes(periodo as Periodo)) {
       return erro(c, 400, `período inválido: use ${PERIODOS.join(', ')}.`);
     }
-    const h = hoje();
-    const corpo = await memorizado(`ranking|${aba}|${periodo}|${h}`, async () => {
-      const lista = deps.jogadores();
-      const logins = lista.map((j) => j.login);
-      const partidas =
-        periodo === 'hoje'
-          ? await deps.repo.entre(h, h, logins)
-          : periodo === '7d'
-            ? await deps.repo.entre(addDays(h, -6), h, logins)
-            : await deps.repo.todasDe(logins);
-      const linhas = rankPlayers(comGrafiaDaLista(partidas, lista), {
-        aba: aba as Aba,
-        periodo: periodo as Periodo,
-        hoje: h
-      }).map(({ posicao, login, valor, partida }) => ({
-        posicao,
-        login,
-        valor,
-        fantasmas: partida.fantasmas,
-        mortes: partida.mortes,
-        quadros: partida.quadros,
-        data: partida.data
-      }));
-      return { aba, periodo, hoje: h, linhas };
-    });
-    return json(c, corpo);
+    return json(c, await ranking(aba as Aba, periodo as Periodo));
   });
 
   app.get('/api/jogador/:login', async (c) => {
-    const lista = deps.jogadores();
-    const jogador = acharJogador(lista, c.req.param('login'));
-    if (!jogador) return erro(c, 404, 'Jogador não encontrado na lista.');
-    const h = hoje();
-    const k = chaveLogin(jogador.login);
-    const corpo = await memorizado(`jogador|${k}|${h}`, async () => {
-      const partidas = comGrafiaDaLista(await deps.repo.porJogador(jogador.login), lista);
-
-      const inicio30 = addDays(h, -29);
-      const ultimos30 = partidas.filter((p) => p.data >= inicio30 && p.data <= h);
-      const media30 = ultimos30.length ? ultimos30.reduce((s, p) => s + p.pontos, 0) / ultimos30.length : null;
-
-      const logins = lista.map((j) => j.login);
-      const doDia = comGrafiaDaLista(await deps.repo.entre(h, h, logins), lista);
-      const posicao = (aba: Aba): number | null =>
-        rankPlayers(doDia, { aba, periodo: 'hoje', hoje: h }).find((l) => chaveLogin(l.login) === k)?.posicao ?? null;
-
-      return {
-        login: jogador.login,
-        partidas,
-        recorde: recordeDe(partidas),
-        media30,
-        posicaoHoje: { pontos: posicao('pontos'), eficiencia: posicao('eficiencia') },
-        publicado: jogador.publicado ?? null
-      };
-    });
+    const corpo = await dadosJogador(c.req.param('login'));
+    if (!corpo) return erro(c, 404, 'Jogador não encontrado na lista.');
     return json(c, corpo);
   });
 
@@ -254,6 +239,38 @@ export function createApp(deps: AppDeps): Hono {
       'X-Content-Type-Options': 'nosniff',
       'Content-Security-Policy': CSP_SVG
     });
+  });
+
+  // Telas. Parâmetros inválidos caem no padrão (a API responde 400; aqui, a página abre).
+  const jogadorFora = (c: Context, login: string) =>
+    falha(c, 404, 'Jogador não encontrado', `${login.slice(0, 40)} não está na lista do ranking.`);
+
+  app.get('/', async (c) => {
+    const qa = c.req.query('aba');
+    const qp = c.req.query('periodo');
+    const aba: Aba = ABAS.includes(qa as Aba) ? (qa as Aba) : 'pontos';
+    const periodo: Periodo = PERIODOS.includes(qp as Periodo) ? (qp as Periodo) : 'hoje';
+    return pagina(c, paginaRanking(await ranking(aba, periodo)));
+  });
+
+  app.get('/jogador/:login', async (c) => {
+    const login = c.req.param('login');
+    const d = await dadosJogador(login);
+    if (!d) return jogadorFora(c, login);
+    const n = Number.parseInt(c.req.query('pagina') ?? '1', 10);
+    return pagina(c, paginaJogador(d, hoje(), Number.isFinite(n) ? n : 1));
+  });
+
+  app.get('/jogador/:login/:data', async (c) => {
+    const login = c.req.param('login');
+    const d = await dadosJogador(login);
+    if (!d) return jogadorFora(c, login);
+    const data = c.req.param('data');
+    const partida = dataValida(data) ? d.partidas.find((p) => p.data === data) : undefined;
+    if (!partida) return falha(c, 404, 'Partida não encontrada', `Não há partida de ${d.login} neste dia.`);
+    const t = c.req.query('tema');
+    const tema = t !== undefined && temaValido(t) ? t : TEMA_PADRAO;
+    return pagina(c, paginaPartida({ jogador: d, partida, tema, temaPadrao: TEMA_PADRAO }));
   });
 
   return app;

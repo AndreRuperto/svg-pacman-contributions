@@ -53,8 +53,8 @@ describe('GET /api/ranking', () => {
     const body = await res.json();
     expect(body).toMatchObject({ aba: 'pontos', periodo: 'hoje', hoje: HOJE });
     expect(body.linhas).toEqual([
-      { posicao: 1, login: 'bia', valor: 1200, fantasmas: 2, mortes: 1, quadros: 900, data: HOJE },
-      { posicao: 2, login: 'AndreRuperto', valor: 900, fantasmas: 2, mortes: 1, quadros: 900, data: HOJE }
+      { posicao: 1, login: 'bia', valor: 1200, pontos: 1200, eficiencia: 2, fantasmas: 2, mortes: 1, quadros: 900, data: HOJE },
+      { posicao: 2, login: 'AndreRuperto', valor: 900, pontos: 900, eficiencia: 3, fantasmas: 2, mortes: 1, quadros: 900, data: HOJE }
     ]);
   });
   it('padrão é pontos/hoje', async () => {
@@ -67,6 +67,9 @@ describe('GET /api/ranking', () => {
     const body = await (await app.request('/api/ranking?aba=pontos&periodo=7d')).json();
     const andre = body.linhas.find((l: { login: string }) => l.login === 'AndreRuperto');
     expect(andre.valor).toBeCloseTo((900 + 5000 + 2000) / 3);
+    // a outra métrica também é a média do período
+    expect(andre.pontos).toBe(andre.valor);
+    expect(andre.eficiencia).toBeCloseTo((3 + 50 + 20) / 3);
     expect(body.linhas.find((l: { login: string }) => l.login === 'bia').valor).toBe(1200);
   });
   it('recorde usa todas as partidas e ignora interrompidas', async () => {
@@ -111,7 +114,7 @@ describe('GET /api/jogador/:login', () => {
   it('sem partidas: recorde, média e posição nulos', async () => {
     const { app } = await montar({ lista: [...jogadores, { login: 'novo', desde: HOJE }] });
     const body = await (await app.request('/api/jogador/novo')).json();
-    expect(body).toEqual({ login: 'novo', partidas: [], recorde: null, media30: null, posicaoHoje: { pontos: null, eficiencia: null }, publicado: null });
+    expect(body).toEqual({ login: 'novo', desde: HOJE, partidas: [], recorde: null, media30: null, posicaoHoje: { pontos: null, eficiencia: null }, publicado: null });
   });
   it('fora da lista → 404', async () => {
     const { app } = await montar();
@@ -323,14 +326,14 @@ describe('SVG: cabeçalhos, versão, concorrência e falhas', () => {
 });
 
 describe('rotas fora da API', () => {
-  it('404 em JSON dentro de /api e em texto fora dela', async () => {
+  it('404 em JSON dentro de /api e em HTML fora dela', async () => {
     const { app } = await montar();
     const a = await app.request('/api/nada');
     expect(a.status).toBe(404);
     expect((await a.json()).erro).toBeTypeOf('string');
     const b = await app.request('/qualquer');
     expect(b.status).toBe(404);
-    expect(b.headers.get('content-type')).toMatch(/^text\/plain/);
+    expect(b.headers.get('content-type')).toMatch(/^text\/html/);
   });
 });
 
