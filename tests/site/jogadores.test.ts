@@ -42,3 +42,52 @@ describe('loadJogadores', () => {
     await expect(loadJogadores({ url: 'https://exemplo/x', fetchImpl, hoje })).rejects.toThrow(/404/);
   });
 });
+
+describe('parseJogadores — publicado', () => {
+  const ok = { repo: 'ana/ana.github.io', branch: 'output', path: 'dist/pacman.svg' };
+  const com = (publicado: unknown) => ({ jogadores: [{ login: 'ok' }, { login: 'ana', publicado }] });
+
+  it('aceita um publicado válido', () => {
+    expect(parseJogadores(com(ok), hoje)[1].publicado).toEqual(ok);
+  });
+  it.each([
+    ['repo sem dono', { ...ok, repo: 'ana' }, /repo/],
+    ['repo com caminho extra', { ...ok, repo: 'ana/x/y' }, /repo/],
+    ['repo com espaço', { ...ok, repo: 'ana/meu repo' }, /repo/],
+    ['branch vazia', { ...ok, branch: '' }, /branch/],
+    ['branch com espaço', { ...ok, branch: 'a b' }, /branch/],
+    ['branch com ..', { ...ok, branch: 'a..b' }, /branch/],
+    ['path vazio', { ...ok, path: '' }, /path/],
+    ['path absoluto', { ...ok, path: '/dist/x.svg' }, /path/],
+    ['path com ..', { ...ok, path: 'dist/../x.svg' }, /path/],
+    ['path com ?', { ...ok, path: 'x.svg?a=1' }, /path/],
+    ['path com #', { ...ok, path: 'x.svg#a' }, /path/],
+    ['path com espaço', { ...ok, path: 'meu x.svg' }, /path/],
+    ['path com aspas', { ...ok, path: 'x".svg' }, /path/],
+    ['path com <>', { ...ok, path: '<x>.svg' }, /path/],
+    ['campo faltando', { repo: ok.repo, branch: ok.branch }, /path/],
+    ['não é objeto', 'ana/ana', /publicado/]
+  ])('recusa %s, dizendo o índice', (_nome, publicado, campo) => {
+    expect(() => parseJogadores(com(publicado), hoje)).toThrow(/jogadores\[1\]/);
+    expect(() => parseJogadores(com(publicado), hoje)).toThrow(campo);
+  });
+  it('recusa hoje inválido', () => {
+    expect(() => parseJogadores({ jogadores: [] }, '2026-02-30')).toThrow(/hoje/);
+  });
+});
+
+describe('loadJogadores — erros', () => {
+  it('passa um signal de timeout ao fetch', async () => {
+    let init: RequestInit | undefined;
+    const fetchImpl = (async (_u: unknown, i?: RequestInit) => { init = i; return new Response('{"jogadores":[]}'); }) as typeof fetch;
+    await loadJogadores({ url: 'https://exemplo/x', fetchImpl, hoje });
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+  });
+  it('JSON inválido vira erro claro', async () => {
+    const fetchImpl = (async () => new Response('{nope')) as typeof fetch;
+    await expect(loadJogadores({ url: 'https://exemplo/x', fetchImpl, hoje })).rejects.toThrow(/^jogadores\.json: JSON inválido \(/);
+  });
+  it('arquivo ausente vira erro claro', async () => {
+    await expect(loadJogadores({ path: 'ranking/nao-existe.json', hoje })).rejects.toThrow(/^jogadores\.json: não consegui ler \(/);
+  });
+});

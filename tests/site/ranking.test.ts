@@ -31,3 +31,28 @@ describe('rankPlayers', () => {
     expect(rankPlayers(jogos, { aba: 'pontos', periodo: 'hoje', hoje: '2026-11-20' }).map(r => r.posicao)).toEqual([1, 2, 3]);
   });
 });
+
+describe('rankPlayers — desempates e recorde', () => {
+  it('desempate por login sem diferenciar maiúsculas', () => {
+    const r = rankPlayers([p('bob', '2026-11-20', 10), p('Ana', '2026-11-20', 10), p('carl', '2026-11-20', 10)],
+      { aba: 'pontos', periodo: 'hoje', hoje: '2026-11-20' });
+    expect(r.map(x => x.login)).toEqual(['Ana', 'bob', 'carl']);
+  });
+  it('recorde empatado escolhe a partida mais antiga', () => {
+    const r = rankPlayers([p('ana', '2026-11-18', 700), p('ana', '2026-11-10', 700), p('ana', '2026-11-19', 700)],
+      { aba: 'pontos', periodo: 'recorde', hoje: '2026-11-20' });
+    expect(r[0].partida.data).toBe('2026-11-10');
+  });
+  it('recorde por eficiência', () => {
+    const r = rankPlayers(jogos, { aba: 'eficiencia', periodo: 'recorde', hoje: '2026-11-20' });
+    expect(r.map(x => [x.login, x.valor])).toEqual([['bia', 90], ['caio', 50], ['ana', 9]]);
+    expect(r.find(x => x.login === 'bia')!.partida.data).toBe('2026-11-14');
+  });
+  it('partida interrompida conta em hoje e 7d', () => {
+    const r = rankPlayers(jogos, { aba: 'pontos', periodo: '7d', hoje: '2026-11-20' });
+    expect(r.find(x => x.login === 'ana')!.valor).toBe(2950);
+  });
+  it('recusa hoje inválido', () => {
+    expect(() => rankPlayers(jogos, { aba: 'pontos', periodo: 'hoje', hoje: '2026-11-31' })).toThrow(/hoje/);
+  });
+});

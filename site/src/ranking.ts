@@ -1,4 +1,5 @@
 import type { Partida } from '../../src/runner.js';
+import { addDays, exigirHoje } from './datas.js';
 
 export type Aba = 'pontos' | 'eficiencia';
 export type Periodo = 'hoje' | '7d' | 'recorde';
@@ -18,17 +19,20 @@ export interface Linha {
   partida: Partida;
 }
 
-/** Soma `n` dias a uma data AAAA-MM-DD, em UTC. */
-export function addDays(date: string, n: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
-
 type Candidata = Omit<Linha, 'posicao'>;
 
+/** Valor decrescente, depois menos mortes, depois login (sem diferenciar maiúsculas). */
 function compare(a: Candidata, b: Candidata): number {
-  return b.valor - a.valor || a.partida.mortes - b.partida.mortes || (a.login < b.login ? -1 : a.login > b.login ? 1 : 0);
+  return (
+    b.valor - a.valor ||
+    a.partida.mortes - b.partida.mortes ||
+    a.login.toLowerCase().localeCompare(b.login.toLowerCase())
+  );
+}
+
+/** Para o recorde de um login: a melhor partida; em empate total, a mais antiga. */
+function compareRecorde(a: Candidata, b: Candidata): number {
+  return compare(a, b) || (a.partida.data < b.partida.data ? -1 : a.partida.data > b.partida.data ? 1 : 0);
 }
 
 function porLogin(partidas: Partida[]): Map<string, Partida[]> {
@@ -41,7 +45,12 @@ function porLogin(partidas: Partida[]): Map<string, Partida[]> {
   return grupos;
 }
 
+/**
+ * Partidas interrompidas contam em "hoje" e "7d" (são partidas reais);
+ * só saem do recorde.
+ */
 export function rankPlayers(partidas: Partida[], { aba, periodo, hoje }: RankOptions): Linha[] {
+  exigirHoje(hoje);
   const metrica = (p: Partida): number => p[aba];
   const linha = (p: Partida, valor = metrica(p)): Candidata => ({ login: p.login, valor, partida: p });
   let candidatas: Candidata[];
@@ -59,7 +68,7 @@ export function rankPlayers(partidas: Partida[], { aba, periodo, hoje }: RankOpt
   } else {
     const validas = partidas.filter((p) => !p.interrompida);
     candidatas = [...porLogin(validas).values()].map(
-      (lista) => lista.map((p) => linha(p)).sort(compare)[0]
+      (lista) => lista.map((p) => linha(p)).sort(compareRecorde)[0]
     );
   }
 

@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { addDays } from './ranking.js';
+import { addDays, dataValida, exigirHoje } from './datas.js';
 
 export interface Publicado {
   repo: string;
@@ -15,23 +15,45 @@ export interface Jogador {
 }
 
 const LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
+const REPO = /^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/;
+const TIMEOUT_MS = 10_000;
 
 function hojeUtc(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-function dataValida(s: unknown): s is string {
-  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
-  const d = new Date(`${s}T00:00:00Z`);
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
+function branchValida(s: string): boolean {
+  return s.length > 0 && !/\s/.test(s) && !s.includes('..');
+}
+
+function pathValido(s: string): boolean {
+  return s.length > 0 && !s.startsWith('/') && !/[?#\s"'<>]/.test(s) && !s.split('/').includes('..');
+}
+
+function parsePublicado(publicado: unknown, onde: string): Publicado {
+  if (!isObject(publicado)) throw new Error(`${onde}: "publicado" deve ser um objeto com repo, branch e path`);
+  const { repo, branch, path } = publicado;
+  if (typeof repo !== 'string' || !REPO.test(repo)) {
+    throw new Error(`${onde}: "publicado.repo" deve ser "dono/repositório" (${JSON.stringify(repo)})`);
+  }
+  if (typeof branch !== 'string' || !branchValida(branch)) {
+    throw new Error(`${onde}: "publicado.branch" deve ser um nome sem espaços nem ".." (${JSON.stringify(branch)})`);
+  }
+  if (typeof path !== 'string' || !pathValido(path)) {
+    throw new Error(
+      `${onde}: "publicado.path" deve ser um caminho relativo, sem "..", "?", "#", espaços, aspas nem <> (${JSON.stringify(path)})`
+    );
+  }
+  return { repo, branch, path };
+}
+
 /** Valida o conteúdo de `ranking/jogadores.json`. Lança `Error` com mensagem em português. */
 export function parseJogadores(json: unknown, hoje = hojeUtc()): Jogador[] {
+  exigirHoje(hoje);
   if (!isObject(json) || !Array.isArray(json.jogadores)) {
     throw new Error('jogadores.json: esperado um objeto com a lista "jogadores"');
   }
@@ -50,12 +72,7 @@ export function parseJogadores(json: unknown, hoje = hojeUtc()): Jogador[] {
       throw new Error(`${onde}: "desde" deve ser uma data AAAA-MM-DD válida (${JSON.stringify(desde)})`);
     }
     const jogador: Jogador = { login, desde: desde ?? addDays(hoje, -364) };
-    if (publicado !== undefined) {
-      if (!isObject(publicado) || !['repo', 'branch', 'path'].every((k) => typeof publicado[k] === 'string')) {
-        throw new Error(`${onde}: "publicado" precisa de repo, branch e path (textos)`);
-      }
-      jogador.publicado = { repo: publicado.repo as string, branch: publicado.branch as string, path: publicado.path as string };
-    }
+    if (publicado !== undefined) jogador.publicado = parsePublicado(publicado, onde);
     return jogador;
   });
 }
@@ -64,15 +81,34 @@ export type LoadOptions =
   | { path: string; hoje?: string }
   | { url: string; fetchImpl?: typeof fetch; hoje?: string };
 
-/** Lê a lista de um arquivo local (`path`) ou de uma URL (`url`). */
+function mensagem(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
+
+/** Lê a lista de um arquivo local (`path`) ou de uma URL (`url`, com timeout de 10 s). */
 export async function loadJogadores(opts: LoadOptions): Promise<Jogador[]> {
   let texto: string;
   if ('path' in opts) {
-    texto = await readFile(opts.path, 'utf8');
+    try {
+      texto = await readFile(opts.path, 'utf8');
+    } catch (e) {
+      throw new Error(`jogadores.json: não consegui ler (${mensagem(e)})`);
+    }
   } else {
-    const res = await (opts.fetchImpl ?? fetch)(opts.url);
-    if (!res.ok) throw new Error(`jogadores.json: falha ao buscar ${opts.url} (HTTP ${res.status})`);
-    texto = await res.text();
+    let res: Response;
+    try {
+      res = await (opts.fetchImpl ?? fetch)(opts.url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+      if (!res.ok) throw new Error(`HTTP ${res.status} em ${opts.url}`);
+      texto = await res.text();
+    } catch (e) {
+      throw new Error(`jogadores.json: não consegui ler (${mensagem(e)})`);
+    }
   }
-  return parseJogadores(JSON.parse(texto), opts.hoje);
+  let json: unknown;
+  try {
+    json = JSON.parse(texto);
+  } catch (e) {
+    throw new Error(`jogadores.json: JSON inválido (${mensagem(e)})`);
+  }
+  return parseJogadores(json, opts.hoje);
 }
