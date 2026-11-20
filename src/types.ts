@@ -78,6 +78,8 @@ export interface GameStatistics {
   pointsFromContributions?: number;
   pointsFromGhosts?: number;
   pointsFromPowerUps?: number;
+  /** A partida bateu o limite de quadros e as células restantes foram limpas. */
+  interrupted?: boolean;
 }
 
 export interface GameState {

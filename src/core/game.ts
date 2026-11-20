@@ -96,6 +96,7 @@ const startGame = async (store: StoreType) => {
     if (remainingCells()) {
       // Salvaguarda: nunca gerar uma animação infinita; encerra limpando o que sobrou.
       console.warn(`Partida interrompida em ${MAX_FRAMES} frames; células restantes foram limpas.`);
+      if (store.statistics) store.statistics.interrupted = true;
       const empty = Utils.getCurrentTheme(store).intensityColors[0];
       store.grid.forEach(col => col.forEach(c => { c.commitsCount = 0; c.level = 'NONE'; c.color = empty; }));
     }

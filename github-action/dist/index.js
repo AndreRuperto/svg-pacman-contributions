@@ -20079,7 +20079,7 @@ var init_movement_utils = __esm({
 });
 
 // src/utils/utils.ts
-var import_fs, weeksBetween, truncateToUTCDate, getGitlabContribution, getGithubContribution, getCurrentTheme, levelToIndex, buildGrid, buildMonthLabels, createGridFromData, printArena, printArenaAsHTML, Utils;
+var import_fs, weeksBetween, truncateToUTCDate, getGitlabContribution, getGithubContribution, getCurrentTheme, levelToIndex, gridWindow, buildGrid, buildMonthLabels, createGridFromData, printArena, printArenaAsHTML, Utils;
 var init_utils = __esm({
   "src/utils/utils.ts"() {
     "use strict";
@@ -20154,11 +20154,15 @@ var init_utils = __esm({
           return 0;
       }
     };
+    gridWindow = (date) => {
+      const end = date ? /* @__PURE__ */ new Date(`${date}T00:00:00Z`) : truncateToUTCDate(/* @__PURE__ */ new Date());
+      const start = new Date(end);
+      start.setUTCDate(end.getUTCDate() - 364);
+      start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+      return { start, end };
+    };
     buildGrid = (store) => {
-      const endDate = truncateToUTCDate(/* @__PURE__ */ new Date());
-      const startDate = new Date(endDate);
-      startDate.setUTCDate(endDate.getUTCDate() - 365);
-      startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
+      const { start: startDate, end: endDate } = gridWindow(store.config.date);
       const realWidth = 53;
       const grid = Array.from(
         { length: realWidth },
@@ -20185,10 +20189,7 @@ var init_utils = __esm({
       store.grid = grid;
     };
     buildMonthLabels = (store) => {
-      const endDate = truncateToUTCDate(/* @__PURE__ */ new Date());
-      const startDate = new Date(endDate);
-      startDate.setUTCDate(endDate.getUTCDate() - 365);
-      startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
+      const { start: startDate, end: endDate } = gridWindow(store.config.date);
       const realWidth = weeksBetween(startDate, endDate) + 1;
       const labels = Array(realWidth).fill("");
       let lastMonth = "";
@@ -21428,6 +21429,7 @@ var init_game = __esm({
         while (remainingCells() && store.frameCount < MAX_FRAMES) updateGame(store);
         if (remainingCells()) {
           console.warn(`Partida interrompida em ${MAX_FRAMES} frames; c\xE9lulas restantes foram limpas.`);
+          if (store.statistics) store.statistics.interrupted = true;
           const empty = Utils.getCurrentTheme(store).intensityColors[0];
           store.grid.forEach((col) => col.forEach((c) => {
             c.commitsCount = 0;
@@ -28175,58 +28177,67 @@ var init_src = __esm({
 });
 
 // src/providers/github-contributions.ts
-async function fetchGithubContributionsGraphQL(store, username, token) {
-  const query = (
-    /* GraphQL */
-    `
-    query ($login: String!) {
-      user(login: $login) {
-        contributionsCollection {
-          contributionCalendar {
-            weeks {
-              contributionDays {
-                date
-                contributionCount
-                color
-                contributionLevel
-              }
-            }
-          }
-        }
-      }
-    }
-  `
-  );
-  const response = await fetch2("https://api.github.com/graphql", {
+async function fetchContributionsWindow(login, date, token, fetchImpl = fetch2) {
+  const variables = {
+    login,
+    from: gridWindow(date).start.toISOString(),
+    to: `${date}T23:59:59Z`
+  };
+  const response = await fetchImpl("https://api.github.com/graphql", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ query, variables: { login: username } })
+    body: JSON.stringify({ query: QUERY, variables })
   });
-  if (!response.ok) {
-    throw new Error(
-      `GitHub GraphQL request failed: ${response.status} ${response.statusText}`
-    );
-  }
+  if (!response.ok) throw new Error(`GITHUB_${response.status}`);
   const json = await response.json();
-  return json.data.user.contributionsCollection.contributionCalendar.weeks.flatMap((week) => week.contributionDays).map((d) => {
-    const level = d.contributionLevel;
-    const theme = getCurrentTheme(store);
-    return {
-      date: new Date(d.date),
-      count: d.contributionCount,
-      color: theme.intensityColors[levelToIndex(level)],
-      level
-    };
-  });
+  const user = json.data?.user;
+  if (!user) throw new Error("USUARIO_NAO_ENCONTRADO");
+  const contributions = user.contributionsCollection.contributionCalendar.weeks.flatMap((week) => week.contributionDays).map((d) => ({
+    date: new Date(d.date),
+    count: d.contributionCount,
+    color: "",
+    level: d.contributionLevel
+  }));
+  return {
+    contributions,
+    rateLimit: json.data?.rateLimit ?? { remaining: 0, resetAt: "" }
+  };
 }
+async function fetchGithubContributionsGraphQL(store, username, token) {
+  const { contributions } = await fetchContributionsWindow(username, store.config.date ?? todayUTC(), token);
+  const theme = getCurrentTheme(store);
+  return contributions.map((c) => ({ ...c, color: theme.intensityColors[levelToIndex(c.level)] }));
+}
+var QUERY, todayUTC;
 var init_github_contributions = __esm({
   "src/providers/github-contributions.ts"() {
     "use strict";
     init_src();
     init_utils();
+    QUERY = /* GraphQL */
+    `
+  query ($login: String!, $from: DateTime!, $to: DateTime!) {
+    rateLimit { remaining resetAt }
+    user(login: $login) {
+      contributionsCollection(from: $from, to: $to) {
+        contributionCalendar {
+          weeks {
+            contributionDays {
+              date
+              contributionCount
+              color
+              contributionLevel
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+    todayUTC = () => (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
   }
 });
 
@@ -28266,7 +28277,12 @@ var init_src2 = __esm({
         };
         this.store = JSON.parse(JSON.stringify(Store));
         this.store.config = { ...defaultConfig, ...this.conf };
-        this.store.rng = createRng(this.store.config.seed ?? defaultSeed(this.store.config.username));
+        this.store.rng = createRng(
+          this.store.config.seed ?? defaultSeed(
+            this.store.config.username,
+            this.store.config.date ? /* @__PURE__ */ new Date(`${this.store.config.date}T00:00:00Z`) : void 0
+          )
+        );
         switch (this.store.config.platform) {
           case "github":
             if (this.store.config.githubSettings?.accessToken) {
