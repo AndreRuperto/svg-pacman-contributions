@@ -303,19 +303,24 @@ A métrica é `pontos` ou `eficiencia`, conforme a aba. A ordem é valor decresc
 - Create: `site/sql/001_schema.sql`
 - Test: `tests/site/repo.test.ts`
 
-**Step 1:** `pnpm add postgres hono @hono/node-server`
+**Step 1:** `pnpm add postgres` (hono e `@hono/node-server` entram na Task 8)
 
-**Step 2: Schema**
+**Step 2: Schema** (`site/sql/001_schema.sql`). A chave é `login_key` = `lower(login)`, para que `Ana` e `ana` nunca virem dois jogadores; `login` guarda a grafia da lista.
 ```sql
 CREATE TABLE IF NOT EXISTS partidas (
-  login text NOT NULL, data date NOT NULL,
+  login_key text NOT NULL, login text NOT NULL, data date NOT NULL,
   pontos integer NOT NULL, fantasmas integer NOT NULL, mortes integer NOT NULL, maior_combo integer NOT NULL,
   quadros integer NOT NULL, celulas integer NOT NULL, eficiencia double precision NOT NULL,
   interrompida boolean NOT NULL DEFAULT false, versao_motor text NOT NULL,
   publicado_sha text, criado_em timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (login, data)
+  PRIMARY KEY (login_key, data), CHECK (login_key = lower(login))
 );
 CREATE INDEX IF NOT EXISTS partidas_data ON partidas (data);
+-- dias cuja janela não tem contribuição (playDay → null): o cron não os busca de novo na mesma versão
+CREATE TABLE IF NOT EXISTS dias_sem_jogo (
+  login_key text NOT NULL, data date NOT NULL, versao_motor text NOT NULL,
+  PRIMARY KEY (login_key, data)
+);
 ```
 Os jogadores não ganham tabela: a lista vem sempre do arquivo, e assim um jogador removido some do ranking sem apagar as partidas dele.
 
@@ -323,11 +328,13 @@ Os jogadores não ganham tabela: a lista vem sempre do arquivo, e assim um jogad
 ```ts
 export interface PartidaRepo {
   upsert(p: Partida & { publicado_sha?: string | null }): Promise<void>;
-  porJogador(login: string): Promise<Partida[]>;            // ordem: data desc
+  porJogador(login: string): Promise<PartidaSalva[]>;       // ordem: data desc
   entre(de: string, ate: string, logins: string[]): Promise<Partida[]>;
   todasDe(logins: string[]): Promise<Partida[]>;            // para 'recorde'
   datasExistentes(login: string, versao: string): Promise<Set<string>>;
   marcarPublicado(login: string, data: string, sha: string): Promise<void>;
+  marcarSemJogo(login: string, data: string, versao: string): Promise<void>;
+  diasSemJogo(login: string, versao: string): Promise<Set<string>>;
 }
 ```
 
@@ -338,8 +345,8 @@ export interface PartidaRepo {
 - `porJogador` vem em ordem.
 
 **Step 5: Implementação.**
-- `MemoryRepo` usa um `Map` com a chave `login|data`.
-- `PgRepo` usa `sql\`INSERT … ON CONFLICT (login, data) DO UPDATE SET …\``.
+- `MemoryRepo` usa um `Map` com a chave `lower(login)|data`.
+- `PgRepo` usa `sql\`INSERT … ON CONFLICT (login_key, data) DO UPDATE SET …\``; um upsert sem `publicado_sha` mantém o sha gravado.
 - `PgRepo.migrate()` executa o `001_schema.sql`.
 
 **Step 6:** Rodar o teste → PASS.
