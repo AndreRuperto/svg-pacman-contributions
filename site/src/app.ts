@@ -285,7 +285,7 @@ export function createApp(deps: AppDeps): Hono {
     const d = await dadosJogador(login);
     if (!d) return jogadorFora(c, login);
     const n = Number.parseInt(c.req.query('pagina') ?? '1', 10);
-    return pagina(c, paginaJogador(d, hoje(), Number.isFinite(n) ? n : 1));
+    return pagina(c, paginaJogador(d, hoje(), Number.isFinite(n) ? n : 1, podeDesenhar));
   });
 
   app.get('/jogador/:login/:data', async (c) => {

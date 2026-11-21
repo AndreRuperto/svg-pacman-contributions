@@ -216,8 +216,22 @@ code { font-family: var(--mono); font-size: 0.9em; }
 .partidas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--esp-2); }
 .partida {
   background: var(--superficie); border: 1px solid var(--fio); border-radius: var(--raio-cartao);
-  padding: var(--esp-3) var(--esp-4); display: flex; flex-direction: column; gap: var(--esp-1);
 }
+/* Resumo clicável: data, pontos, detalhes e a seta; abre a partida na própria lista. */
+.partida-resumo {
+  list-style: none; cursor: pointer; min-height: 44px;
+  display: flex; align-items: center; gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4); border-radius: var(--raio-cartao);
+}
+.partida-resumo::-webkit-details-marker { display: none; }
+.partida-resumo:hover .seta-abrir { color: var(--texto); }
+.partida-resumo:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.partida-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--esp-1); }
+.seta-abrir { flex: none; color: var(--apoio); transition: transform 150ms ease; }
+.partida[open] .seta-abrir { transform: rotate(180deg); }
+.partida-corpo { padding: 0 var(--esp-4) var(--esp-3); display: flex; flex-direction: column; gap: var(--esp-2); }
+.partida-corpo .partida-svg { border-radius: 8px; background: #0d1117; }
+@media (prefers-reduced-motion: reduce) { .seta-abrir { transition: none; } }
 .partida-topo { display: flex; justify-content: space-between; align-items: baseline; gap: var(--esp-3); }
 .partida-data { font-weight: 600; }
 .partida-pontos { font-family: var(--mono); font-weight: 700; font-size: 18px; }

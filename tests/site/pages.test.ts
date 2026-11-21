@@ -205,10 +205,29 @@ describe('GET /jogador/:login', () => {
     expect(pts).toHaveLength(120);
   });
 
-  it('cada partida tem o link do dia', async () => {
+  it('cada partida abre na própria lista: seta para baixo, animação sob demanda e link da página do dia', async () => {
     const { app } = await montar();
     const { html } = await pagina(app, '/jogador/andreruperto');
+    expect(html).not.toContain('Ver a partida');
+    const itens = [...html.matchAll(/<details class="partida"[\s\S]*?<\/details>/g)].map((m) => m[0]);
+    expect(itens).toHaveLength(3);
+    const primeiro = itens[0];
+    // resumo clicável com data, pontos e a seta
+    expect(primeiro).toMatch(/<summary[^>]*>[\s\S]*20 nov\. 2026[\s\S]*<svg class="seta-abrir"[^>]*aria-hidden="true"/);
+    // a animação só carrega ao abrir (lazy) e tem texto alternativo
+    expect(primeiro).toMatch(/<img[^>]*src="\/api\/partida\/AndreRuperto\/2026-11-20\?tema=github-dark"[^>]*loading="lazy"/);
+    expect(primeiro).toMatch(/alt="Partida de AndreRuperto em 20 nov\. 2026"/);
     for (const d of [HOJE, '2026-11-19', '2026-11-15']) expect(html).toContain(`href="/jogador/AndreRuperto/${d}"`);
+    // nenhum item vem aberto
+    expect(html).not.toMatch(/<details class="partida"[^>]*\bopen\b/);
+  });
+
+  it('sem animação no servidor, a partida aberta mostra o aviso no lugar da imagem', async () => {
+    const { app } = await montar({ deps: { podeDesenhar: false } });
+    const { html } = await pagina(app, '/jogador/AndreRuperto');
+    const primeiro = html.match(/<details class="partida"[\s\S]*?<\/details>/)![0];
+    expect(primeiro).not.toContain('<img');
+    expect(primeiro).toContain('A animação não está disponível neste servidor.');
   });
 
   it('"Ver como foi publicado" só quando existe publicado_sha', async () => {

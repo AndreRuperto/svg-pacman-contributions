@@ -110,23 +110,38 @@ function tile(rotulo: string, valor: string, nota: string): Html {
 
 const lugar = (pos: number | null) => (pos === null ? 'sem partida no dia' : `${pos}º lugar`);
 
-function itemPartida(d: DadosJogador, p: PartidaSalva): Html {
+/** Seta para baixo do resumo; gira quando a partida está aberta. */
+const SETA = html`<svg class="seta-abrir" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8 L10 13 L15 8"/></svg>`;
+
+function itemPartida(d: DadosJogador, p: PartidaSalva, podeDesenhar: boolean): Html {
   const detalhes = [
     `Eficiência ${decimal(p.eficiencia)}`,
     plural(p.fantasmas, 'fantasma', 'fantasmas'),
     plural(p.mortes, 'morte', 'mortes'),
     duracao(p.quadros)
   ].join(' · ');
-  return html`<li class="partida">
-  <div class="partida-topo"><span class="partida-data">${dataExtenso(p.data)}</span><span class="partida-pontos">${inteiro(p.pontos)}</span></div>
-  <p class="apoio">${detalhes}${p.interrompida ? html` · <span class="etiqueta">interrompida</span>` : ''}</p>
-  <p class="partida-links"><a href="${urlPartida(d.login, p.data)}">Ver a partida</a>${d.publicado && p.publicado_sha
-    ? html`<a href="${urlPublicado(d.publicado, p.publicado_sha)}">Ver como foi publicado</a>`
-    : ''}</p>
-</li>`;
+  const quando = dataExtenso(p.data);
+  // <details> abre sem JavaScript (a CSP não permite script); a imagem é lazy e só carrega quando a partida é aberta.
+  return html`<li><details class="partida">
+  <summary class="partida-resumo">
+    <span class="partida-info">
+      <span class="partida-topo"><span class="partida-data">${quando}</span><span class="partida-pontos">${inteiro(p.pontos)}</span></span>
+      <span class="apoio">${detalhes}${p.interrompida ? html` · <span class="etiqueta">interrompida</span>` : ''}</span>
+    </span>
+    ${SETA}
+  </summary>
+  <div class="partida-corpo">
+    ${podeDesenhar
+      ? html`<img src="/api/partida/${encodeURIComponent(d.login)}/${p.data}?tema=github-dark" alt="Partida de ${d.login} em ${quando}" width="1166" height="229" loading="lazy" class="partida-svg">`
+      : html`<p class="apoio">A animação não está disponível neste servidor.</p>`}
+    <p class="partida-links"><a href="${urlPartida(d.login, p.data)}">Abrir em página própria</a>${d.publicado && p.publicado_sha
+      ? html`<a href="${urlPublicado(d.publicado, p.publicado_sha)}">Ver como foi publicado</a>`
+      : ''}</p>
+  </div>
+</details></li>`;
 }
 
-export function paginaJogador(d: DadosJogador, hoje: string, paginaPedida: number): Html {
+export function paginaJogador(d: DadosJogador, hoje: string, paginaPedida: number, podeDesenhar = true): Html {
   const total = d.partidas.length;
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
   const pagina = Math.min(Math.max(1, paginaPedida), paginas);
@@ -155,7 +170,7 @@ export function paginaJogador(d: DadosJogador, hoje: string, paginaPedida: numbe
 <section aria-labelledby="partidas-titulo">
   <h2 id="partidas-titulo">Partidas</h2>
   ${total
-    ? html`<ol class="partidas">${daPagina.map((p) => itemPartida(d, p))}</ol>`
+    ? html`<ol class="partidas">${daPagina.map((p) => itemPartida(d, p, podeDesenhar))}</ol>`
     : html`<p class="cartao vazio">Ainda não há partidas deste jogador.</p>`}
   ${paginas > 1
     ? html`<nav class="paginacao" aria-label="Páginas das partidas">
