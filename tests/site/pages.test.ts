@@ -233,8 +233,9 @@ describe('GET /jogador/:login', () => {
   it('"Ver como foi publicado" só quando existe publicado_sha', async () => {
     const { app } = await montar();
     const { html } = await pagina(app, '/jogador/AndreRuperto');
-    expect(html.split(RAW).length - 1).toBe(1);
-    expect(link(html, 'Ver como foi publicado')).toContain(`href="${RAW}"`);
+    // o link abre uma página do site: o raw do GitHub bloqueia as imagens embutidas no SVG antigo
+    expect(html).not.toContain(RAW);
+    expect(link(html, 'Ver como foi publicado')).toContain(`href="/jogador/AndreRuperto/${HOJE}/publicado"`);
     const bia = (await pagina(app, '/jogador/bia')).html;
     expect(bia).not.toContain('raw.githubusercontent.com');
   });
@@ -296,6 +297,24 @@ describe('GET /jogador/:login/:data', () => {
     expect(html).toContain(`?tema=github-dark"`);
   });
 
+  it('página "como foi publicado": mostra o SVG antigo como <img> (assim as imagens embutidas aparecem)', async () => {
+    const { app } = await montar();
+    const { res, html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}/publicado`);
+    expect(res.status).toBe(200);
+    const img = html.match(/<img[^>]*class="partida-svg"[^>]*>/)![0];
+    expect(img).toContain(`src="${RAW}"`);
+    expect(img).toContain('alt="Banner publicado no perfil de AndreRuperto em 20 nov. 2026"');
+    expect(html).toContain(`href="/jogador/AndreRuperto/${HOJE}"`);
+    expect(link(html, 'Abrir o arquivo original')).toContain(`href="${RAW}"`);
+    expect(res.headers.get('content-security-policy')).toContain('https://raw.githubusercontent.com');
+  });
+
+  it('página "como foi publicado" dá 404 quando o dia não tem SVG publicado', async () => {
+    const { app } = await montar();
+    expect((await pagina(app, '/jogador/AndreRuperto/2026-11-15/publicado')).res.status).toBe(404);
+    expect((await pagina(app, '/jogador/bia/2026-11-20/publicado')).res.status).toBe(404);
+  });
+
   it('dia anterior e seguinte com aria-label', async () => {
     const { app } = await montar();
     const meio = (await pagina(app, '/jogador/AndreRuperto/2026-11-19')).html;
@@ -321,7 +340,7 @@ describe('GET /jogador/:login/:data', () => {
     const { html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}`);
     expect(html).toContain('×3');
     expect(html).toContain('3m 01s');
-    expect(link(html, 'Ver como foi publicado neste dia')).toContain(`href="${RAW}"`);
+    expect(link(html, 'Ver como foi publicado neste dia')).toContain(`href="/jogador/AndreRuperto/${HOJE}/publicado"`);
     const sem = (await pagina(app, '/jogador/AndreRuperto/2026-11-15')).html;
     expect(sem).not.toContain('raw.githubusercontent.com');
   });

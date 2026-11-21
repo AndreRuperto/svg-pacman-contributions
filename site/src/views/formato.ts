@@ -31,6 +31,8 @@ export const urlPublicado = (pub: Publicado, sha: string): string =>
 
 export const urlJogador = (login: string): string => `/jogador/${encodeURIComponent(login)}`;
 export const urlPartida = (login: string, data: string): string => `${urlJogador(login)}/${data}`;
+/** Página do site que mostra o SVG publicado (o raw do GitHub, aberto direto, bloqueia as imagens embutidas nele). */
+export const urlPaginaPublicado = (login: string, data: string): string => `${urlPartida(login, data)}/publicado`;
 export const urlAvatar = (login: string, tamanho: number): string =>
   `https://github.com/${encodeURIComponent(login)}.png?size=${tamanho}`;
 
