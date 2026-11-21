@@ -1,7 +1,7 @@
 # Próximos passos
 
 - **Data:** 2026-11-20
-- **Branch:** `claude/site-ranking`. Todo o código está na `main` (PRs #2 a #8 mergeados).
+- **Branch:** `claude/site-no-ar`. Todo o código está na `main` (PRs #2 a #8 mergeados).
 - **Plano e desenho da rodada 1:** `docs/plans/2026-11-19-jogabilidade.md` · `docs/plans/2026-11-19-jogabilidade-design.md`
 - **Prancha de design (privada):** "SVG Pac-Man · Identidade e sistema de design", https://claude.ai/artifact/JMgq2AGqBKnyHFRLNT92cj. Cópia local dos arquivos em `C:\tmp\prancha-pacman\project\` (temporária).
 
@@ -28,7 +28,12 @@ Também: a Action rodou de verdade no repositório do perfil (`AndreRuperto/Andr
 
 ## Próximos passos (prioridade)
 
-- [ ] **Site do ranking** (desenho aprovado em `docs/plans/2026-11-20-site-ranking-design.md`): telas na prancha → plano de implementação → código em `site/` → deploy no Railway (`web`, `cron`, Postgres).
+- [x] **Site do ranking no ar:** https://svg-pacman-ranking.up.railway.app (PR #10). Railway, projeto `svg-pacman-ranking`: serviços `web` (`pnpm site:web`) e `cron` (`pnpm site:cron`, `0 1 * * *` UTC) + Postgres. Variáveis: `DATABASE_URL` (referência ao Postgres) e `GITHUB_TOKEN` (no `web`; o `cron` usa `${{web.GITHUB_TOKEN}}`). Histórico de @AndreRuperto carregado em 20/11: 591 partidas (8 abr. 2025 a 19 nov. 2026), 586 com o SVG publicado, recorde 69.990 em 1 out. 2026.
+- [ ] **Token do GitHub vence:** quando vencer, o cron para de jogar. Gerar outro (classic, sem nenhum escopo) e trocar `GITHUB_TOKEN` no serviço `web` do Railway; o `cron` acompanha pela referência.
+- [x] O gráfico "Pontos por dia" cobre o histórico inteiro (desde a entrada no ranking), com a média de todas as partidas; acima de 60 partidas desenha só a linha.
+- [x] README do projeto: seção "🏆 Ranking" com o link do site e como entrar.
+- [ ] Prancha: trocar os placeholders das telas "Site 1–3" pelos dados reais.
+- [ ] Rodar o cron fora do horário (para um jogador novo, por exemplo): a CLI do Railway não tem "rodar agora". Opções: botão "Run now" do cron no painel, ou mudar a agenda para `*/5 * * * *` com patch JSON (`railway environment edit --json`) e voltar para `0 1 * * *` depois.
 - [ ] Decidir se apaga os assets antigos que o código não usa mais (`src/assets/img/ghosts/*.png`, `src/assets/gifs/*.gif`, `src/assets/ghosts_constants.txt`). São cópias da arte do fliperama; por ora ficam (decisão de 20/11).
 - [ ] Opcional: rodar `pnpm format` no projeto inteiro num PR só de formatação e então ativar `pnpm format:check` no CI.
 - [ ] Opcional: SVG responsivo (`viewBox` + largura 100%) e acessibilidade (`<title>`/`aria-label` no SVG, `prefers-reduced-motion`), itens 41–42 do `TODO2.TXT`.

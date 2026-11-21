@@ -127,6 +127,14 @@ Esses níveis são relativos ao padrão de contribuições de cada usuário e ca
 | `animationSpeed`  | Velocidade da animação                    | `normal`       | `'slow'`, `'normal'`, `'fast'` ou um número > 0 |
 | `debug`           | Liga logs de diagnóstico da IA            | `false`        | `true`, `false`                               |
 
+## 🏆 Ranking
+
+Site com o histórico de partidas de cada jogador e o ranking entre todos: **https://svg-pacman-ranking.up.railway.app**
+
+Todo dia, um cron joga a partida de cada jogador sobre o próprio gráfico de contribuições. A semente é `login:data`, então ninguém envia números: o servidor joga e confere. O ranking tem abas por **pontos** e por **eficiência** (pontos ÷ células com contribuição), nos períodos último dia, 7 dias e recorde.
+
+**Para entrar:** adicione seu login em [`ranking/jogadores.json`](ranking/jogadores.json) e abra um pull request. Na rodada seguinte, o histórico do último ano entra junto.
+
 ### 🎨 Temas
 
 | Tema | Visual |

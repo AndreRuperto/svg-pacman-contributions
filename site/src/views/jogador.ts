@@ -16,7 +16,8 @@ import {
 import { layout, type Html } from './layout.js';
 
 export const POR_PAGINA = 30;
-const DIAS_GRAFICO = 30;
+/** Acima disso, o gráfico desenha só a linha: os pontos virariam uma mancha. */
+const MAX_PONTOS_VISIVEIS = 60;
 
 // Medidas do gráfico (unidades do viewBox).
 const L = 52;
@@ -56,13 +57,14 @@ function resumoGrafico(pontos: PartidaSalva[]): string {
 
 function grafico(partidas: PartidaSalva[], inicio: string, fim: string, media: number | null): Html {
   const pontos = partidas.filter((p) => p.data >= inicio && p.data <= fim).sort((a, b) => a.data.localeCompare(b.data));
-  if (!pontos.length) return html`<p class="apoio">Nenhuma partida nos últimos ${DIAS_GRAFICO} dias.</p>`;
+  if (!pontos.length) return html`<p class="apoio">Ainda não há partidas para o gráfico.</p>`;
 
   const teto = tetoRedondo(Math.max(...pontos.map((p) => p.pontos), media ?? 0));
   const larg = W - L - R;
   const alt = H - T - B;
   const dia = (d: string) => (Date.parse(`${d}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86_400_000;
-  const x = (d: string) => n1(L + (dia(d) / (DIAS_GRAFICO - 1)) * larg);
+  const span = Math.max(1, dia(fim));
+  const x = (d: string) => n1(L + (dia(d) / span) * larg);
   const y = (v: number) => n1(T + alt - (v / teto) * alt);
   const linhas = [0, 1, 2, 3, 4].map((i) => (teto / 4) * i);
   const rotulo = `Pontos por dia, de ${dataExtenso(inicio)} a ${dataExtenso(fim)}`;
@@ -86,13 +88,20 @@ function grafico(partidas: PartidaSalva[], inicio: string, fim: string, media: n
       .map((p) => `${x(p.data)},${y(p.pontos)}`)
       .join(' ')}"/>`
   )}
-  ${pontos.map((p) => html`<circle cx="${x(p.data)}" cy="${y(p.pontos)}" r="3" fill="#FFD23F"/>`)}
+  ${pontos.length <= MAX_PONTOS_VISIVEIS
+    ? pontos.map((p) => html`<circle cx="${x(p.data)}" cy="${y(p.pontos)}" r="3" fill="#FFD23F"/>`)
+    : ''}
 </svg>
 <p class="sr">${resumoGrafico(pontos)}</p>
 <ul class="legenda" aria-hidden="true">
   <li><span class="traco traco-pontos"></span>Pontos</li>
-  ${media !== null ? html`<li><span class="traco traco-media"></span>Média 30 dias</li>` : ''}
+  ${media !== null ? html`<li><span class="traco traco-media"></span>Média de todas as partidas</li>` : ''}
 </ul>`;
+}
+
+/** Média de pontos de todas as partidas do jogador (o gráfico cobre o histórico inteiro). */
+function mediaGeral(partidas: PartidaSalva[]): number | null {
+  return partidas.length ? partidas.reduce((s, p) => s + p.pontos, 0) / partidas.length : null;
 }
 
 function tile(rotulo: string, valor: string, nota: string): Html {
@@ -141,7 +150,7 @@ export function paginaJogador(d: DadosJogador, hoje: string, paginaPedida: numbe
 </div>
 <section class="cartao" aria-labelledby="grafico-titulo">
   <h2 id="grafico-titulo">Pontos por dia</h2>
-  ${grafico(d.partidas, addDays(hoje, -(DIAS_GRAFICO - 1)), hoje, d.media30)}
+  ${grafico(d.partidas, d.desde < hoje ? d.desde : hoje, hoje, mediaGeral(d.partidas))}
 </section>
 <section aria-labelledby="partidas-titulo">
   <h2 id="partidas-titulo">Partidas</h2>

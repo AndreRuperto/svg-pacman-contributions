@@ -168,7 +168,8 @@ describe('GET /jogador/:login', () => {
     const { app } = await montar();
     const { res, html } = await pagina(app, '/jogador/AndreRuperto');
     expect(res.status).toBe(200);
-    expect(html).toMatch(/<svg[^>]*role="img"[^>]*aria-label="Pontos por dia, de 22 out\. 2026 a 20 nov\. 2026"/);
+    expect(html).toMatch(/<svg[^>]*role="img"[^>]*aria-label="Pontos por dia, de 1 jan\. 2026 a 20 nov\. 2026"/);
+    expect(html).toContain('Média de todas as partidas');
     expect(html).toContain('<polyline');
     expect(html).toMatch(/<h1[^>]*>AndreRuperto<\/h1>/);
     expect(html).toContain('no ranking desde 1 jan. 2026 · 3 partidas');
@@ -191,6 +192,17 @@ describe('GET /jogador/:login', () => {
     for (const r of rotulos) expect(Number.isInteger(r)).toBe(true);
     expect(Math.max(...rotulos) % 4).toBe(0);
     expect(html).toMatch(/<p class="sr">[^<]*Maior: 1\.203 em 20 nov\. 2026[^<]*menor: 333 em 15 nov\. 2026[^<]*último: 1\.203 em 20 nov\. 2026/);
+  });
+
+  it('histórico inteiro: com muitas partidas o gráfico vira só linha, sem os pontos', async () => {
+    const partidas = Array.from({ length: 120 }, (_, i) => p('bia', addDays(HOJE, -i), 100 + i));
+    const { app } = await montar({ partidas });
+    const { html } = await pagina(app, '/jogador/bia');
+    const svg = html.slice(html.indexOf('<svg'), html.indexOf('</svg>'));
+    expect(svg.match(/<polyline/g)).toHaveLength(1);
+    expect(svg).not.toContain('<circle');
+    const pts = svg.match(/points="([^"]*)"/)![1].trim().split(' ');
+    expect(pts).toHaveLength(120);
   });
 
   it('cada partida tem o link do dia', async () => {
