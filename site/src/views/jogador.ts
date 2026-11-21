@@ -11,7 +11,7 @@ import {
   urlAvatar,
   urlJogador,
   urlPartida,
-  urlPublicado
+  urlPaginaPublicado
 } from './formato.js';
 import { layout, type Html } from './layout.js';
 
@@ -135,7 +135,7 @@ function itemPartida(d: DadosJogador, p: PartidaSalva, podeDesenhar: boolean): H
       ? html`<img src="/api/partida/${encodeURIComponent(d.login)}/${p.data}?tema=github-dark" alt="Partida de ${d.login} em ${quando}" width="1166" height="229" loading="lazy" class="partida-svg">`
       : html`<p class="apoio">A animação não está disponível neste servidor.</p>`}
     <p class="partida-links"><a href="${urlPartida(d.login, p.data)}">Abrir em página própria</a>${d.publicado && p.publicado_sha
-      ? html`<a href="${urlPublicado(d.publicado, p.publicado_sha)}">Ver como foi publicado</a>`
+      ? html`<a href="${urlPaginaPublicado(d.login, p.data)}">Ver como foi publicado</a>`
       : ''}</p>
   </div>
 </details></li>`;

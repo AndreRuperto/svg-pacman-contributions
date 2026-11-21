@@ -11,7 +11,8 @@ import { FilaCheia, RateLimiter, Semaforo } from './ratelimit.js';
 import { chaveLogin, type PartidaRepo, type PartidaSalva } from './repo.js';
 import { paginaJogador } from './views/jogador.js';
 import { CSS, paginaErro, type Html } from './views/layout.js';
-import { paginaPartida } from './views/partida.js';
+import { paginaPartida, paginaPublicado } from './views/partida.js';
+import { urlPublicado } from './views/formato.js';
 import { paginaRanking } from './views/ranking.js';
 
 export interface AppDeps {
@@ -61,7 +62,7 @@ const CSP_HTML = [
   "default-src 'none'",
   "style-src 'self' https://fonts.googleapis.com",
   'font-src https://fonts.gstatic.com',
-  "img-src 'self' https://github.com https://avatars.githubusercontent.com",
+  "img-src 'self' https://github.com https://avatars.githubusercontent.com https://raw.githubusercontent.com",
   "base-uri 'none'",
   "form-action 'self'",
   "frame-ancestors 'none'"
@@ -298,6 +299,18 @@ export function createApp(deps: AppDeps): Hono {
     const t = c.req.query('tema');
     const tema = t !== undefined && temaValido(t) ? t : TEMA_PADRAO;
     return pagina(c, paginaPartida({ jogador: d, partida, tema, temaPadrao: TEMA_PADRAO, podeDesenhar }));
+  });
+
+  app.get('/jogador/:login/:data/publicado', async (c) => {
+    const login = c.req.param('login');
+    const d = await dadosJogador(login);
+    if (!d) return jogadorFora(c, login);
+    const data = c.req.param('data');
+    const partida = dataValida(data) ? d.partidas.find((p) => p.data === data) : undefined;
+    if (!partida || !d.publicado || !partida.publicado_sha) {
+      return falha(c, 404, 'Sem banner publicado', `Não há banner publicado de ${d.login} neste dia.`);
+    }
+    return pagina(c, paginaPublicado(d, partida, urlPublicado(d.publicado, partida.publicado_sha)));
   });
 
   return app;

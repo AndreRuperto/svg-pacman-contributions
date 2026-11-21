@@ -9,8 +9,8 @@ import {
   duracao,
   inteiro,
   urlJogador,
-  urlPartida,
-  urlPublicado
+  urlPaginaPublicado,
+  urlPartida
 } from './formato.js';
 import { layout, type Html } from './layout.js';
 
@@ -76,7 +76,23 @@ ${p.interrompida
   ${stat('Duração', duracao(p.quadros))}
 </div>
 ${jogador.publicado && p.publicado_sha
-  ? html`<p><a class="botao botao-sec" href="${urlPublicado(jogador.publicado, p.publicado_sha)}">Ver como foi publicado neste dia</a></p>`
+  ? html`<p><a class="botao botao-sec" href="${urlPaginaPublicado(login, p.data)}">Ver como foi publicado neste dia</a></p>`
   : ''}`;
   return layout({ titulo: `${login} em ${quando}`, corpo });
+}
+
+/**
+ * O SVG como apareceu no README do perfil naquele dia. Ele é mostrado como <img>: aberto direto no
+ * raw.githubusercontent.com, a CSP do GitHub (default-src 'none') bloqueia as imagens embutidas nele
+ * (os fantasmas antigos eram PNGs em base64 dentro do arquivo).
+ */
+export function paginaPublicado(jogador: DadosJogador, p: PartidaSalva, url: string): Html {
+  const { login } = jogador;
+  const quando = dataExtenso(p.data);
+  const corpo = html`<p class="voltar"><a href="${urlPartida(login, p.data)}">‹ Partida de ${quando}</a></p>
+<h1>Como foi publicado em ${quando}</h1>
+<p class="apoio">O banner que apareceu no README de ${login} neste dia, gerado pela versão do jogo daquela época. Os números da partida neste site foram recalculados com as regras de hoje e podem ser diferentes.</p>
+<div class="cartao"><img src="${url}" alt="Banner publicado no perfil de ${login} em ${quando}" width="1166" height="229" class="partida-svg"></div>
+<p><a href="${url}">Abrir o arquivo original</a></p>`;
+  return layout({ titulo: `${login} em ${quando}, como foi publicado`, corpo });
 }
