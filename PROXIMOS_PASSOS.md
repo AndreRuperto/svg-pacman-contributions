@@ -1,59 +1,91 @@
 # Próximos passos
 
-- **Data:** 2026-11-20
-- **Branch:** `claude/site-no-ar`. Todo o código está na `main` (PRs #2 a #8 mergeados).
-- **Plano e desenho da rodada 1:** `docs/plans/2026-11-19-jogabilidade.md` · `docs/plans/2026-11-19-jogabilidade-design.md`
-- **Prancha de design (privada):** "SVG Pac-Man · Identidade e sistema de design", https://claude.ai/artifact/JMgq2AGqBKnyHFRLNT92cj. Cópia local dos arquivos em `C:\tmp\prancha-pacman\project\` (temporária).
+- **Data:** 2026-11-21
+- **Branch:** `claude/proximos-passos-2026-11-21` (só este arquivo). Todo o código está na `main` (PRs #2 a #14 mergeados).
+- **Site:** https://svg-pacman-ranking.up.railway.app
+- **Planos e desenhos:**
+  - jogo: `docs/plans/2026-11-19-jogabilidade.md` · `docs/plans/2026-11-19-jogabilidade-design.md`
+  - site: `docs/plans/2026-11-20-site-ranking.md` · `docs/plans/2026-11-20-site-ranking-design.md`
+- **Prancha de design:** "SVG Pac-Man · Identidade e sistema de design" (artifact `JMgq2AGqBKnyHFRLNT92cj`). **Não existe mais em 21/11:** foi apagada ou o acesso caiu. Cópia local dos quadros em `C:\tmp\prancha-pacman\project\` (pasta temporária, pode sumir).
 
-## O que foi feito (19 e 20/11)
+## O que foi feito (19 a 21/11)
+
+### Jogo e banner
 
 | PR | O quê |
 |----|-------|
 | #2 | Jogabilidade e IA: Vitest, sorteio com semente (usuário + dia UTC), estado do jogo no `store`, comer uma vez só, power-up que renova, combo, colisão por troca de casa, renascimento dentro do grid, `player_style` na Action, túneis na linha 3, fantasmas assustados (½ velocidade, viram de costas, fuga com ruído), A* com perigo previsto por estilo, revisita com decaimento, correção do loop de morte na porta da casa, limite de 6000 frames, build da Action com esbuild, `build:web` consertado. |
 | #3 | CI (tipos, testes, bundle da Action atualizado), preview local (`pnpm preview`), velocidade da animação (`speed` / `animationSpeed`), alvo da IA por estilo, teto ×3 no multiplicador de eficiência. |
-| #4 | ESLint no CI, Prettier configurado, combo de fantasmas parando em 1600, revisão visual no navegador, 5 temas novos (`arcade`, `neon`, `alto-contraste`, `gitlab`, `gitlab-dark`), cores do Pac-Man / poder / pisca vindas do tema, placar no fim do SVG, testes de contraste dos 8 temas. |
+| #4 | ESLint no CI, Prettier configurado, combo de fantasmas parando em 1600, 5 temas novos (`arcade`, `neon`, `alto-contraste`, `gitlab`, `gitlab-dark`), cores vindas do tema, placar no fim do SVG, testes de contraste dos 8 temas. |
 | #5 | Contorno nos sprites que sumiam (assustado no arcade, olhos nos temas claros). |
-| #6 | Fantasmas próprios em vetor (direção "A · Lençol" da prancha) no lugar dos 21 PNGs copiados do fliperama; cores dos fantasmas por tema. |
-| #7 | Meses do banner sempre em português (antes seguiam o idioma da máquina: no runner saíam em inglês). |
-| #8 | Este arquivo atualizado. |
+| #6 | Fantasmas próprios em vetor ("A · Lençol") no lugar dos 21 PNGs copiados do fliperama; cores dos fantasmas por tema. |
+| #7 | Meses do banner sempre em português. |
+| #9 | No `neon`, o 4º fantasma deixa de ser branco (confundia com o pisca). |
 
-Também: a Action rodou de verdade no repositório do perfil (`AndreRuperto/AndreRuperto`, workflow "Alternador Snake/Pac-Man"). O README do perfil mostra o banner novo no tema `brasa`, com placar, fantasmas em vetor e meses em português.
+### Site do ranking
+
+| PR | O quê |
+|----|-------|
+| #10 | O site inteiro. **Motor:** joga qualquer dia (`config.date`), `playDay()` sem rede, fim de jogo garantido e bug do domingo corrigido. **Site:** cron, Postgres, API, as três telas, limite por IP, cache e CSP. |
+| #11 | Gráfico do jogador com o histórico inteiro; README com a seção "🏆 Ranking". |
+| #12 | Partida abre na própria lista com uma seta (sem o "Ver a partida"). |
+| #13 | "Ver como foi publicado" abre uma página do site que mostra o SVG antigo com os fantasmas (o raw do GitHub bloqueava as imagens embutidas). |
+| #14 | Logo "A · Mordida na grade": cabeçalho, favicon, ícone de tela inicial e prévia de link. |
+
+Os PRs #8 e este são só de anotações.
 
 ## Estado atual
 
-- **Funciona:** `pnpm lint`, `pnpm exec tsc --noEmit` e `pnpm test` (132 testes) sem erros; CI verde na `main`; SVG publicado no perfil conferido (229 px de altura, placar, nenhum PNG embutido, meses `nov.` … `nov.`).
-- **Conferido no navegador:** salto do túnel, bocas em ciano, fantasmas assustados e piscando, os 8 temas com placar, fantasmas em vetor no `github-dark` e no `github`.
-- **Fantasmas em vetor conferidos no navegador nos 8 temas** (20/11). No `neon`, o 4º fantasma era branco e se confundia com o fantasma piscando: virou coral claro `#FFC9C9`, e um teste novo garante que nenhum fantasma normal fique parecido com o pisca.
-- **Alternador do perfil:** alterna Snake e Pac-Man a cada execução (cron de 12 h). Para forçar o Pac-Man, pode ser preciso disparar duas vezes (ver `mode.txt` na branch `output`).
+- **Testes:** `pnpm lint`, `pnpm exec tsc --noEmit` e `pnpm test` passam (325 testes e 10 pulados, que são o contrato do Postgres e só rodam com `TEST_DATABASE_URL`). O CI está verde na `main`.
+- **Railway, projeto `svg-pacman-ranking`:**
+  - `web` roda `pnpm site:web`, no domínio `svg-pacman-ranking.up.railway.app`;
+  - `cron` roda `pnpm site:cron` em `0 1 * * *` UTC;
+  - o Postgres não tem endereço público.
+  - Variáveis: `DATABASE_URL`, que aponta para o Postgres, e `GITHUB_TOKEN`, no `web`. O `cron` usa `${{web.GITHUB_TOKEN}}`.
+  - O deploy é automático a cada push na `main`.
+- **Dados no site:**
+  - @AndreRuperto tem 592 partidas (8 abr. 2025 a 20 nov. 2026), 586 delas com o SVG publicado;
+  - o recorde é 69.990, em 1 out. 2026;
+  - o cron das 01:00 UTC já roda sozinho e grava uma partida por dia.
+- **Banner do perfil:** o workflow "Alternador Snake/Pac-Man" do `AndreRuperto/AndreRuperto` alterna Snake e Pac-Man a cada 12 h. O Pac-Man sai no tema `brasa`.
+- **Conferido no navegador** (celular e computador):
+  - ranking, jogador com o gráfico inteiro e a partida que abre na lista;
+  - página do publicado com os fantasmas;
+  - a logo no cabeçalho, o favicon e a prévia de link;
+  - os 8 temas do banner.
 
 ## Próximos passos (prioridade)
 
-- [x] **Site do ranking no ar:** https://svg-pacman-ranking.up.railway.app (PR #10). Railway, projeto `svg-pacman-ranking`: serviços `web` (`pnpm site:web`) e `cron` (`pnpm site:cron`, `0 1 * * *` UTC) + Postgres. Variáveis: `DATABASE_URL` (referência ao Postgres) e `GITHUB_TOKEN` (no `web`; o `cron` usa `${{web.GITHUB_TOKEN}}`). Histórico de @AndreRuperto carregado em 20/11: 591 partidas (8 abr. 2025 a 19 nov. 2026), 586 com o SVG publicado, recorde 69.990 em 1 out. 2026.
-- [ ] **Token do GitHub vence:** quando vencer, o cron para de jogar. Gerar outro (classic, sem nenhum escopo) e trocar `GITHUB_TOKEN` no serviço `web` do Railway; o `cron` acompanha pela referência.
-- [x] O gráfico "Pontos por dia" cobre o histórico inteiro (desde a entrada no ranking), com a média de todas as partidas; acima de 60 partidas desenha só a linha.
-- [x] README do projeto: seção "🏆 Ranking" com o link do site e como entrar.
-- [x] Logo do site (direção "A · Mordida na grade"): favicon SVG + PNG 32, ícone de tela inicial 180, prévia de link 1200×630 e logo no cabeçalho. Arquivos em `site/public/`, gerados por `pnpm exec tsx tools/gerar-logo.ts`.
-- [ ] A prancha "SVG Pac-Man · Identidade e sistema de design" (artifact JMgq2AGqBKnyHFRLNT92cj) não existe mais em 21/11: foi apagada ou o acesso caiu. Decidir se recria. Cópia local dos quadros em `C:\tmp\prancha-pacman\project\` (pasta temporária).
-- [ ] Rodar o cron fora do horário (para um jogador novo, por exemplo): a CLI do Railway não tem "rodar agora". Opções: botão "Run now" do cron no painel, ou mudar a agenda para `*/5 * * * *` com patch JSON (`railway environment edit --json`) e voltar para `0 1 * * *` depois.
-- [ ] Decidir se apaga os assets antigos que o código não usa mais (`src/assets/img/ghosts/*.png`, `src/assets/gifs/*.gif`, `src/assets/ghosts_constants.txt`). São cópias da arte do fliperama; por ora ficam (decisão de 20/11).
-- [ ] Opcional: rodar `pnpm format` no projeto inteiro num PR só de formatação e então ativar `pnpm format:check` no CI.
-- [ ] Opcional: SVG responsivo (`viewBox` + largura 100%) e acessibilidade (`<title>`/`aria-label` no SVG, `prefers-reduced-motion`), itens 41–42 do `TODO2.TXT`.
-- [ ] Opcional: itens restantes do `TODO2.TXT` (sistema de replay, modo de comparação lado a lado, validação de entrada da Action, retry na API do GitHub).
+- [ ] **Token do GitHub vence:** quando vencer, o cron para de jogar. Gerar outro (classic, sem nenhum escopo) e trocar `GITHUB_TOKEN` no serviço `web` do Railway. O `cron` acompanha pela referência.
+- [ ] **Prancha de design:** ela não existe mais. Decidir se recria, a partir da cópia local em `C:\tmp\prancha-pacman\project\` enquanto ela existir.
+- [ ] **Assets antigos:** decidir se apaga os que o código não usa mais (`src/assets/img/ghosts/*.png`, `src/assets/gifs/*.gif`, `src/assets/ghosts_constants.txt`). São cópias da arte do fliperama. Ficam por decisão de 20/11.
+- [ ] **Animação pode divergir da partida salva:** ver "Problemas conhecidos".
+- [ ] **Opcional:**
+  - rodar `pnpm format` no projeto inteiro, num PR só de formatação, e então ativar `pnpm format:check` no CI;
+  - SVG responsivo (`viewBox` + largura 100%) e acessibilidade (`<title>`/`aria-label` no SVG, `prefers-reduced-motion`), itens 41–42 do `TODO2.TXT`;
+  - os itens restantes do `TODO2.TXT`: replay, comparação lado a lado, validação de entrada da Action e retry na API do GitHub.
 
 ## Problemas conhecidos
 
-- **Animação do site pode divergir da partida salva.** `/api/partida` joga o dia de novo com as contribuições de *agora* (o GitHub pode ter mudado a janela daquele dia), então pontos, mortes ou fantasmas podem não bater com o que o cron gravou. Hoje o `web` só registra um `console.warn` com login e data quando isso acontece. Correção futura:
-  - [ ] guardar as contribuições da janela (ou um hash delas) na partida, e desenhar a animação a partir delas.
+- **A animação do site pode divergir da partida salva.** `/api/partida` joga o dia de novo com as contribuições de *agora*, e o GitHub pode ter mudado a janela daquele dia. Por isso pontos, mortes ou fantasmas podem não bater com o que o cron gravou. Hoje o `web` só registra um `console.warn` com login e data. Correção: guardar as contribuições da janela (ou um hash delas) na partida e desenhar a animação a partir delas.
+- **Primeira abertura de uma partida é lenta:** leva alguns segundos, o tempo de buscar as contribuições e gerar o SVG. Depois vem do cache.
 
 ## Decisões tomadas
 
-- Estado do jogo em `store.game` e sorteios só via `store.rng`: mesma semente, mesma partida; a animação só muda de um dia para o outro.
-- Todo movimento passa por `MovementUtils.getNeighbors` / `gridDistance` (já entendem o túnel).
-- Cores e medidas do SVG saem dos tokens de tema (`GameTheme`) definidos na prancha. Se mudar algo no código, atualizar a prancha.
-- Texto dentro do SVG usa a fonte monoespaçada do sistema: o README mostra o SVG como `<img>`, que não carrega fontes externas.
-- Fantasmas: desenho próprio em vetor (A · Lençol). As direções B · Visor e C · Pixel ficam registradas na prancha como alternativas.
-- Pontuação: multiplicador de eficiência com teto ×3; combo de fantasmas para em 1600 por fantasma.
-- `outputs/**/*.svg` fica fora do git.
+- **Jogo determinístico:** o estado fica em `store.game` e os sorteios só usam `store.rng`. Mesma semente, mesma partida. É isso que deixa o site jogar no lugar dos jogadores, sem confiar em números enviados.
+- **Movimento:** todo passo usa `MovementUtils.getNeighbors` / `gridDistance`, que já entendem o túnel.
+- **Cores e medidas:** saem dos tokens de tema (`GameTheme`).
+- **Texto do SVG:** usa a fonte monoespaçada do sistema, porque o README mostra o SVG como `<img>`, sem fontes externas.
+- **Fantasmas:** desenho próprio em vetor (A · Lençol).
+- **Logo:** A · Mordida na grade.
+- **Pontuação:** multiplicador de eficiência com teto ×3; combo de fantasmas para em 1600 por fantasma.
+- **Site:**
+  - o ranking usa o **último dia completo** em UTC;
+  - quem entra no ranking entra por PR em `ranking/jogadores.json`;
+  - o histórico é recalculado com as regras atuais;
+  - partidas interrompidas contam no "último dia" e nos "7 dias", mas não no recorde.
+- **Página do publicado:** o "Ver como foi publicado" mostra o SVG antigo como `<img>` numa página do site, porque aberto direto no `raw.githubusercontent.com` as imagens embutidas são bloqueadas.
+- **Fora do git:** `outputs/**/*.svg`.
 
 ## Comandos para retomar
 
@@ -63,10 +95,23 @@ pnpm test                               # todos os testes
 pnpm lint                               # ESLint
 pnpm exec tsc --noEmit                  # tipos
 pnpm preview --theme neon --no-open     # gera outputs/preview-<estilo>-<tema>.svg
-pnpm test tests/full-game.test.ts       # partida completa por estilo em outputs/
 pnpm run build:action                   # github-action/dist/index.js (esbuild)
 pnpm run build:web                      # dist/pacman-contribution-graph.min.js
+pnpm exec tsx tools/gerar-logo.ts       # regenera a logo em site/public/
 gh workflow run alternador.yml -R AndreRuperto/AndreRuperto   # roda o banner do perfil
+
+# site local (sem DATABASE_URL usa memória e preenche os últimos 14 dias)
+GITHUB_TOKEN=$(gh auth token) PORT=3456 pnpm site:web
+
+# Railway (CLI já logada)
+railway logs --service web --lines 50
+railway logs --service cron --lines 50
 ```
 
-Para ver a animação parada num instante: o servidor de `outputs/` está em `.claude/launch.json` (`python -m http.server 8765 -d outputs`); no navegador, `document.documentElement.pauseAnimations()` e `setCurrentTime(segundos)`.
+**Rodar o cron fora do horário** (para um jogador novo, por exemplo): a CLI do Railway não tem "rodar agora".
+1. Use o botão "Run now" do cron no painel; ou
+2. mude a agenda para `*/5 * * * *` com patch JSON:
+   ```bash
+   echo '{"services":{"96fea51a-3600-47e3-80c9-cd085b34786d":{"deploy":{"cronSchedule":"*/5 * * * *"}}}}' | railway environment edit --json
+   ```
+   Depois que rodar, volte para `0 1 * * *`. O comando `environment edit` sem `--json` pede confirmação e não aplica.
