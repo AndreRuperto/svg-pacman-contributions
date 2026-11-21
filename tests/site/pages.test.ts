@@ -89,12 +89,43 @@ describe('layout', () => {
   });
 });
 
-describe('favicon', () => {
-  it('204 sem passar pelo limite', async () => {
+describe('logo e favicon', () => {
+  it('/favicon.ico devolve o PNG da logo sem passar pelo limite', async () => {
     const { app } = await montar({ deps: { rateLimiterJson: new RateLimiter({ limite: 0, janelaMs: 60_000 }) } });
     const res = await app.request('/favicon.ico');
-    expect(res.status).toBe(204);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/png');
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    expect([...bytes.slice(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]); // assinatura PNG
     expect((await app.request('/')).status).toBe(429);
+  });
+
+  it('serve logo.svg, os PNGs e a prévia com cache longo', async () => {
+    const { app } = await montar();
+    const tipos: Record<string, string> = {
+      '/static/logo.svg': 'image/svg+xml',
+      '/static/favicon-32.png': 'image/png',
+      '/static/apple-touch-icon.png': 'image/png',
+      '/static/og.png': 'image/png'
+    };
+    for (const [url, tipo] of Object.entries(tipos)) {
+      const res = await app.request(url);
+      expect(res.status, url).toBe(200);
+      expect(res.headers.get('content-type'), url).toBe(tipo);
+      expect(res.headers.get('cache-control'), url).toContain('immutable');
+    }
+    expect((await app.request('/static/nao-existe.png')).status).toBe(404);
+  });
+
+  it('o layout tem favicon, ícone de tela inicial, prévia de link e a logo no cabeçalho', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, '/');
+    expect(html).toMatch(/<link rel="icon" type="image\/svg\+xml" href="\/static\/logo\.svg\?v=[0-9a-f]{12}">/);
+    expect(html).toMatch(/<link rel="icon" type="image\/png" sizes="32x32" href="\/static\/favicon-32\.png\?v=[0-9a-f]{12}">/);
+    expect(html).toMatch(/<link rel="apple-touch-icon" href="\/static\/apple-touch-icon\.png\?v=[0-9a-f]{12}">/);
+    expect(html).toMatch(/<meta property="og:image" content="https:\/\/svg-pacman-ranking\.up\.railway\.app\/static\/og\.png\?v=[0-9a-f]{12}">/);
+    expect(html).toMatch(/<meta property="og:title" content="Ranking · SVG Pac-Man">/);
+    expect(html).toMatch(/<a class="marca" href="\/"><img src="\/static\/logo\.svg\?v=[0-9a-f]{12}" alt="" width="28" height="28">SVG Pac-Man<\/a>/);
   });
 });
 

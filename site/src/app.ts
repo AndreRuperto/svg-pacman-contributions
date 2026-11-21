@@ -10,7 +10,7 @@ import type { Aba, Periodo } from './ranking.js';
 import { FilaCheia, RateLimiter, Semaforo } from './ratelimit.js';
 import { chaveLogin, type PartidaRepo, type PartidaSalva } from './repo.js';
 import { paginaJogador } from './views/jogador.js';
-import { CSS, paginaErro, type Html } from './views/layout.js';
+import { CSS, IMAGENS, paginaErro, type Html, type NomeImagem } from './views/layout.js';
 import { paginaPartida, paginaPublicado } from './views/partida.js';
 import { urlPublicado } from './views/formato.js';
 import { paginaRanking } from './views/ranking.js';
@@ -178,8 +178,24 @@ export function createApp(deps: AppDeps): Hono {
   });
   app.notFound(naoEncontrada);
 
-  // Sem favicon; responde vazio antes do limite para não gastar a cota do visitante.
-  app.get('/favicon.ico', (c) => c.body(null, 204, { 'Cache-Control': `public, max-age=${MAX_AGE_PASSADO}` }));
+  // Favicon antes do limite, para não gastar a cota do visitante (navegadores pedem /favicon.ico sozinhos).
+  app.get('/favicon.ico', (c) =>
+    c.body(new Uint8Array(IMAGENS['favicon-32.png'].corpo), 200, {
+      'Content-Type': 'image/png',
+      'Cache-Control': `public, max-age=${MAX_AGE_PASSADO}`
+    })
+  );
+
+  // Logo e ícones: a URL do layout leva o hash do arquivo, então o cache pode ser de um ano.
+  app.get('/static/:arquivo{.+[.](?:svg|png)}', (c) => {
+    const img = IMAGENS[c.req.param('arquivo') as NomeImagem];
+    if (!img) return naoEncontrada(c);
+    return c.body(new Uint8Array(img.corpo), 200, {
+      'Content-Type': img.tipo,
+      'Cache-Control': `public, max-age=${MAX_AGE_CSS}, immutable`,
+      'X-Content-Type-Options': 'nosniff'
+    });
+  });
 
   // O CSS tem o hash do conteúdo na URL do layout: pode ficar em cache por um ano.
   app.get('/static/site.css', (c) =>
