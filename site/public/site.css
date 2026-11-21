@@ -86,6 +86,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
   color: var(--acento); text-decoration: none;
   display: inline-flex; align-items: center; min-height: var(--toque);
 }
+.marca img { width: 28px; height: 28px; margin-right: var(--esp-2); flex: none; }
 .topo-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0 var(--esp-1); }
 .topo-links a {
   display: inline-flex; align-items: center; min-height: var(--toque); padding: 0 var(--esp-2);
