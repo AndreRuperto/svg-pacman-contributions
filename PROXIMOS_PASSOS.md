@@ -30,7 +30,7 @@ Também: a Action rodou de verdade no repositório do perfil (`AndreRuperto/Andr
 
 - [x] **Site do ranking no ar:** https://svg-pacman-ranking.up.railway.app (PR #10). Railway, projeto `svg-pacman-ranking`: serviços `web` (`pnpm site:web`) e `cron` (`pnpm site:cron`, `0 1 * * *` UTC) + Postgres. Variáveis: `DATABASE_URL` (referência ao Postgres) e `GITHUB_TOKEN` (no `web`; o `cron` usa `${{web.GITHUB_TOKEN}}`). Histórico de @AndreRuperto carregado em 20/11: 591 partidas (8 abr. 2025 a 19 nov. 2026), 586 com o SVG publicado, recorde 69.990 em 1 out. 2026.
 - [ ] **Token do GitHub vence:** quando vencer, o cron para de jogar. Gerar outro (classic, sem nenhum escopo) e trocar `GITHUB_TOKEN` no serviço `web` do Railway; o `cron` acompanha pela referência.
-- [ ] O gráfico "Pontos por dia" mostra só os últimos 30 dias; o desenho previa o histórico inteiro. Decidir: histórico inteiro, ou seletor 30 dias / 1 ano / tudo.
+- [x] O gráfico "Pontos por dia" cobre o histórico inteiro (desde a entrada no ranking), com a média de todas as partidas; acima de 60 partidas desenha só a linha.
 - [x] README do projeto: seção "🏆 Ranking" com o link do site e como entrar.
 - [ ] Prancha: trocar os placeholders das telas "Site 1–3" pelos dados reais.
 - [ ] Rodar o cron fora do horário (para um jogador novo, por exemplo): a CLI do Railway não tem "rodar agora". Opções: botão "Run now" do cron no painel, ou mudar a agenda para `*/5 * * * *` com patch JSON (`railway environment edit --json`) e voltar para `0 1 * * *` depois.
