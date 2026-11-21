@@ -33,7 +33,7 @@ Também: a Action rodou de verdade no repositório do perfil (`AndreRuperto/Andr
 - [x] O gráfico "Pontos por dia" cobre o histórico inteiro (desde a entrada no ranking), com a média de todas as partidas; acima de 60 partidas desenha só a linha.
 - [x] README do projeto: seção "🏆 Ranking" com o link do site e como entrar.
 - [x] Logo do site (direção "A · Mordida na grade"): favicon SVG + PNG 32, ícone de tela inicial 180, prévia de link 1200×630 e logo no cabeçalho. Arquivos em `site/public/`, gerados por `pnpm exec tsx tools/gerar-logo.ts`.
-- [ ] A prancha "SVG Pac-Man · Identidade e sistema de design" (artifact JMgq2AGqBKnyHFRLNT92cj) não existe mais em 21/11: foi apagada ou o acesso caiu. Decidir se recria. Cópia local dos quadros em `C:	mp\prancha-pacman\project\` (pasta temporária).
+- [ ] A prancha "SVG Pac-Man · Identidade e sistema de design" (artifact JMgq2AGqBKnyHFRLNT92cj) não existe mais em 21/11: foi apagada ou o acesso caiu. Decidir se recria. Cópia local dos quadros em `C:\tmp\prancha-pacman\project\` (pasta temporária).
 - [ ] Rodar o cron fora do horário (para um jogador novo, por exemplo): a CLI do Railway não tem "rodar agora". Opções: botão "Run now" do cron no painel, ou mudar a agenda para `*/5 * * * *` com patch JSON (`railway environment edit --json`) e voltar para `0 1 * * *` depois.
 - [ ] Decidir se apaga os assets antigos que o código não usa mais (`src/assets/img/ghosts/*.png`, `src/assets/gifs/*.gif`, `src/assets/ghosts_constants.txt`). São cópias da arte do fliperama; por ora ficam (decisão de 20/11).
 - [ ] Opcional: rodar `pnpm format` no projeto inteiro num PR só de formatação e então ativar `pnpm format:check` no CI.
