@@ -148,7 +148,28 @@ Os PRs #8 e este são só de anotações.
 - [x] CI do [PR #19](https://github.com/AndreRuperto/svg-pacman-contributions/pull/19) aprovada, merge na `main` no commit `6a36b39` e deploy `SUCCESS` confirmado para `web` e `cron` no Railway em 22/11/2026.
 - [ ] QA visual com screenshots reais nos viewports 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%, teclado, Chrome/Firefox/WebKit. Testes de CSS e HTML **não substituem** inspeção em navegador. Não marcar sem evidência.
 
-**Próxima fase V3:** página da partida, estado verificável (snapshot conferido ou reconstrução histórica), área SVG protagonista, seleção de tema secundária, navegação anterior/próximo e métricas responsivas. Não alterar motor, pontuação ou cache em uma PR de visual.
+**Fase V3:** código e testes entregues na branch do PR #20; área SVG protagonista, estados de origem sem falsa verificação, navegação e métricas responsivas. CI/merge/deploy e QA visual ainda devem ser confirmados antes de considerar a entrega encerrada.
+
+## V3 visual — página da partida (22/11/2026)
+
+**Referência:** `SitePartida.dc.html` da prancha original fornecida pelo usuário e [documento do redesign](docs/plans/2026-11-22-redesign-ranking.md). O objetivo é priorizar a arena sem alterar o motor, o cálculo de pontos, o banco ou a API de replay.
+
+**Implementado na branch `chatgpt/partida-v3-20261122`:**
+
+- [x] Container isolado `pagina-partida` de até 1160px; a arena aparece **antes do seletor de tema e do placar**.
+- [x] Navegação anterior/próxima mantém os 44px, rótulos acessíveis e tema selecionado, pulando dias sem partida (sem inventar jogos para dias vazios).
+- [x] Integridade com **três situações honestas**: `Dados originais preservados` (snapshot existe, mas **ainda não quer dizer replay verificado**); `Reconstrução histórica` (calendário original ausente, números podem divergir); `Animação indisponível` (servidor não pode renderizar). A API é quem confirma realmente a reprodução ao responder `HTTP 200` com `X-Pacman-Replay=verificado`. Em página HTML sem JavaScript, não afirmar o êxito antes dessa chamada.
+- [x] SVG com largura fluida, `aspect-ratio: 1166 / 229` e lugar reservado para evitar deslocamentos, mais **link direto de diagnóstico** caso a animação falhe.
+- [x] Seletor com oito temas mantido abaixo da arena, formulário GET e links existentes.
+- [x] Placar armazenado do dia identificado como tal; responsivo em **2×3 no mobile (<600px), 3×2 em tablet (600–1023px) e 6×1 em desktop (≥1024px)**, incluindo valores tabulares.
+- [x] Banner original, quando existente, acessível em área secundária separada. Partida interrompida mantém alerta e regras de recorde existentes.
+- [x] Estilos `.partida-pagina` e `.pagina-partida` isolados, preservando V1 ranking e V2 perfil.
+- [x] Testes SSR de status com/sem snapshot, modo indisponível, escolha de tema, links entre datas não consecutivas, CSS responsivo e placar.
+- [ ] CI do PR #20 aprovada, merge na `main` e deploy Railway dos serviços `web` e `cron`: verificar em execução e registrar SHA.
+- [ ] QA visual real em 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%, teclado, Chrome/Firefox/WebKit e comportamento SVG/SMIL. **Não confundir testes de HTML/CSS com screenshots e inspeção do navegador.**
+- [ ] Em produção, confirmar uma partida posterior ao snapshot com `X-Pacman-Replay=verificado`, e testar separadamente um dia histórico com `reconstrucao`; ainda pendente de evidência operacional real.
+
+**Próximo ciclo:** V4 — acessibilidade transversal com testes de viewport/teclado/zoom e compatibilidade de movimento reduzido; depois V5 preservar referências e capturas de cada etapa em `docs/design/`. Evitar alterações cosméticas simultâneas ao motor ou banco.
 
 ## Acompanhamento depois da publicação
 
