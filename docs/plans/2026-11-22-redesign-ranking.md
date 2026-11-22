@@ -1,5 +1,5 @@
 # Direção de design — SVG Pac-Man Ranking
-**Data:** 22/11/2026 · **Status:** V1 ranking publicada no PR #18; V2 perfil implementada na branch do PR #19 (aguardando CI e publicação), V3–V5 ainda planejadas · **Alvo:** evoluir frontend sem modificar motor e placares.
+**Data:** 22/11/2026 · **Status:** V1 ranking publicada no PR #18; V2 perfil integrada à `main` pelo PR #19 (CI aprovada; publicação Railway em verificação), V3–V5 ainda planejadas · **Alvo:** evoluir frontend sem modificar motor e placares.
 
 ## Referências efetivamente conferidas (ZIP do usuário, 22/11)
 - `SiteRankingDesktop.dc.html`: artboard 1280 × 860, tabela com sete colunas e métricas alinhadas, filtros por pontuação/período e CTA discreto.
@@ -122,7 +122,7 @@ A referência visual é o artboard original `SiteJogador.dc.html` (390×1080). A
 
 ## 10. Implementação sugerida em PRs pequenos
 1. **V1 · Hierarquia/ranking:** `views/ranking.ts`, `site/public/site.css` e testes de filtros. Capturas antes/depois em 320/390/1024/1440. Sem mudanças no motor.
-2. **V2 · Perfil/histórico:** quatro KPIs 2×2 no mobile, gráfico com períodos 30d/90d/todos e rolagem interna, estados e paginação. Código entregue na branch do PR #19; screenshots/cross-browser ainda pendentes. Não mudar regras de score.
+2. **V2 · Perfil/histórico:** quatro KPIs 2×2 no mobile, gráfico com períodos 30d/90d/todos e rolagem interna, estados e paginação. Código integrado na main pelo PR #19; screenshots/cross-browser ainda pendentes. Não mudar regras de score.
 3. **V3 · Partida:** arena proporcional, navegação e status de replay **baseado no backend**, tema e placar adaptativos. Tratar falha de API sem mostrar SVG inconsistente.
 4. **V4 · Acessibilidade transversal:** audit de navegação por teclado, zoom 200%, contraste e movimento reduzido em SVG/SMIL; browser matrix.
 5. **V5 · Prancha persistente:** criar imagens de referência *a partir da UI real* e salvar em `docs/design/` com indicação de versão/viewport. Proibido depender apenas de artefatos temporários.
@@ -136,4 +136,4 @@ A referência visual é o artboard original `SiteJogador.dc.html` (390×1080). A
 - Não afirmar testes manuais/navegadores executados apenas por existir checklist.
 
 ## Definição de pronto para a fase visual
-Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A V1 está na main via PR #18 e a V2 tem implementação/testes no PR #19 (pendente de CI/merge). V3–V5 continuam planejadas. Capturas e auditoria visual cross-browser ainda são pendentes.**
+Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A V1 está na main via PR #18 e a V2 foi mergeada após CI verde pelo PR #19. V3–V5 continuam planejadas. Capturas e auditoria visual cross-browser ainda são pendentes.**
