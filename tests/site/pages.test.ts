@@ -496,6 +496,26 @@ describe('GET /jogador/:login/:data', () => {
     expect(html).toContain('Placar registrado');
   });
 
+  it('V3 amplia o SVG dentro do celular sem adicionar JavaScript e sem perder o fallback', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}`);
+    expect(html).toContain('<details class="partida-zoom">');
+    expect(html).toContain('<summary>Ampliar a arena</summary>');
+    expect(html).toContain('class="partida-zoom-janela" role="region" tabindex="0"');
+    expect(html).toContain('class="partida-svg-zoom"');
+    expect(html).toContain('loading="lazy"');
+    expect(html).toContain('abra o SVG diretamente');
+    const off = (await montar({ deps: { podeDesenhar: false } })).app;
+    const indisponivel = (await pagina(off, `/jogador/AndreRuperto/${HOJE}`)).html;
+    expect(indisponivel).not.toContain('Ampliar a arena');
+    expect(indisponivel).not.toContain('/api/partida/');
+    const css = await (await app.request('/static/site.css')).text();
+    expect(css).toContain('.partida-zoom-janela');
+    expect(css).toContain('overflow-x: auto');
+    expect(css).toContain('max-width: none');
+    expect(css).toContain('overscroll-behavior-x: contain');
+  });
+
   it('V3 mantém 2x3 mobile, 3x2 tablet e 6 métricas desktop no CSS isolado', async () => {
     const { app } = await montar();
     const css = await (await app.request('/static/site.css')).text();
