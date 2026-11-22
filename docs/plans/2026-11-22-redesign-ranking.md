@@ -1,5 +1,5 @@
 # Direção de design — SVG Pac-Man Ranking
-**Data:** 22/11/2026 · **Status:** V1 ranking publicada no PR #18; V2 perfil integrada à `main` pelo PR #19 (CI aprovada; publicação Railway em verificação), V3 página da partida implementada na branch do PR #20 (aguardando CI e merge), V4–V5 planejadas · **Alvo:** evoluir frontend sem modificar motor e placares.
+**Data:** 22/11/2026 · **Status:** V1 ranking publicada no PR #18; V2 perfil integrada à `main` pelo PR #19 (CI aprovada; publicação Railway em verificação), V3 página da partida integrada à `main` no PR #20, após CI aprovada, V4–V5 planejadas · **Alvo:** evoluir frontend sem modificar motor e placares.
 
 ## Referências efetivamente conferidas (ZIP do usuário, 22/11)
 - `SiteRankingDesktop.dc.html`: artboard 1280 × 860, tabela com sete colunas e métricas alinhadas, filtros por pontuação/período e CTA discreto.
@@ -93,7 +93,7 @@ A referência visual é o artboard original `SiteJogador.dc.html` (390×1080). A
 
 **Integridade:** o HTML **não** escreve “replay verificado” só porque o banco tem snapshot. Os estados são “Dados originais preservados”, “Reconstrução histórica” ou “Animação indisponível”. Somente a API de SVG compara realmente o replay e usa o cabeçalho `X-Pacman-Replay: verificado` quando entrega a animação. Sem JavaScript, um erro de rede/HTTP da imagem não pode ser detectado automaticamente pelo HTML: o texto alternativo e o link direto oferecem recuperação, mas não substituem uma experiência de erro mais robusta que deverá ser avaliada depois.
 
-**Falta:** screenshots de 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%; teclado; comportamento SMIL e redução de movimento; validação de um replay real com snapshot em produção. Testes de markup e CSS não são auditoria de navegador.
+**Falta:** screenshots de 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%; teclado; comportamento SMIL e redução de movimento; validação de um replay real com snapshot em produção. O código foi mergeado via PR #20, mas testes de markup e CSS não são auditoria de navegador.
 
 ## 6. Partida (`/jogador/:login/:data`)
 **O replay é protagonista.** Priorizar arena antes dos números secundários.
@@ -146,4 +146,4 @@ A referência visual é o artboard original `SiteJogador.dc.html` (390×1080). A
 - Não afirmar testes manuais/navegadores executados apenas por existir checklist.
 
 ## Definição de pronto para a fase visual
-Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A V1 está na main via PR #18 e a V2 foi mergeada após CI verde pelo PR #19. V3 tem implementação e testes no PR #20; V4–V5 continuam planejadas. Capturas e auditoria visual cross-browser ainda são pendentes.**
+Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A V1 está na main via PR #18 e a V2 foi mergeada após CI verde pelo PR #19. V3 foi mergeada pelo PR #20; V4–V5 continuam planejadas. Capturas e auditoria visual cross-browser ainda são pendentes.**
