@@ -243,6 +243,86 @@ describe('GET /', () => {
 });
 
 describe('GET /jogador/:login', () => {
+  it('V2 respeita prancha de perfil, mantendo os 4 KPIs e o histórico sem JavaScript', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, '/jogador/AndreRuperto');
+    expect(html).toContain('class="perfil-pagina"');
+    expect(html).toContain('class="perfil perfil-identidade"');
+    expect(html).toContain('class="perfil-dados"');
+    expect(html).toContain('class="tiles perfil-metricas" aria-label="Resumo do jogador"');
+    expect((html.match(/class="tile-valor"/g) ?? [])).toHaveLength(4);
+    expect(html).toContain('Último dia · pontos');
+    expect(html).toContain('Último dia · eficiência');
+    expect(html).toContain('Recorde');
+    expect(html).toContain('Média 30 dias');
+    expect(html).toContain('class="perfil-grafico-topo"');
+    expect(html).toContain('aria-label="Período do gráfico"');
+    expect(html).toContain('class="grafico-rolagem" role="region" tabindex="0"');
+    expect(html).toContain('class="perfil-historico"');
+    expect(html).toContain('Exibindo 1–3 de 3');
+    expect(html).toContain('<time class="partida-data" datetime="2026-11-20">20 nov. 2026</time>');
+    expect(html).toContain('class="partida-situacao partida-situacao-interrompida"');
+    expect(html).toContain('Concluída');
+    expect(html).toContain('Interrompida');
+    expect(html).toContain('<details class="partida"');
+    expect(html).not.toContain('<script>');
+  });
+
+  it('V2 filtra o gráfico em 30/90 dias sem alterar as partidas ou inventar pontos', async () => {
+    const partidas = Array.from({ length: 120 }, (_, i) => p('bia', addDays(HOJE, -i), 120 + i));
+    const { app } = await montar({ partidas });
+    const contar = async (url: string) => {
+      const { html } = await pagina(app, url);
+      const svg = html.slice(html.indexOf('<svg'), html.indexOf('</svg>'));
+      const pts = svg.match(/points="([^"]*)"/)?.[1].trim().split(' ') ?? [];
+      return { html, pts };
+    };
+    const todo = await contar('/jogador/bia');
+    const trinta = await contar('/jogador/bia?periodo=30d');
+    const noventa = await contar('/jogador/bia?periodo=90d');
+    expect(todo.pts).toHaveLength(120);
+    expect(trinta.pts).toHaveLength(30);
+    expect(noventa.pts).toHaveLength(90);
+    expect(trinta.html).toContain('30 partidas · 22 out. 2026 a 20 nov. 2026');
+    expect(noventa.html).toContain('Média do período');
+    expect(todo.html).toContain('Média de todas as partidas');
+    expect(link(trinta.html, '30 dias')).toContain('aria-current="page"');
+    expect(link(noventa.html, '90 dias')).toContain('aria-current="page"');
+    expect(link(todo.html, 'Tudo')).toContain('aria-current="page"');
+    expect(todo.html).toContain('Exibindo 1–30 de 120');
+    expect(trinta.html).toContain('Exibindo 1–30 de 120'); // só o gráfico é filtrado
+    const invalido = await contar('/jogador/bia?periodo=invalido');
+    expect(invalido.pts).toHaveLength(120);
+    expect(link(invalido.html, 'Tudo')).toContain('aria-current="page"');
+  });
+
+  it('V2 preserva período do gráfico ao paginar mais de 300 partidas', async () => {
+    const partidas = Array.from({ length: 301 }, (_, i) => p('bia', addDays(HOJE, -i), 250 + i));
+    const { app } = await montar({ partidas });
+    const um = (await pagina(app, '/jogador/bia?periodo=30d')).html;
+    expect(um).toContain('Exibindo 1–30 de 301');
+    expect(um).toContain('href="/jogador/bia?pagina=2&amp;periodo=30d"');
+    expect(um).toContain('class="grafico-rolagem"');
+    const dois = (await pagina(app, '/jogador/bia?pagina=2&periodo=30d')).html;
+    expect(dois).toContain('Exibindo 31–60 de 301');
+    expect(dois).toContain('href="/jogador/bia?pagina=1&amp;periodo=30d"'.replace('pagina=1&amp;periodo=30d','periodo=30d'));
+    expect(dois).toContain('href="/jogador/bia?pagina=3&amp;periodo=30d"');
+    expect(link(dois, '30 dias')).toContain('aria-current="page"');
+    expect(dois).toContain('href="/jogador/bia?pagina=2&amp;periodo=90d"');
+  });
+
+  it('V2 usa CSS isolado com grades 2x2 e 4 colunas, sem overflow global', async () => {
+    const { app } = await montar();
+    const css = await (await app.request('/static/site.css')).text();
+    expect(css).toContain('.perfil-pagina .perfil-metricas');
+    expect(css).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
+    expect(css).toContain('grid-template-columns: repeat(4, minmax(0, 1fr))');
+    expect(css).toContain('.perfil-grafico .grafico-rolagem');
+    expect(css).toContain('overflow-x: auto');
+    expect(css).toContain('.perfil-pagina .partida-situacao-interrompida');
+    expect(css).toContain('@media (max-width: 359px)');
+  });
+
   it('gráfico acessível com polyline', async () => {
     const { app } = await montar();
     const { res, html } = await pagina(app, '/jogador/AndreRuperto');

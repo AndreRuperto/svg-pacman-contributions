@@ -401,3 +401,180 @@ code { font-family: var(--mono); font-size: 0.9em; }
   .ranking-classificacao .linha-valor { font-size: 16px; }
   .ranking-classificacao .linha-login { font-size: 14px; }
 }
+
+
+/* ---------- V2: perfil e histórico (prancha SiteJogador recuperada) ---------- */
+/* Escopo exclusivo para /jogador/:login. Não alterar o ranking ou /jogador/:login/:data. */
+.perfil-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+  min-width: 0;
+}
+.perfil-pagina .perfil-identidade { min-width: 0; }
+.perfil-pagina .perfil-dados { min-width: 0; }
+.perfil-pagina .perfil-identidade h1 {
+  font-size: clamp(24px, 3vw, 32px);
+  overflow-wrap: anywhere;
+}
+.perfil-pagina .perfil-identidade .apoio { line-height: 1.5; }
+.perfil-pagina .perfil-metricas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--esp-3);
+}
+.perfil-pagina .perfil-metricas .tile {
+  min-width: 0;
+  min-height: 118px;
+  padding: var(--esp-4);
+  gap: var(--esp-1);
+}
+.perfil-pagina .perfil-metricas .tile-rotulo { line-height: 1.4; }
+.perfil-pagina .perfil-metricas .tile-valor {
+  font-size: clamp(19px, 3vw, 26px);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  letter-spacing: -0.02em;
+}
+.perfil-pagina .perfil-metricas .tile-nota {
+  margin-top: auto;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.perfil-grafico {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  min-width: 0;
+  padding: var(--esp-4);
+}
+.perfil-grafico-topo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--esp-3) var(--esp-4);
+}
+.perfil-grafico-topo h2 { margin: 0; }
+.perfil-grafico-periodo { font-size: 12px; margin-top: var(--esp-1); }
+.perfil-grafico-filtros {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-1);
+  padding: 0;
+  margin: 0;
+}
+.perfil-grafico-filtros a {
+  min-height: var(--toque);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--esp-3);
+  color: var(--texto);
+  border: 1px solid var(--fio);
+  border-radius: var(--raio-campo);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.perfil-grafico-filtros a:hover { border-color: var(--link); }
+.perfil-grafico-filtros a[aria-current="page"] {
+  background: var(--acento);
+  border-color: var(--acento);
+  color: var(--acento-texto);
+}
+.perfil-grafico .grafico-rolagem {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  scrollbar-color: var(--fio) var(--superficie);
+}
+.perfil-grafico .grafico {
+  display: block;
+  width: 100%;
+  min-width: 580px;
+  height: auto;
+}
+.perfil-grafico .legenda { margin-top: 0; }
+.perfil-grafico .grafico-instrucao { display: none; font-size: 12px; }
+.perfil-historico {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+.perfil-historico-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-4);
+}
+.perfil-historico-topo h2 { margin-bottom: 0; }
+.perfil-pagina .partidas { gap: var(--esp-2); }
+.perfil-pagina .partida-resumo {
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+}
+.perfil-pagina .partida-resumo:hover { background: rgb(255 255 255 / 3%); }
+.perfil-pagina .partida-topo { align-items: baseline; gap: var(--esp-3); }
+.perfil-pagina .partida-data { font-weight: 600; }
+.perfil-pagina .partida-pontos {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--acento);
+}
+.perfil-pagina .partida-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1) var(--esp-3);
+  align-items: center;
+}
+.perfil-pagina .partida-detalhes { font-size: 12px; }
+.perfil-pagina .partida-situacao {
+  color: var(--apoio);
+  font-size: 12px;
+  font-weight: 600;
+}
+.perfil-pagina .partida-situacao-interrompida { color: var(--acento); }
+.perfil-pagina .partida-corpo { min-width: 0; }
+.perfil-pagina .partida-corpo .partida-svg { aspect-ratio: 1166 / 229; object-fit: contain; }
+.perfil-pagina .paginacao {
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-4);
+}
+@media (min-width: 768px) {
+  .perfil-pagina .perfil-metricas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .perfil-grafico .grafico { min-width: 0; }
+}
+@media (max-width: 767px) {
+  .perfil-pagina { gap: var(--esp-5); }
+  .perfil-pagina .perfil-identidade { gap: var(--esp-3); }
+  .perfil-pagina .perfil-identidade .avatar { width: 56px; height: 56px; }
+  .perfil-pagina .perfil-metricas { gap: var(--esp-2); }
+  .perfil-pagina .perfil-metricas .tile { padding: var(--esp-3); min-height: 116px; }
+  .perfil-grafico { padding: var(--esp-3); }
+  .perfil-grafico-topo { flex-direction: column; align-items: stretch; }
+  .perfil-grafico-filtros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .perfil-grafico-filtros li { min-width: 0; }
+  .perfil-grafico-filtros a { width: 100%; padding: 0 var(--esp-2); }
+  .perfil-grafico .grafico-instrucao { display: block; }
+  .perfil-pagina .partida-resumo { padding: var(--esp-3); }
+  .perfil-pagina .partida-topo { gap: var(--esp-2); }
+  .perfil-pagina .partida-pontos { font-size: 16px; }
+  .perfil-pagina .partida-meta { flex-direction: column; align-items: flex-start; gap: var(--esp-1); }
+  .perfil-pagina .partida-detalhes { line-height: 1.5; }
+}
+@media (max-width: 359px) {
+  .perfil-pagina .perfil-identidade { align-items: flex-start; }
+  .perfil-pagina .perfil-identidade h1 { font-size: 23px; }
+  .perfil-pagina .perfil-metricas .tile-valor { font-size: 18px; }
+  .perfil-grafico-filtros a { font-size: 12px; }
+}

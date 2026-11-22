@@ -129,7 +129,26 @@ Os PRs #8 e este são só de anotações.
 
 **Publicação V1:** [PR #18](https://github.com/AndreRuperto/svg-pacman-contributions/pull/18), código mergeado e publicado. **Ainda pendente:** capturas do visual em navegadores reais e avaliação da legibilidade em 320–1440px; não considerar esse QA concluído apenas com CI verde.
 
-**Sequência depois da V1:** V2 perfil + gráfico de históricos longos; V3 página da partida e status verificado vs reconstrução; V4 acessibilidade/cross-browser; V5 preservar os artboards/fontes na documentação versionada. Não copiar dados inventados da prancha para produção.
+**Sequência depois da V1:** V2 perfil + gráfico e histórico em andamento no PR #19; depois V3 página da partida e status verificado vs reconstrução; V4 acessibilidade/cross-browser; V5 preservar os artboards/fontes na documentação versionada. Não copiar dados inventados da prancha para produção.
+
+## V2 visual — perfil do jogador e histórico (22/11/2026)
+
+**Referência:** `SiteJogador.dc.html` da prancha original anexada pelo usuário, concebida para 390×1080px. O conteúdo fictício da prancha é apenas uma referência de organização: o site continua usando partidas, colocações e médias reais.
+
+**Alterações na branch `chatgpt/perfil-jogador-v2-20261122`:**
+
+- [x] Cabeçalho do jogador preserva avatar, login, data de entrada e total de partidas, com quebra de nomes longos sem overflow.
+- [x] Quatro KPIs do banco (pontos e eficiência do último dia, recorde e média dos últimos 30 dias): grade 2×2 no celular e quatro colunas a partir de 768px, alinhamento de valores tabulares e notas curtas.
+- [x] Gráfico de pontos tem **filtros SSR de 30 dias, 90 dias e histórico completo**. O padrão continua sendo **Tudo** para preservar links anteriores. A média/legenda do gráfico é calculada a partir do período escolhido; a média de 30 dias no KPI não muda. As linhas nunca atravessam dias sem partida.
+- [x] No celular, o SVG do gráfico pode ser explorado **com rolagem horizontal apenas dentro da área do gráfico**, incluindo foco para teclado e resumo textual acessível; não forçar largura no documento inteiro.
+- [x] Histórico em `<details>` sem JavaScript: data semântica `<time>`, pontos com unidade acessível, situação **Concluída/Interrompida**, detalhes separados e links para partida/banner publicado.
+- [x] Contagem `Exibindo x–y de n` e paginação de 30 registros preservada, mantendo filtro do gráfico no endereço `?periodo=30d&pagina=2`.
+- [x] CSS isolado em `.perfil-pagina` para não mexer no ranking V1 nem na página de replay V3.
+- [x] Testes para HTML semântico, períodos, 120 e 301 partidas, paginação, CSS mobile e filtros inválidos.
+- [ ] CI do PR V2, merge e deploy Railway — confirmar depois de executar.
+- [ ] QA visual com screenshots reais nos viewports 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%, teclado, Chrome/Firefox/WebKit. Testes de CSS e HTML **não substituem** inspeção em navegador. Não marcar sem evidência.
+
+**Próxima fase V3:** página da partida, estado verificável (snapshot conferido ou reconstrução histórica), área SVG protagonista, seleção de tema secundária, navegação anterior/próximo e métricas responsivas. Não alterar motor, pontuação ou cache em uma PR de visual.
 
 ## Acompanhamento depois da publicação
 

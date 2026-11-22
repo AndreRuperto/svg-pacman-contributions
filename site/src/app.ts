@@ -13,7 +13,7 @@ import type { Jogador } from './jogadores.js';
 import type { Aba, Periodo } from './ranking.js';
 import { FilaCheia, RateLimiter, Semaforo } from './ratelimit.js';
 import { chaveLogin, type PartidaRepo, type PartidaSalva } from './repo.js';
-import { paginaJogador } from './views/jogador.js';
+import { paginaJogador, PERIODOS_GRAFICO, type PeriodoGrafico } from './views/jogador.js';
 import { CSS, IMAGENS, paginaErro, type Html, type NomeImagem } from './views/layout.js';
 import { paginaPartida, paginaPublicado } from './views/partida.js';
 import { urlPublicado } from './views/formato.js';
@@ -340,7 +340,11 @@ export function createApp(deps: AppDeps): Hono {
     const d = await dadosJogador(login);
     if (!d) return jogadorFora(c, login);
     const n = Number.parseInt(c.req.query('pagina') ?? '1', 10);
-    return pagina(c, paginaJogador(d, hoje(), Number.isFinite(n) ? n : 1, podeDesenhar));
+    const filtro = c.req.query('periodo');
+    const periodoGrafico: PeriodoGrafico = PERIODOS_GRAFICO.includes(filtro as PeriodoGrafico)
+      ? (filtro as PeriodoGrafico)
+      : 'todos';
+    return pagina(c, paginaJogador(d, hoje(), Number.isFinite(n) ? n : 1, podeDesenhar, periodoGrafico));
   });
 
   app.get('/jogador/:login/:data', async (c) => {
