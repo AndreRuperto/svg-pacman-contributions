@@ -209,7 +209,7 @@ export function paginaJogador(
     </nav>
   </div>
   ${grafico(doGrafico, inicioGrafico, hoje, mediaGeral(doGrafico), legendaMedia)}
-  <p class="apoio grafico-instrucao">Deslize o gráfico horizontalmente para explorar os valores.</p>
+  ${doGrafico.length ? html`<p class="apoio grafico-instrucao">Deslize o gráfico horizontalmente para explorar os valores.</p>` : ''}
 </section>
 <section class="perfil-historico" aria-labelledby="partidas-titulo">
   <div class="perfil-historico-topo">
