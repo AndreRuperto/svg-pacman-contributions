@@ -129,7 +129,7 @@ Os PRs #8 e este são só de anotações.
 
 **Publicação V1:** [PR #18](https://github.com/AndreRuperto/svg-pacman-contributions/pull/18), código mergeado e publicado. **Ainda pendente:** capturas do visual em navegadores reais e avaliação da legibilidade em 320–1440px; não considerar esse QA concluído apenas com CI verde.
 
-**Sequência depois da V1:** V2 perfil + gráfico e histórico mergeado via PR #19; depois V3 página da partida e status verificado vs reconstrução; V4 acessibilidade/cross-browser; V5 preservar os artboards/fontes na documentação versionada. Não copiar dados inventados da prancha para produção.
+**Sequência depois da V1:** V2 perfil + gráfico mergeado via PR #19; V3 página da partida mergeada via PR #20; agora V4 acessibilidade/cross-browser e V5 preservar os artboards/fontes na documentação versionada. Não copiar dados inventados da prancha para produção.
 
 ## V2 visual — perfil do jogador e histórico (22/11/2026)
 
@@ -148,13 +148,13 @@ Os PRs #8 e este são só de anotações.
 - [x] CI do [PR #19](https://github.com/AndreRuperto/svg-pacman-contributions/pull/19) aprovada, merge na `main` no commit `6a36b39` e deploy `SUCCESS` confirmado para `web` e `cron` no Railway em 22/11/2026.
 - [ ] QA visual com screenshots reais nos viewports 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%, teclado, Chrome/Firefox/WebKit. Testes de CSS e HTML **não substituem** inspeção em navegador. Não marcar sem evidência.
 
-**Fase V3:** código e testes entregues na branch do PR #20; área SVG protagonista, estados de origem sem falsa verificação, navegação e métricas responsivas. CI/merge/deploy e QA visual ainda devem ser confirmados antes de considerar a entrega encerrada.
+**Fase V3:** código e testes aprovados e mergeados pelo PR #20 (`d7ad477`); área SVG protagonista, estados de origem sem falsa verificação, zoom mobile, navegação e métricas responsivas. QA visual em navegador continua pendente e o deploy está sendo confirmado.
 
 ## V3 visual — página da partida (22/11/2026)
 
 **Referência:** `SitePartida.dc.html` da prancha original fornecida pelo usuário e [documento do redesign](docs/plans/2026-11-22-redesign-ranking.md). O objetivo é priorizar a arena sem alterar o motor, o cálculo de pontos, o banco ou a API de replay.
 
-**Implementado na branch `chatgpt/partida-v3-20261122`:**
+**Implementado e integrado à `main` pelo [PR #20](https://github.com/AndreRuperto/svg-pacman-contributions/pull/20) — commit `d7ad477`:**
 
 - [x] Container isolado `pagina-partida` de até 1160px; a arena aparece **antes do seletor de tema e do placar**.
 - [x] Navegação anterior/próxima mantém os 44px, rótulos acessíveis e tema selecionado, pulando dias sem partida (sem inventar jogos para dias vazios).
@@ -165,7 +165,7 @@ Os PRs #8 e este são só de anotações.
 - [x] Banner original, quando existente, acessível em área secundária separada. Partida interrompida mantém alerta e regras de recorde existentes.
 - [x] Estilos `.partida-pagina` e `.pagina-partida` isolados, preservando V1 ranking e V2 perfil.
 - [x] Testes SSR de status com/sem snapshot, modo indisponível, escolha de tema, links entre datas não consecutivas, CSS responsivo e placar.
-- [ ] CI do PR #20 aprovada, merge na `main` e deploy Railway dos serviços `web` e `cron`: verificar em execução e registrar SHA.
+- [x] CI do PR #20 aprovada (TypeScript, lint, Vitest, PostgreSQL e Action), squash merge na `main` no commit `d7ad477`. Deploy Railway de `web` e `cron` em verificação final; não declarar `SUCCESS` até a confirmação.
 - [ ] QA visual real em 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%, teclado, Chrome/Firefox/WebKit e comportamento SVG/SMIL. **Não confundir testes de HTML/CSS com screenshots e inspeção do navegador.**
 - [ ] Em produção, confirmar uma partida posterior ao snapshot com `X-Pacman-Replay=verificado`, e testar separadamente um dia histórico com `reconstrucao`; ainda pendente de evidência operacional real.
 
