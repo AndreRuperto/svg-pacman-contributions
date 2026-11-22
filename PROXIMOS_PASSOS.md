@@ -1,7 +1,7 @@
 # Próximos passos
 
 - **Data:** 2026-11-22
-- **Branch de trabalho:** `chatgpt/replay-fiel-20261122` (PR #16). A `main` continua como versão publicada até a CI aprovar o merge.
+- **Branch:** `main`. PR #16 mergeado com sucesso em `8e61fbc` (22/11/2026).
 - **Site:** https://svg-pacman-ranking.up.railway.app
 - **Planos e desenhos:**
   - jogo: `docs/plans/2026-11-19-jogabilidade.md` · `docs/plans/2026-11-19-jogabilidade-design.md`
@@ -36,7 +36,7 @@ Os PRs #8 e este são só de anotações.
 
 ## Estado atual
 
-- **Testes:** CI com ESLint, TypeScript, Vitest, contrato do PostgreSQL 16 real e verificação do bundle da Action. O contrato antes pulado agora é executado no banco descartável do runner. O PR #16 depende de todos os passos verdes.
+- **Testes:** ESLint, TypeScript, Vitest e contrato do PostgreSQL 16 real aprovados na CI do PR #16, junto à validação do bundle compilado da Action. O contrato antes pulado agora executa em banco descartável.
 - **Railway, projeto `svg-pacman-ranking`:**
   - `web` roda `pnpm site:web`, no domínio `svg-pacman-ranking.up.railway.app`;
   - `cron` roda `pnpm site:cron` em `0 1 * * *` UTC;
@@ -63,8 +63,14 @@ Os PRs #8 e este são só de anotações.
 - [x] Identificar token expirado do GitHub (401) e retornar falha do cron sem revelar credenciais.
 - [x] SVG com viewBox, título, descrição e regra de movimento reduzido; validar compatibilidade visual depois.
 - [x] Validação de entradas da Action, documentação operacional e CONTRIBUTING.md.
-- [x] Bundle da Action recompilado e sincronizado pelo workflow (`c54ed6d`); ainda falta confirmar a CI completa após a sincronização.
-- [ ] Merge do PR #16, conferir deploy Railway dos serviços web e cron.
+- [x] Bundle recompilado e sincronizado pelo workflow (`c54ed6d`), com CI completa aprovada no PR #16.
+- [x] PR #16 mergeado (`8e61fbc`) e Railway confirmado com deploy `SUCCESS` nos serviços `web` e `cron` em 22/11/2026.
+
+## Acompanhamento depois da publicação
+
+- [ ] Confirmar a primeira partida diária **criada com snapshot** e abrir seu replay para checar placar e SVG na produção.
+- [ ] Conferir o visual do SVG com movimento reduzido em diferentes navegadores e leitores de tela; CSS interno foi adicionado, mas compatibilidade de SMIL varia.
+- [ ] Rotacionar `GITHUB_TOKEN` quando necessário, conferindo o resultado do cron no Railway; token não foi acessado nem substituído nesta rodada.
 
 ## Próximos passos (prioridade)
 
