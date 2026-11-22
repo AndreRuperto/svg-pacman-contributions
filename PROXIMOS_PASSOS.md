@@ -1,7 +1,7 @@
 # Próximos passos
 
-- **Data:** 2026-11-21
-- **Branch:** `claude/proximos-passos-2026-11-21` (só este arquivo). Todo o código está na `main` (PRs #2 a #14 mergeados).
+- **Data:** 2026-11-22
+- **Branch de trabalho:** `chatgpt/replay-fiel-20261122` (PR #16). A `main` continua como versão publicada até a CI aprovar o merge.
 - **Site:** https://svg-pacman-ranking.up.railway.app
 - **Planos e desenhos:**
   - jogo: `docs/plans/2026-11-19-jogabilidade.md` · `docs/plans/2026-11-19-jogabilidade-design.md`
@@ -36,7 +36,7 @@ Os PRs #8 e este são só de anotações.
 
 ## Estado atual
 
-- **Testes:** `pnpm lint`, `pnpm exec tsc --noEmit` e `pnpm test` passam (325 testes e 10 pulados, que são o contrato do Postgres e só rodam com `TEST_DATABASE_URL`). O CI está verde na `main`.
+- **Testes:** CI com ESLint, TypeScript, Vitest, contrato do PostgreSQL 16 real e verificação do bundle da Action. O contrato antes pulado agora é executado no banco descartável do runner. O PR #16 depende de todos os passos verdes.
 - **Railway, projeto `svg-pacman-ranking`:**
   - `web` roda `pnpm site:web`, no domínio `svg-pacman-ranking.up.railway.app`;
   - `cron` roda `pnpm site:cron` em `0 1 * * *` UTC;
@@ -54,20 +54,32 @@ Os PRs #8 e este são só de anotações.
   - a logo no cabeçalho, o favicon e a prévia de link;
   - os 8 temas do banner.
 
+## PR #16 — replay fiel e qualidade (22/11/2026)
+
+- [x] Salvar snapshot compacto das contribuições junto ao placar (schema aditivo JSONB).
+- [x] Usar snapshot para partidas novas e bloquear animação se a reexecução divergir do resultado persistido.
+- [x] Mostrar aviso na página das partidas antigas sem snapshot.
+- [x] Testes reais de PostgreSQL no CI e testes de serialização do snapshot.
+- [x] Identificar token expirado do GitHub (401) e retornar falha do cron sem revelar credenciais.
+- [x] SVG com viewBox, título, descrição e regra de movimento reduzido; validar compatibilidade visual depois.
+- [x] Validação de entradas da Action, documentação operacional e CONTRIBUTING.md.
+- [ ] Atualizar o bundle distribuído da Action e aprovar a CI completa.
+- [ ] Merge do PR #16, conferir deploy Railway dos serviços web e cron.
+
 ## Próximos passos (prioridade)
 
-- [ ] **Token do GitHub vence:** quando vencer, o cron para de jogar. Gerar outro (classic, sem nenhum escopo) e trocar `GITHUB_TOKEN` no serviço `web` do Railway. O `cron` acompanha pela referência.
+- [ ] **Token do GitHub:** a rotina agora identifica 401 e encerra com falha visível, sem consultas repetidas (PR #16). A rotação do segredo no Railway continua manual; não armazenar ou expor o valor.
 - [ ] **Prancha de design:** ela não existe mais. Decidir se recria, a partir da cópia local em `C:\tmp\prancha-pacman\project\` enquanto ela existir.
 - [ ] **Assets antigos:** decidir se apaga os que o código não usa mais (`src/assets/img/ghosts/*.png`, `src/assets/gifs/*.gif`, `src/assets/ghosts_constants.txt`). São cópias da arte do fliperama. Ficam por decisão de 20/11.
-- [ ] **Animação pode divergir da partida salva:** ver "Problemas conhecidos".
+- [x] **Replay de partidas novas:** cron guarda snapshot compacto e servidor só entrega replay se métricas e versão coincidirem (PR #16). Partidas legadas permanecem com aviso de reconstrução aproximada; ver "Problemas conhecidos".
 - [ ] **Opcional:**
   - rodar `pnpm format` no projeto inteiro, num PR só de formatação, e então ativar `pnpm format:check` no CI;
-  - SVG responsivo (`viewBox` + largura 100%) e acessibilidade (`<title>`/`aria-label` no SVG, `prefers-reduced-motion`), itens 41–42 do `TODO2.TXT`;
-  - os itens restantes do `TODO2.TXT`: replay, comparação lado a lado, validação de entrada da Action e retry na API do GitHub.
+  - conferir em navegadores e leitores de tela o SVG com `viewBox`, `<title>`, `<desc>` e regra `prefers-reduced-motion` adicionados no PR #16;
+  - os itens restantes do `TODO2.TXT`: comparação lado a lado, investigação do retry da API, cobertura visual cross-browser e futuras estratégias de snapshot de gameHistory se o motor evoluir. Validação das entradas da Action incluída no PR #16.
 
 ## Problemas conhecidos
 
-- **A animação do site pode divergir da partida salva.** `/api/partida` joga o dia de novo com as contribuições de *agora*, e o GitHub pode ter mudado a janela daquele dia. Por isso pontos, mortes ou fantasmas podem não bater com o que o cron gravou. Hoje o `web` só registra um `console.warn` com login e data. Correção: guardar as contribuições da janela (ou um hash delas) na partida e desenhar a animação a partir delas.
+- **Partidas históricas anteriores ao snapshot:** o calendário original não foi preservado. Elas permanecem no ranking e podem ser reconstruídas a partir do GitHub atual, mas a UI informa explicitamente que os números podem divergir. Quando houver, o SVG publicado no perfil continua acessível. **Para novas partidas**, o cron grava o calendário em JSONB e a API confere as métricas da repetição antes de servir o SVG (PR #16). Mudanças futuras de algoritmo exigem versionamento para manter essa garantia.
 - **Primeira abertura de uma partida é lenta:** leva alguns segundos, o tempo de buscar as contribuições e gerar o SVG. Depois vem do cache.
 
 ## Decisões tomadas
