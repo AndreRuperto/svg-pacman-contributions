@@ -6,6 +6,7 @@ import { addDays, dataValida, ultimoDiaCompleto } from './datas.js';
 import { loadJogadores, type Jogador, type Publicado } from './jogadores.js';
 import { listPublished, type CommitPublicado } from './publicados.js';
 import type { PartidaRepo } from './repo.js';
+import { guardarSnapshot } from './snapshot.js';
 import { PgRepo } from './repo-pg.js';
 
 /** Saldo da API do GitHub que o cron deixa sobrando para os outros usos do token. */
@@ -171,7 +172,8 @@ export async function runCron(deps: CronDeps): Promise<CronResult> {
       try {
         const p = await play({ login, date: data, contributions });
         if (p) {
-          await repo.upsert(p);
+          // A janela do GitHub é preservada junto do placar, antes que a API mude.
+          await repo.upsert({ ...p, snapshot: guardarSnapshot(contributions) });
           r.jogadas++;
         } else {
           await repo.marcarSemJogo(login, data, versao);
