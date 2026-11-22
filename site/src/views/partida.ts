@@ -132,7 +132,7 @@ ${possuiOriginal
     </aside>`
   : ''}
 </div>`;
-  return layout({ titulo: `${login} em ${quando}`, corpo });
+  return layout({ titulo: `${login} em ${quando}`, corpo, modo: 'partida' });
 }
 
 /**
