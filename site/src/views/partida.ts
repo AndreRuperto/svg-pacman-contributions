@@ -87,6 +87,12 @@ export function paginaPartida({
     ? html`<div class="cartao palco partida-palco">
         <img src="${urlSvg}" alt="Partida de ${login} em ${quando}" width="1166" height="229" class="partida-svg" decoding="async">
       </div>
+      <details class="partida-zoom">
+        <summary>Ampliar a arena</summary>
+        <div class="partida-zoom-janela" role="region" tabindex="0" aria-label="Arena ampliada com rolagem horizontal">
+          <img src="${urlSvg}" alt="Arena ampliada de ${login} em ${quando}" width="1166" height="229" loading="lazy" decoding="async" class="partida-svg-zoom">
+        </div>
+      </details>
       <p class="apoio partida-aviso-svg">Se a animação não carregar, <a href="${urlSvg}">abra o SVG diretamente</a> para consultar a resposta do servidor. Um erro de verificação não altera o placar abaixo.</p>`
     : html`<p class="cartao vazio partida-indisponivel">A animação não está disponível neste servidor.</p>`}
 </section>
