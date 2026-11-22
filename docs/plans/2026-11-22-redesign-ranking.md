@@ -1,5 +1,5 @@
 # Direção de design — SVG Pac-Man Ranking
-**Data:** 22/11/2026 · **Status:** V1 ranking publicada no PR #18; V2 perfil integrada à `main` pelo PR #19 (CI aprovada; publicação Railway em verificação), V3–V5 ainda planejadas · **Alvo:** evoluir frontend sem modificar motor e placares.
+**Data:** 22/11/2026 · **Status:** V1 ranking publicada no PR #18; V2 perfil integrada à `main` pelo PR #19 (CI aprovada; publicação Railway em verificação), V3 página da partida implementada na branch do PR #20 (aguardando CI e merge), V4–V5 planejadas · **Alvo:** evoluir frontend sem modificar motor e placares.
 
 ## Referências efetivamente conferidas (ZIP do usuário, 22/11)
 - `SiteRankingDesktop.dc.html`: artboard 1280 × 860, tabela com sete colunas e métricas alinhadas, filtros por pontuação/período e CTA discreto.
@@ -85,6 +85,16 @@ A referência visual é o artboard original `SiteJogador.dc.html` (390×1080). A
 - Lista de partidas: cada `<summary>` mostra **data, pontos e situação**, com seta à direita; detalhes mostram SVG na proporção original, atalhos “abrir partida” / “ver publicado”, e mensagem de fallback. Use separadores ou cartões sutis; evitar dezenas de cartões com borda espessa competindo com o gráfico.
 - A paginação precisa exibir “Página x de y” e manter a data/hierarquia ao navegar.
 
+## Estado da implementação V3 (22/11/2026)
+
+**Fonte visual:** artboard `SitePartida.dc.html` da prancha original do usuário; usar somente a hierarquia e a identidade, sem importar dados fictícios do mockup.
+
+**Aplicado:** layout SSR específico com arena destacada até 1160px, navegação 44px entre partidas existentes, `<img>` SVG com proporção preservada e link para abrir diretamente em caso de falha, formulário de tema abaixo do palco, placar de seis métricas em grade 2×3 / 3×2 / 6×1 e acesso contextual ao banner publicado.
+
+**Integridade:** o HTML **não** escreve “replay verificado” só porque o banco tem snapshot. Os estados são “Dados originais preservados”, “Reconstrução histórica” ou “Animação indisponível”. Somente a API de SVG compara realmente o replay e usa o cabeçalho `X-Pacman-Replay: verificado` quando entrega a animação. Sem JavaScript, um erro de rede/HTTP da imagem não pode ser detectado automaticamente pelo HTML: o texto alternativo e o link direto oferecem recuperação, mas não substituem uma experiência de erro mais robusta que deverá ser avaliada depois.
+
+**Falta:** screenshots de 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%; teclado; comportamento SMIL e redução de movimento; validação de um replay real com snapshot em produção. Testes de markup e CSS não são auditoria de navegador.
+
 ## 6. Partida (`/jogador/:login/:data`)
 **O replay é protagonista.** Priorizar arena antes dos números secundários.
 - Linha 1: “Voltar ao jogador”, data central e setas anterior/próximo nas extremidades; cada seta 44px; desabilitar semanticamente quando não houver dia.
@@ -123,7 +133,7 @@ A referência visual é o artboard original `SiteJogador.dc.html` (390×1080). A
 ## 10. Implementação sugerida em PRs pequenos
 1. **V1 · Hierarquia/ranking:** `views/ranking.ts`, `site/public/site.css` e testes de filtros. Capturas antes/depois em 320/390/1024/1440. Sem mudanças no motor.
 2. **V2 · Perfil/histórico:** quatro KPIs 2×2 no mobile, gráfico com períodos 30d/90d/todos e rolagem interna, estados e paginação. Código integrado na main pelo PR #19; screenshots/cross-browser ainda pendentes. Não mudar regras de score.
-3. **V3 · Partida:** arena proporcional, navegação e status de replay **baseado no backend**, tema e placar adaptativos. Tratar falha de API sem mostrar SVG inconsistente.
+3. **V3 · Partida:** código SSR na branch do PR #20: arena proporcional em destaque, navegação de datas, origem do replay fiel ao estado dos dados, seletor de temas secundário e placar 2×3/3×2/6×1. O HTTP 200 da API ainda determina a verificação verdadeira; QA visual continua pendente.
 4. **V4 · Acessibilidade transversal:** audit de navegação por teclado, zoom 200%, contraste e movimento reduzido em SVG/SMIL; browser matrix.
 5. **V5 · Prancha persistente:** criar imagens de referência *a partir da UI real* e salvar em `docs/design/` com indicação de versão/viewport. Proibido depender apenas de artefatos temporários.
 
@@ -136,4 +146,4 @@ A referência visual é o artboard original `SiteJogador.dc.html` (390×1080). A
 - Não afirmar testes manuais/navegadores executados apenas por existir checklist.
 
 ## Definição de pronto para a fase visual
-Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A V1 está na main via PR #18 e a V2 foi mergeada após CI verde pelo PR #19. V3–V5 continuam planejadas. Capturas e auditoria visual cross-browser ainda são pendentes.**
+Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A V1 está na main via PR #18 e a V2 foi mergeada após CI verde pelo PR #19. V3 tem implementação e testes no PR #20; V4–V5 continuam planejadas. Capturas e auditoria visual cross-browser ainda são pendentes.**
