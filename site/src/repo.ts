@@ -1,5 +1,6 @@
 import type { Partida } from '../../src/runner.js';
 import type { ReplaySnapshot } from './snapshot.js';
+import { cacheavel } from './replay-cache.js';
 
 /** Partida como ela sai do repositório (sem `svg`, com o sha do SVG publicado daquele dia). */
 export type PartidaSalva = Omit<Partida, 'svg'> & { publicado_sha: string | null };
@@ -16,6 +17,9 @@ export interface PartidaRepo {
   upsert(p: PartidaNova): Promise<void>;
   /** Snapshot da janela usada pelo cron; null para registros históricos sem janela. */
   obterSnapshot(login: string, data: string): Promise<ReplaySnapshot | null>;
+  /** Cache opcional, persistente em PostgreSQL, apenas para replays com snapshot conferido. */
+  obterSvg(login: string, data: string, tema: string, assinatura: string): Promise<string | null>;
+  gravarSvg(login: string, data: string, tema: string, assinatura: string, svg: string): Promise<void>;
   /** Ordem: data decrescente. */
   porJogador(login: string): Promise<PartidaSalva[]>;
   /** De `de` a `ate`, inclusive, só dos `logins`. */
@@ -40,12 +44,14 @@ const chave = (login: string, data: string) => `${chaveLogin(login)}|${data}`;
 export class MemoryRepo implements PartidaRepo {
   private partidas = new Map<string, PartidaSalva>();
   private snapshots = new Map<string, ReplaySnapshot>();
+  private svgCache = new Map<string, string>();
   private semJogo = new Map<string, string>();
 
   async upsert(p: PartidaNova): Promise<void> {
     const k = chave(p.login, p.data);
     const anterior = this.partidas.get(k);
     // Nunca reutilizar um snapshot de uma execução anterior após regravar uma partida.
+    for (const key of this.svgCache.keys()) if (key.startsWith(`${k}|`)) this.svgCache.delete(key);
     if (p.snapshot === undefined) this.snapshots.delete(k);
     else this.snapshots.set(k, p.snapshot.map((linha) => [...linha] as typeof linha));
     // Só os campos do placar são listados; a janela fica acessível separadamente.
@@ -68,6 +74,18 @@ export class MemoryRepo implements PartidaRepo {
   async obterSnapshot(login: string, data: string): Promise<ReplaySnapshot | null> {
     const linhas = this.snapshots.get(chave(login, data));
     return linhas === undefined ? null : linhas.map((linha) => [...linha] as typeof linha);
+  }
+
+  async obterSvg(login: string, data: string, tema: string, assinatura: string): Promise<string | null> {
+    return this.svgCache.get(`${chave(login, data)}|${tema}|${assinatura}`) ?? null;
+  }
+
+  async gravarSvg(login: string, data: string, tema: string, assinatura: string, svg: string): Promise<void> {
+    if (!cacheavel(svg)) return;
+    const key = `${chave(login, data)}|${tema}|${assinatura}`;
+    this.svgCache.delete(key);
+    this.svgCache.set(key, svg);
+    while (this.svgCache.size > 200) this.svgCache.delete(this.svgCache.keys().next().value!);
   }
 
   async porJogador(login: string): Promise<PartidaSalva[]> {
