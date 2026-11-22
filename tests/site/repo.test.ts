@@ -63,6 +63,23 @@ function contrato(nome: string, criar: () => Promise<PartidaRepo>) {
       expect(await repo.obterSnapshot('ana', '2026-11-20')).toBeNull();
     });
 
+    it('cache SVG persistente segmenta tema e assinatura, sem expor conteúdo ao ranking', async () => {
+      const base = p('ana', '2026-11-20');
+      const janela = [['2026-11-20', 2, 'FIRST_QUARTILE']] as [string, number, 'FIRST_QUARTILE'][];
+      await repo.upsert({ ...base, snapshot: janela });
+      const original = '<svg xmlns="http://www.w3.org/2000/svg"><title>Replay</title></svg>';
+      expect(await repo.obterSvg('Ana', base.data, 'neon', 'a'.repeat(64))).toBeNull();
+      await repo.gravarSvg('Ana', base.data, 'neon', 'a'.repeat(64), original);
+      expect(await repo.obterSvg('ana', base.data, 'neon', 'a'.repeat(64))).toBe(original);
+      expect(await repo.obterSvg('ana', base.data, 'brasa', 'a'.repeat(64))).toBeNull();
+      expect(await repo.obterSvg('ana', base.data, 'neon', 'b'.repeat(64))).toBeNull();
+      expect((await repo.porJogador('ana'))[0]).not.toHaveProperty('svg_gzip');
+
+      // A assinatura antiga deve deixar de ser usada mesmo quando o snapshot mudar.
+      await repo.upsert({ ...base, pontos: 999, snapshot: janela });
+      expect(await repo.obterSvg('ana', base.data, 'neon', 'a'.repeat(64))).toBeNull();
+    });
+
     it('datasExistentes filtra pela versão', async () => {
       await repo.upsert(p('ana', '2026-11-19', 100, '1.0.0'));
       await repo.upsert(p('ana', '2026-11-20', 100, '1.1.0'));
