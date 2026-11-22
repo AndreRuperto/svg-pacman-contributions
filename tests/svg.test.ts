@@ -40,6 +40,11 @@ describe('svg', () => {
     store.ghosts[0].scared = true;
     run(store, 6);
     const svg = SVG.generateAnimatedSVG(store);
+    expect(svg).toMatch(/<svg[^>]+viewBox="0 0 [0-9]+ [0-9]+"/);
+    expect(svg).toContain('role="img" aria-labelledby="pacman-svg-titulo pacman-svg-desc"');
+    expect(svg).toContain('<title id="pacman-svg-titulo">');
+    expect(svg).toContain('<desc id="pacman-svg-desc">');
+    expect(svg).toContain('prefers-reduced-motion');
     expect(svg).toContain('clip-path="url(#arena)"');
     expect(svg).toContain('id="tunnel-left"');
     expect(svg).toContain('id="tunnel-right"');
