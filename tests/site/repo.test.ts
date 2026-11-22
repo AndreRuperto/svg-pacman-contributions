@@ -48,7 +48,7 @@ function contrato(nome: string, criar: () => Promise<PartidaRepo>) {
         ['2026-11-20', 25, 'FOURTH_QUARTILE']
       ] as const;
       expect(await repo.obterSnapshot('Ana', '2026-11-20')).toBeNull();
-      await repo.upsert({ ...p('Ana', '2026-11-20'), snapshot: janela.map((l) => [...l]) });
+      await repo.upsert({ ...p('Ana', '2026-11-20'), snapshot: janela.map((l) => [...l] as [string, number, typeof l[2]]) });
       expect(await repo.obterSnapshot('ana', '2026-11-20')).toEqual(janela);
       expect((await repo.porJogador('ana'))[0]).not.toHaveProperty('snapshot');
 
