@@ -66,7 +66,7 @@ export function layout({ titulo, atual, corpo }: LayoutOpts): Html {
 <body>
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 <header class="topo">
-  <div class="topo-dentro">
+  <div class="topo-dentro${atual === 'ranking' ? ' topo-dentro-ranking' : ''}">
     <a class="marca" href="/"><img src="${IMAGENS['logo.svg'].url}" alt="" width="28" height="28">SVG Pac-Man</a>
     <nav aria-label="Principal">
       <ul class="topo-links">
@@ -77,7 +77,7 @@ export function layout({ titulo, atual, corpo }: LayoutOpts): Html {
     </nav>
   </div>
 </header>
-<main id="conteudo" class="pagina">
+<main id="conteudo" class="pagina${atual === 'ranking' ? ' pagina-ranking' : ''}">
 ${corpo}
 </main>
 </body>
