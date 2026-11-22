@@ -261,7 +261,7 @@ describe('GET /jogador/:login', () => {
     expect(html).toContain('class="perfil-historico"');
     expect(html).toContain('Exibindo 1–3 de 3');
     expect(html).toContain('<time class="partida-data" datetime="2026-11-20">20 nov. 2026</time>');
-    expect(html).toContain('class="partida-situacao-interrompida"');
+    expect(html).toContain('class="partida-situacao partida-situacao-interrompida"');
     expect(html).toContain('Concluída');
     expect(html).toContain('Interrompida');
     expect(html).toContain('<details class="partida"');
