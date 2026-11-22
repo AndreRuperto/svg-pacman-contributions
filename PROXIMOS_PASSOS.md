@@ -125,7 +125,9 @@ Os PRs #8 e este são só de anotações.
 - [x] Tokens preservados: `#0B0D12`, `#161A22`, `#FFD23F`, `#00E5FF`, Silkscreen, Space Grotesk, Inter e JetBrains Mono.
 - [x] Testes de markup, dados dinâmicos, filtros e CSS responsivo sem tocar nas fórmulas de score.
 - [ ] Prints e auditoria visual real em **320, 360, 390, 430, 768, 1024 e 1440px**, teclado, zoom 200% e navegadores compatíveis. O navegador de captura da sessão foi bloqueado: **não afirmar que screenshots ou QA visual foram concluídos**.
-- [ ] Validar CI, PR e deploy Railway; registrar resultados após executar.
+- [x] CI do PR #18 aprovada, merge na `main` no commit `3b3ba64` (22/11/2026), deploy Railway `SUCCESS` confirmado para `web` e `cron` com esse commit.
+
+**Publicação V1:** [PR #18](https://github.com/AndreRuperto/svg-pacman-contributions/pull/18), código mergeado e publicado. **Ainda pendente:** capturas do visual em navegadores reais e avaliação da legibilidade em 320–1440px; não considerar esse QA concluído apenas com CI verde.
 
 **Sequência depois da V1:** V2 perfil + gráfico de históricos longos; V3 página da partida e status verificado vs reconstrução; V4 acessibilidade/cross-browser; V5 preservar os artboards/fontes na documentação versionada. Não copiar dados inventados da prancha para produção.
 
