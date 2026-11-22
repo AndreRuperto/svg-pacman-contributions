@@ -21,6 +21,8 @@ export interface PartidaPagina {
   temaPadrao: ThemeKeys;
   /** `false`: o servidor não desenha partidas, a tela mostra um aviso no lugar da animação. */
   podeDesenhar?: boolean;
+  /** True apenas se o cron preservou a janela de contribuições desta partida. */
+  snapshotDisponivel?: boolean;
 }
 
 function seta(data: string | undefined, rotulo: string, simbolo: string, login: string, sufixo: string): Html {
@@ -33,7 +35,7 @@ function stat(rotulo: string, valor: string): Html {
   return html`<div class="tile"><p class="tile-rotulo">${rotulo}</p><p class="tile-valor">${valor}</p></div>`;
 }
 
-export function paginaPartida({ jogador, partida: p, tema, temaPadrao, podeDesenhar = true }: PartidaPagina): Html {
+export function paginaPartida({ jogador, partida: p, tema, temaPadrao, podeDesenhar = true, snapshotDisponivel = false }: PartidaPagina): Html {
   const { login } = jogador;
   // jogador.partidas está em ordem de data decrescente
   const i = jogador.partidas.findIndex((x) => x.data === p.data);
@@ -48,6 +50,9 @@ export function paginaPartida({ jogador, partida: p, tema, temaPadrao, podeDesen
   <h1><span class="sr">${login}, </span>${quando}</h1>
   ${seta(seguinte, 'Dia seguinte', '›', login, sufixo)}
 </div>
+${snapshotDisponivel
+  ? html`<p class="cartao apoio">Replay com a janela de contribuições preservada. O servidor confere o placar antes de disponibilizar a animação.</p>`
+  : html`<p class="cartao aviso">Partida histórica sem calendário original guardado: a animação abaixo é uma reconstrução com as contribuições atuais e pode diferir do placar. Se houver banner publicado, use “Ver como foi publicado neste dia”.</p>`}
 ${podeDesenhar
   ? html`<div class="cartao palco">
   <img src="/api/partida/${encodeURIComponent(login)}/${p.data}?tema=${tema}" alt="Partida de ${login} em ${quando}" width="1166" height="229" class="partida-svg">
