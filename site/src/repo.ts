@@ -1,10 +1,11 @@
 import type { Partida } from '../../src/runner.js';
+import type { ReplaySnapshot } from './snapshot.js';
 
 /** Partida como ela sai do repositório (sem `svg`, com o sha do SVG publicado daquele dia). */
 export type PartidaSalva = Omit<Partida, 'svg'> & { publicado_sha: string | null };
 
 /** Partida para gravar. `publicado_sha` ausente ou null mantém o que já estava gravado. */
-export type PartidaNova = Partida & { publicado_sha?: string | null };
+export type PartidaNova = Partida & { publicado_sha?: string | null; snapshot?: ReplaySnapshot };
 
 /**
  * Onde ficam as partidas. Os logins são comparados sem diferenciar maiúsculas
@@ -13,6 +14,8 @@ export type PartidaNova = Partida & { publicado_sha?: string | null };
  */
 export interface PartidaRepo {
   upsert(p: PartidaNova): Promise<void>;
+  /** Snapshot da janela usada pelo cron; null para registros históricos sem janela. */
+  obterSnapshot(login: string, data: string): Promise<ReplaySnapshot | null>;
   /** Ordem: data decrescente. */
   porJogador(login: string): Promise<PartidaSalva[]>;
   /** De `de` a `ate`, inclusive, só dos `logins`. */
@@ -36,12 +39,16 @@ const chave = (login: string, data: string) => `${chaveLogin(login)}|${data}`;
 /** Repositório em memória, para testes e desenvolvimento. */
 export class MemoryRepo implements PartidaRepo {
   private partidas = new Map<string, PartidaSalva>();
+  private snapshots = new Map<string, ReplaySnapshot>();
   private semJogo = new Map<string, string>();
 
   async upsert(p: PartidaNova): Promise<void> {
     const k = chave(p.login, p.data);
     const anterior = this.partidas.get(k);
-    // Só as colunas da tabela, como no PgRepo: campos a mais (svg ou outros) não são guardados.
+    // Nunca reutilizar um snapshot de uma execução anterior após regravar uma partida.
+    if (p.snapshot === undefined) this.snapshots.delete(k);
+    else this.snapshots.set(k, p.snapshot.map((linha) => [...linha] as typeof linha));
+    // Só os campos do placar são listados; a janela fica acessível separadamente.
     this.partidas.set(k, {
       login: p.login,
       data: p.data,
@@ -56,6 +63,11 @@ export class MemoryRepo implements PartidaRepo {
       versao_motor: p.versao_motor,
       publicado_sha: p.publicado_sha ?? anterior?.publicado_sha ?? null
     });
+  }
+
+  async obterSnapshot(login: string, data: string): Promise<ReplaySnapshot | null> {
+    const linhas = this.snapshots.get(chave(login, data));
+    return linhas === undefined ? null : linhas.map((linha) => [...linha] as typeof linha);
   }
 
   async porJogador(login: string): Promise<PartidaSalva[]> {
