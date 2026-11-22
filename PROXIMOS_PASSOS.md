@@ -159,7 +159,7 @@ Os PRs #8 e este são só de anotações.
 - [x] Container isolado `pagina-partida` de até 1160px; a arena aparece **antes do seletor de tema e do placar**.
 - [x] Navegação anterior/próxima mantém os 44px, rótulos acessíveis e tema selecionado, pulando dias sem partida (sem inventar jogos para dias vazios).
 - [x] Integridade com **três situações honestas**: `Dados originais preservados` (snapshot existe, mas **ainda não quer dizer replay verificado**); `Reconstrução histórica` (calendário original ausente, números podem divergir); `Animação indisponível` (servidor não pode renderizar). A API é quem confirma realmente a reprodução ao responder `HTTP 200` com `X-Pacman-Replay=verificado`. Em página HTML sem JavaScript, não afirmar o êxito antes dessa chamada.
-- [x] SVG com largura fluida, `aspect-ratio: 1166 / 229` e lugar reservado para evitar deslocamentos, mais **link direto de diagnóstico** caso a animação falhe.
+- [x] SVG com largura fluida, `aspect-ratio: 1166 / 229` e lugar reservado para evitar deslocamentos; no celular, opção nativa `<details>` **Ampliar a arena** com rolagem apenas dentro da imagem (sem JavaScript), além de **link direto de diagnóstico** caso a animação falhe.
 - [x] Seletor com oito temas mantido abaixo da arena, formulário GET e links existentes.
 - [x] Placar armazenado do dia identificado como tal; responsivo em **2×3 no mobile (<600px), 3×2 em tablet (600–1023px) e 6×1 em desktop (≥1024px)**, incluindo valores tabulares.
 - [x] Banner original, quando existente, acessível em área secundária separada. Partida interrompida mantém alerta e regras de recorde existentes.
