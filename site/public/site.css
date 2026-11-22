@@ -578,3 +578,165 @@ code { font-family: var(--mono); font-size: 0.9em; }
   .perfil-pagina .perfil-metricas .tile-valor { font-size: 18px; }
   .perfil-grafico-filtros a { font-size: 12px; }
 }
+
+
+/* ---------- V3 · página da partida (referência SitePartida original) ---------- */
+/* Somente /jogador/:login/:data: ranking e perfil mantêm seus estilos V1/V2. */
+.pagina-partida { max-width: 1160px; }
+.partida-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
+  min-width: 0;
+}
+.partida-pagina > * { min-width: 0; }
+.partida-pagina .partida-voltar { margin-bottom: calc(-1 * var(--esp-3)); }
+.partida-cabecalho { display: flex; flex-direction: column; gap: var(--esp-2); }
+.partida-pagina .dia-nav {
+  display: grid;
+  grid-template-columns: var(--toque) minmax(0, 1fr) var(--toque);
+  gap: var(--esp-3);
+  align-items: center;
+}
+.partida-pagina .dia-nav h1 {
+  min-width: 0;
+  font-size: clamp(19px, 3.2vw, 32px);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.partida-pagina .seta { width: var(--toque); height: var(--toque); }
+.partida-pagina .seta-off { color: var(--apoio); opacity: 0.35; }
+.partida-cabecalho-ajuda { text-align: center; font-size: 12px; }
+.partida-secao-arena,
+.partida-secao-placar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  min-width: 0;
+}
+.partida-secao-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--esp-2) var(--esp-4);
+  flex-wrap: wrap;
+}
+.partida-secao-topo h2 { margin: 0; }
+.partida-secao-topo .apoio { font-size: 13px; }
+.partida-integridade {
+  padding: var(--esp-3) var(--esp-4);
+  border-left: 3px solid var(--link);
+  background: var(--superficie);
+  border-radius: 0 var(--raio-campo) var(--raio-campo) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+.partida-integridade strong { font-size: 14px; font-weight: 700; }
+.partida-integridade p { font-size: 13px; line-height: 1.55; color: var(--apoio); }
+.partida-integridade-historica { border-left-color: var(--acento); }
+.partida-integridade-off { border-left-color: var(--apoio); }
+.partida-pagina .partida-palco {
+  padding: var(--esp-2);
+  overflow: hidden;
+  background: #0d1117;
+  border-radius: var(--raio-cartao);
+}
+.partida-pagina .partida-palco .partida-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1166 / 229;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.partida-zoom { display: none; }
+.partida-zoom > summary {
+  cursor: pointer;
+  min-height: var(--toque);
+  padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--fio);
+  border-radius: var(--raio-campo);
+  font-weight: 600;
+  color: var(--link);
+}
+.partida-zoom > summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.partida-zoom-janela {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  max-width: 100%;
+  margin-top: var(--esp-2);
+  border: 1px solid var(--fio);
+  border-radius: var(--raio-campo);
+  background: #0d1117;
+  padding: var(--esp-2);
+  -webkit-overflow-scrolling: touch;
+}
+.partida-zoom-janela .partida-svg-zoom {
+  display: block;
+  width: 920px;
+  max-width: none;
+  height: auto;
+}
+.partida-aviso-svg { font-size: 12px; line-height: 1.6; }
+.partida-indisponivel { padding: var(--esp-5); }
+.partida-pagina .partida-opcoes { display: flex; flex-direction: column; gap: var(--esp-2); }
+.partida-pagina .tema-form { max-width: 560px; }
+.partida-pagina .tema-campos { max-width: 460px; }
+.partida-pagina .tema-form label { color: var(--apoio); font-size: 14px; }
+.partida-pagina .tema-campos .botao { flex: none; }
+.partida-pagina .partida-aviso-limite { font-size: 14px; }
+.partida-placar-grade {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--esp-3);
+}
+.partida-pagina .partida-metrica {
+  min-width: 0;
+  min-height: 96px;
+  padding: var(--esp-4);
+  gap: var(--esp-2);
+}
+.partida-pagina .partida-metrica .tile-valor {
+  font-size: clamp(18px, 2.4vw, 24px);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.partida-pagina .partida-metrica:first-child .tile-valor { color: var(--acento); }
+.partida-pagina .partida-metrica .tile-rotulo { line-height: 1.35; }
+.partida-publicado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--esp-4);
+  padding: var(--esp-4);
+  border: 1px solid var(--fio);
+  border-radius: var(--raio-cartao);
+}
+.partida-publicado > div { display: flex; flex-direction: column; gap: var(--esp-1); min-width: 0; }
+.partida-publicado h2 { margin: 0; font-size: 17px; }
+.partida-publicado .botao { flex: none; }
+@media (min-width: 600px) {
+  .partida-placar-grade { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .partida-placar-grade { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .partida-pagina { gap: var(--esp-5); }
+  .partida-cabecalho-ajuda { font-size: 11px; }
+  .partida-secao-topo h2 { font-size: 18px; }
+  .partida-pagina .partida-palco { padding: var(--esp-1); }
+  .partida-zoom { display: block; }
+  .partida-publicado { flex-direction: column; align-items: stretch; }
+  .partida-publicado .botao { width: 100%; text-align: center; }
+  .partida-pagina .partida-metrica { min-height: 88px; padding: var(--esp-3); }
+  .partida-pagina .partida-metrica .tile-valor { font-size: 19px; }
+}
+@media (max-width: 359px) {
+  .partida-pagina .dia-nav { gap: var(--esp-1); }
+  .partida-pagina .dia-nav h1 { font-size: 18px; }
+  .partida-placar-grade { gap: var(--esp-2); }
+  .partida-pagina .partida-metrica .tile-valor { font-size: 17px; }
+  .partida-pagina .tema-campos .botao { padding: 0 var(--esp-3); }
+}

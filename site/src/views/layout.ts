@@ -38,10 +38,12 @@ export interface LayoutOpts {
   titulo: string;
   /** Link do cabeçalho marcado com `aria-current`. */
   atual?: 'ranking';
+  /** Amplia somente a arena na página da partida, sem afetar perfil/ranking. */
+  modo?: 'partida';
   corpo: Html;
 }
 
-export function layout({ titulo, atual, corpo }: LayoutOpts): Html {
+export function layout({ titulo, atual, modo, corpo }: LayoutOpts): Html {
   return html`<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -77,7 +79,7 @@ export function layout({ titulo, atual, corpo }: LayoutOpts): Html {
     </nav>
   </div>
 </header>
-<main id="conteudo" class="pagina${atual === 'ranking' ? ' pagina-ranking' : ''}">
+<main id="conteudo" class="pagina${atual === 'ranking' ? ' pagina-ranking' : ''}${modo === 'partida' ? ' pagina-partida' : ''}">
 ${corpo}
 </main>
 </body>
