@@ -70,6 +70,9 @@ export class PgRepo implements PartidaRepo {
         versao_motor = EXCLUDED.versao_motor,
         snapshot = EXCLUDED.snapshot,
         publicado_sha = COALESCE(EXCLUDED.publicado_sha, partidas.publicado_sha)`;
+    // Reprocessamento invalida todos os temas dessa partida. A assinatura
+    // impede leitura de cache antigo mesmo se outra gravação correr em paralelo.
+    await this.sql`DELETE FROM svg_cache WHERE login_key = ${chaveLogin(p.login)} AND data = ${p.data}`;
   }
 
   async obterSnapshot(login: string, data: string): Promise<ReplaySnapshot | null> {
