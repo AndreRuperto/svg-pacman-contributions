@@ -145,7 +145,7 @@ Os PRs #8 e este são só de anotações.
 - [x] Contagem `Exibindo x–y de n` e paginação de 30 registros preservada, mantendo filtro do gráfico no endereço `?periodo=30d&pagina=2`.
 - [x] CSS isolado em `.perfil-pagina` para não mexer no ranking V1 nem na página de replay V3.
 - [x] Testes para HTML semântico, períodos, 120 e 301 partidas, paginação, CSS mobile e filtros inválidos.
-- [x] CI do [PR #19](https://github.com/AndreRuperto/svg-pacman-contributions/pull/19) aprovada e merge na `main` no commit `6a36b39` (22/11/2026). **Deploy Railway:** confirmar status final antes de marcar.
+- [x] CI do [PR #19](https://github.com/AndreRuperto/svg-pacman-contributions/pull/19) aprovada, merge na `main` no commit `6a36b39` e deploy `SUCCESS` confirmado para `web` e `cron` no Railway em 22/11/2026.
 - [ ] QA visual com screenshots reais nos viewports 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%, teclado, Chrome/Firefox/WebKit. Testes de CSS e HTML **não substituem** inspeção em navegador. Não marcar sem evidência.
 
 **Próxima fase V3:** página da partida, estado verificável (snapshot conferido ou reconstrução histórica), área SVG protagonista, seleção de tema secundária, navegação anterior/próximo e métricas responsivas. Não alterar motor, pontuação ou cache em uma PR de visual.
