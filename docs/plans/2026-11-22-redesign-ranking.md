@@ -89,7 +89,7 @@ A referência visual é o artboard original `SiteJogador.dc.html` (390×1080). A
 
 **Fonte visual:** artboard `SitePartida.dc.html` da prancha original do usuário; usar somente a hierarquia e a identidade, sem importar dados fictícios do mockup.
 
-**Aplicado:** layout SSR específico com arena destacada até 1160px, navegação 44px entre partidas existentes, `<img>` SVG com proporção preservada e link para abrir diretamente em caso de falha, formulário de tema abaixo do palco, placar de seis métricas em grade 2×3 / 3×2 / 6×1 e acesso contextual ao banner publicado.
+**Aplicado:** layout SSR específico com arena destacada até 1160px, navegação 44px entre partidas existentes, `<img>` SVG com proporção preservada e link para abrir diretamente em caso de falha; no mobile, `<details>` de ampliação opcional com região rolável focável por teclado (sem zoom global da página); formulário de tema abaixo do palco, placar de seis métricas em grade 2×3 / 3×2 / 6×1 e acesso contextual ao banner publicado.
 
 **Integridade:** o HTML **não** escreve “replay verificado” só porque o banco tem snapshot. Os estados são “Dados originais preservados”, “Reconstrução histórica” ou “Animação indisponível”. Somente a API de SVG compara realmente o replay e usa o cabeçalho `X-Pacman-Replay: verificado` quando entrega a animação. Sem JavaScript, um erro de rede/HTTP da imagem não pode ser detectado automaticamente pelo HTML: o texto alternativo e o link direto oferecem recuperação, mas não substituem uma experiência de erro mais robusta que deverá ser avaliada depois.
 
