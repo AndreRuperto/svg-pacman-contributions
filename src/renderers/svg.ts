@@ -70,7 +70,12 @@ const generateAnimatedSVG = (store: StoreType) => {
 	const totalDurationFormatted = `${Math.floor(totalSecs / 60)}m ${String(totalSecs % 60).padStart(2, '0')}s`;
 	
 	// Estrutura básica do SVG
-	let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
+	let svg = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="pacman-svg-titulo pacman-svg-desc" xmlns="http://www.w3.org/2000/svg">`;
+	svg += `<title id="pacman-svg-titulo">Pac-Man nas contribuições do GitHub</title>`;
+	svg += `<desc id="pacman-svg-desc">Animação do Pac-Man em um calendário de contribuições, com fantasmas e placar final. O gráfico de contribuições não representa uma partida controlada pelo usuário.</desc>`;
+	// SVG embutido como imagem: estilos internos não dependem da página hospedeira.
+	// Desativa elementos SMIL quando o sistema pede menos movimento.
+	svg += `<style>@media (prefers-reduced-motion: reduce) { animate, animateTransform, animateMotion, set { display: none !important; } }</style>`;
 	// Com config.date, a data vem do dia jogado: o SVG de um dia fica estável.
 	const day = store.config.date;
 	svg += `<desc>Generated with pacman-contribution-graph on ${day ?? new Date()}</desc>`;

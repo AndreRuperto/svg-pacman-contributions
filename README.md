@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Criar diretório dist
         run: mkdir -p dist
@@ -111,9 +111,9 @@ Esses níveis são relativos ao padrão de contribuições de cada usuário e ca
 | `github_user_name` | Usuário do GitHub                        | (obrigatório)  | Qualquer nome de usuário válido do GitHub     |
 | `github_token`     | Token do GitHub para acesso à API        | (obrigatório)  | `secrets.GITHUB_TOKEN` ou token pessoal com leitura pública |
 | `theme`            | Tema de cores                            | `github-dark`  | `github`, `github-dark`, `brasa`, `arcade`, `neon`, `alto-contraste`, `gitlab`, `gitlab-dark` |
-| `output_directory` | Pasta de saída dos SVGs                  | `dist`         | Qualquer caminho local válido                 |
+| `output_directory` | Pasta de saída dos SVGs                  | `dist`         | Caminho relativo dentro do workspace         |
 | `player_style`     | Estilo de jogo do Pac-Man                | `oportunista`  | `oportunista`, `agressivo`, `conservador`     |
-| `speed`            | Velocidade da animação                   | `normal`       | `slow` (½×), `normal`, `fast` (2×) ou um multiplicador (ex.: `1.5`) |
+| `speed`            | Velocidade da animação                   | `normal`       | `slow` (½×), `normal`, `fast` (2×) ou número entre `0.25` e `3` |
 
 ### Opções da biblioteca (`PacmanRenderer`)
 
@@ -135,6 +135,13 @@ Todo dia, um cron joga a partida de cada jogador sobre o próprio gráfico de co
 
 **Para entrar:** adicione seu login em [`ranking/jogadores.json`](ranking/jogadores.json) e abra um pull request. Na rodada seguinte, o histórico do último ano entra junto.
 
+### 🔁 Replay e integridade do ranking
+
+- Para partidas gravadas **após a atualização com snapshots**, o cron salva no PostgreSQL a janela de contribuições públicas usada na partida (data, quantidade e nível por dia), além do placar.
+- O site utiliza **essa janela preservada**, sem consultar novamente as contribuições mutáveis. Antes de entregar o SVG, confere pontos, mortes, fantasmas, combo, quadros, células, eficiência e versão do motor.
+- Partidas **anteriores aos snapshots** não são apagadas. A página explica que o replay é uma reconstrução com dados atuais e **pode diferir do placar**. Quando disponível, o botão **“Ver como foi publicado neste dia”** abre o SVG antigo.
+- O snapshot só guarda os dados públicos necessários à reprodução, nunca tokens nem conteúdo privado. Mudanças nas regras do motor devem vir com testes e revisão da versão.
+
 ### 🎨 Temas
 
 | Tema | Visual |
@@ -149,6 +156,8 @@ Todo dia, um cron joga a partida de cada jogador sobre o próprio gráfico de co
 Todo tema define as mesmas cores (fundo, células, paredes, textos, túnel, Pac-Man, power-up e fantasma piscando) e passa nos testes de contraste: texto ≥ 4,5:1 e paredes ≥ 3:1 sobre o fundo. Nos temas claros, o Pac-Man e os olhos dos fantasmas ganham contorno escuro para não sumir no branco; no `arcade`, o fantasma assustado ganha contorno branco para não sumir nas células azuis.
 
 No fim da animação, um placar mostra pontos, fantasmas comidos, maior combo, mortes e duração.
+
+O SVG inclui `viewBox` para escala proporcional, título e descrição acessíveis e uma regra interna para reduzir as animações SMIL quando o navegador sinalizar `prefers-reduced-motion`. O comportamento de movimento reduzido depende do suporte do navegador a SMIL: valide visualmente nos navegadores de destino.
 
 ### 🎲 Partida estável durante o dia
 
@@ -185,13 +194,13 @@ Construído com TypeScript e Node.js, o projeto consiste em:
 - `src/`: Lógica principal do jogo e renderização
 - `tools/preview.ts`: Preview local do SVG
 - `github-action/`: Integração com GitHub Action
-- `tests/`: Testes com Vitest (regras de comer, túneis, fantasmas, IA e uma partida completa por estilo)
+- `tests/`: Testes com Vitest (regras, túneis, fantasmas, IA, snapshots, PostgreSQL e geração SVG)
 
 Comandos úteis:
 
 ```bash
 pnpm install
-pnpm test                 # roda todos os testes
+pnpm test                 # testa regras e memória; na CI também executa PostgreSQL real
 pnpm exec tsc --noEmit    # checagem de tipos
 pnpm run build:web        # gera dist/pacman-contribution-graph.min.js
 pnpm run build:action     # gera github-action/dist/index.js
@@ -208,6 +217,16 @@ GITHUB_TOKEN=seu_token pnpm preview --user seu_login # suas contribuições reai
 O SVG é gravado em `outputs/preview-<estilo>-<tema>.svg` e aberto no navegador (`--no-open` para só gravar).
 
 A partida completa (`tests/full-game.test.ts`) grava um SVG por estilo em `outputs/partida-<estilo>.svg` — abra no navegador para conferir a animação.
+
+### 🛡️ Operação do ranking e token GitHub
+
+No Railway, os serviços `web` e `cron` usam `GITHUB_TOKEN` para consultar contribuições públicas. **Não compartilhe o token no Git, nos logs ou em issues.** Prefira credenciais de leitura com permissões mínimas e expiração controlada.
+
+Quando o GitHub responder **401**, o cron agora interrompe consultas, registra uma mensagem sobre credencial inválida ou expirada e encerra com erro. Para renovar, atualize a variável protegida no serviço `web`; o serviço `cron` pode referenciá-la (sem copiar a credencial). Reinicie ou rode novamente o cron para confirmar a retomada. Esta alteração **não renova automaticamente** credenciais.
+
+**Banco na CI:** um PostgreSQL 16 descartável é criado para os testes, por meio de `TEST_DATABASE_URL`. Não são usadas credenciais do Railway ou dados de produção.
+
+**Bundle da Action:** qualquer alteração em `src/` que afete a Action exige `pnpm run build:action` e atualização de `github-action/dist/index.js`. O CI rejeita bundles desatualizados. Veja [`CONTRIBUTING.md`](CONTRIBUTING.md) para o procedimento completo.
 
 ## 🙏 Créditos
 

@@ -14,10 +14,14 @@ CREATE TABLE IF NOT EXISTS partidas (
   interrompida boolean NOT NULL DEFAULT false,
   versao_motor text NOT NULL,
   publicado_sha text,
+  -- Janela imutável de contribuições usada na execução do motor; null para partidas antigas.
+  snapshot jsonb,
   criado_em timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (login_key, data),
   CHECK (login_key = lower(login))
 );
+-- Aplicável também a bancos já existentes, sem alterar placares históricos.
+ALTER TABLE partidas ADD COLUMN IF NOT EXISTS snapshot jsonb;
 CREATE INDEX IF NOT EXISTS partidas_data ON partidas (data);
 
 -- Dias em que a janela não tinha nenhuma contribuição (playDay devolveu null).

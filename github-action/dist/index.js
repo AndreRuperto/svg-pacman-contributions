@@ -20418,7 +20418,10 @@ var init_svg = __esm({
       const totalDurationMs = store.gameHistory.length * frameMs;
       const totalSecs = Math.round(totalDurationMs / 1e3);
       const totalDurationFormatted = `${Math.floor(totalSecs / 60)}m ${String(totalSecs % 60).padStart(2, "0")}s`;
-      let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
+      let svg = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="pacman-svg-titulo pacman-svg-desc" xmlns="http://www.w3.org/2000/svg">`;
+      svg += `<title id="pacman-svg-titulo">Pac-Man nas contribui\xE7\xF5es do GitHub</title>`;
+      svg += `<desc id="pacman-svg-desc">Anima\xE7\xE3o do Pac-Man em um calend\xE1rio de contribui\xE7\xF5es, com fantasmas e placar final. O gr\xE1fico de contribui\xE7\xF5es n\xE3o representa uma partida controlada pelo usu\xE1rio.</desc>`;
+      svg += `<style>@media (prefers-reduced-motion: reduce) { animate, animateTransform, animateMotion, set { display: none !important; } }</style>`;
       const day = store.config.date;
       svg += `<desc>Generated with pacman-contribution-graph on ${day ?? /* @__PURE__ */ new Date()}</desc>`;
       svg += `<metadata>
@@ -28337,13 +28340,58 @@ var init_src2 = __esm({
   }
 });
 
+// src/utils/action-inputs.ts
+var action_inputs_exports = {};
+__export(action_inputs_exports, {
+  validarEstilo: () => validarEstilo,
+  validarTema: () => validarTema,
+  validarUsuarioGitHub: () => validarUsuarioGitHub,
+  validarVelocidade: () => validarVelocidade
+});
+function validarUsuarioGitHub(texto) {
+  const usuario = texto.trim();
+  if (!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(usuario)) {
+    throw new Error("github_user_name inv\xE1lido: use o login do GitHub (1\u201339 caracteres, letras, n\xFAmeros e h\xEDfen)");
+  }
+  return usuario;
+}
+function validarTema(texto) {
+  if (!THEMES.includes(texto)) {
+    throw new Error(`theme inv\xE1lido: use ${THEMES.join(", ")}`);
+  }
+  return texto;
+}
+function validarEstilo(texto) {
+  if (!STYLES.includes(texto)) {
+    throw new Error(`player_style inv\xE1lido: use ${STYLES.join(", ")}`);
+  }
+  return texto;
+}
+function validarVelocidade(texto) {
+  if (texto === "slow" || texto === "normal" || texto === "fast") return texto;
+  const n = Number(texto);
+  if (!texto.trim() || !Number.isFinite(n) || n < 0.25 || n > 3) {
+    throw new Error("speed inv\xE1lido: use slow, normal, fast ou n\xFAmero de 0.25 a 3");
+  }
+  return n;
+}
+var THEMES, STYLES;
+var init_action_inputs = __esm({
+  "src/utils/action-inputs.ts"() {
+    "use strict";
+    THEMES = ["github", "github-dark", "brasa", "arcade", "neon", "alto-contraste", "gitlab", "gitlab-dark"];
+    STYLES = ["oportunista", "agressivo", "conservador"];
+  }
+});
+
 // github-action/src/index.js
 var core = require_core();
 var fs2 = require("fs");
 var path = require("path");
 var { PacmanRenderer: PacmanRenderer2 } = (init_src2(), __toCommonJS(src_exports));
+var { validarUsuarioGitHub: validarUsuarioGitHub2, validarTema: validarTema2, validarEstilo: validarEstilo2, validarVelocidade: validarVelocidade2 } = (init_action_inputs(), __toCommonJS(action_inputs_exports));
 async function generateSvg(username, token, theme, playerStyle, animationSpeed) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let generatedSvg = "";
     const config = {
       platform: "github",
@@ -28361,25 +28409,35 @@ async function generateSvg(username, token, theme, playerStyle, animationSpeed) 
         resolve(generatedSvg);
       }
     };
-    const renderer = new PacmanRenderer2(config);
-    renderer.start();
+    try {
+      const renderer = new PacmanRenderer2(config);
+      Promise.resolve(renderer.start()).catch(reject);
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 async function run() {
   try {
-    const username = core.getInput("github_user_name", { required: true });
-    const token = core.getInput("github_token");
-    const selectedTheme = core.getInput("theme") || "github-dark";
+    const username = validarUsuarioGitHub2(core.getInput("github_user_name", { required: true }));
+    const token = core.getInput("github_token", { required: true });
+    core.setSecret(token);
+    const selectedTheme = validarTema2(core.getInput("theme") || "github-dark");
     const outputDir = core.getInput("output_directory") || "dist";
-    const playerStyle = core.getInput("player_style") || "oportunista";
-    const speedInput = core.getInput("speed") || "normal";
-    const animationSpeed = Number.isFinite(Number(speedInput)) ? Number(speedInput) : speedInput;
-    fs2.mkdirSync(outputDir, { recursive: true });
+    const caminho = path.resolve(process.cwd(), outputDir);
+    const relativo = path.relative(process.cwd(), caminho);
+    if (path.isAbsolute(outputDir) || relativo === ".." || relativo.startsWith(".." + path.sep)) {
+      throw new Error("output_directory deve apontar para uma pasta dentro do workspace");
+    }
+    const playerStyle = validarEstilo2(core.getInput("player_style") || "oportunista");
+    const animationSpeed = validarVelocidade2(core.getInput("speed") || "normal");
+    fs2.mkdirSync(caminho, { recursive: true });
     console.log(`\u{1F7E1} Gerando SVG para o tema: ${selectedTheme}`);
     const svg = await generateSvg(username, token, selectedTheme, playerStyle, animationSpeed);
+    if (!svg || !svg.trimStart().startsWith("<svg")) throw new Error("O renderizador n\xE3o produziu um SVG v\xE1lido");
     const sufixo = { github: "", "github-dark": "-dark" }[selectedTheme] ?? `-${selectedTheme}`;
     const fileName = `pacman-contribution-graph${sufixo}.svg`;
-    const fullPath = path.join(outputDir, fileName);
+    const fullPath = path.join(caminho, fileName);
     fs2.writeFileSync(fullPath, svg);
     console.log(`\u2705 SVG salvo em: ${fullPath}`);
     core.setOutput("svg", svg);

@@ -1,0 +1,48 @@
+name: Sincronizar bundle da GitHub Action
+
+on:
+  push:
+    # Apenas branches de trabalho internas. PRs de forks nao recebem token com escrita.
+    branches:
+      - 'chatgpt/**'
+      - 'claude/**'
+    paths:
+      - 'src/**'
+      - 'github-action/src/**'
+      - '.github/workflows/sincronizar-bundle.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bundle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  atualizar:
+    if: github.repository == 'AndreRuperto/svg-pacman-contributions'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Recompilar Action
+        run: pnpm run build:action
+      - name: Registrar bundle na branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add github-action/dist/index.js
+          if git diff --cached --quiet; then
+            echo "Bundle ja corresponde ao codigo."
+          else
+            git commit -m "build(action): sincroniza bundle gerado"
+            git push origin HEAD:"$GITHUB_REF_NAME"
+          fi

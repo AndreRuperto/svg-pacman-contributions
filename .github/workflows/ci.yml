@@ -7,8 +7,25 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pacman
+          POSTGRES_PASSWORD: pacman_ci
+          POSTGRES_DB: pacman_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pacman -d pacman_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      # Apenas o banco descartável do runner, nunca credenciais do Railway.
+      TEST_DATABASE_URL: postgres://pacman:pacman_ci@127.0.0.1:5432/pacman_test
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

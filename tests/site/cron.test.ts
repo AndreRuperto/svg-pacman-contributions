@@ -265,6 +265,21 @@ describe('runCron', () => {
     });
   });
 
+  it('401 por token expirado interrompe todos os jogadores sem tentar outros dias', async () => {
+    const f = fakeFetch(5000, { 'Ana|2026-11-19': 'GITHUB_401' });
+    const bia: Jogador = { login: 'bia', desde: '2026-11-20' };
+    const logs: string[] = [];
+    const d = deps({ fetchWindow: f.fn, jogadores: [ana, bia], log: (m) => logs.push(m) });
+    const r = await runCron(d);
+    expect(r.parou).toBe('token');
+    expect(f.chamadas).toEqual(['Ana|2026-11-20', 'Ana|2026-11-19']);
+    expect(r.jogadores).toEqual([
+      expect.objectContaining({ login: 'Ana', jogadas: 1, erros: 0, pendentes: 4 }),
+      expect.objectContaining({ login: 'bia', jogadas: 0, erros: 0, pendentes: 1 })
+    ]);
+    expect(logs.some((m) => /credencial GitHub inválida ou expirada/i.test(m))).toBe(true);
+  });
+
   it.each(['GITHUB_403', 'GITHUB_429'])('%s (limite secundário) para a rodada sem gastar as tentativas', async (erro) => {
     const f = fakeFetch(5000, { 'Ana|2026-11-19': erro });
     const bia: Jogador = { login: 'bia', desde: '2026-11-20' };

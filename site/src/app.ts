@@ -314,7 +314,8 @@ export function createApp(deps: AppDeps): Hono {
     if (!partida) return falha(c, 404, 'Partida não encontrada', `Não há partida de ${d.login} neste dia.`);
     const t = c.req.query('tema');
     const tema = t !== undefined && temaValido(t) ? t : TEMA_PADRAO;
-    return pagina(c, paginaPartida({ jogador: d, partida, tema, temaPadrao: TEMA_PADRAO, podeDesenhar }));
+    const snapshotDisponivel = (await deps.repo.obterSnapshot(d.login, data)) !== null;
+    return pagina(c, paginaPartida({ jogador: d, partida, tema, temaPadrao: TEMA_PADRAO, podeDesenhar, snapshotDisponivel }));
   });
 
   app.get('/jogador/:login/:data/publicado', async (c) => {

@@ -2,7 +2,7 @@
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { serve } from '@hono/node-server';
 import { fetchContributionsWindow } from '../../src/providers/github-contributions.js';
-import { playDay, type Partida } from '../../src/runner.js';
+import { ENGINE_VERSION, playDay, type Partida } from '../../src/runner.js';
 import { SemRender, createApp } from './app.js';
 import { JOGADORES_URL, fetchComTimeout, runCron } from './cron.js';
 import { addDays, ultimoDiaCompleto } from './datas.js';
@@ -10,6 +10,7 @@ import { loadJogadores, type Jogador, type LoadOptions } from './jogadores.js';
 import { listPublished } from './publicados.js';
 import { MemoryRepo, type PartidaRepo, type PartidaSalva } from './repo.js';
 import { PgRepo } from './repo-pg.js';
+import { recuperarSnapshot } from './snapshot.js';
 
 /** A lista de jogadores é relida a cada 10 minutos. */
 export const RECARGA_MS = 10 * 60_000;
@@ -110,6 +111,18 @@ export function conferirDivergencia(
   avisar(`[web] a animação de ${login} em ${data} não bate com a partida salva (${detalhe})`);
 }
 
+/** Recusa entregar SVG cujo replay não reproduz o resultado registrado. */
+export function validarReplay(salva: PartidaSalva, nova: Partida | null): void {
+  if (!nova || salva.versao_motor !== ENGINE_VERSION) {
+    throw new SemRender('motor diferente ou partida sem resultado: replay não verificável');
+  }
+  const campos = (['pontos', 'mortes', 'fantasmas', 'maior_combo', 'quadros', 'celulas', 'interrompida'] as const)
+    .filter((k) => salva[k] !== nova[k]);
+  if (campos.length || Math.abs(salva.eficiencia - nova.eficiencia) > 1e-9) {
+    throw new SemRender(`replay divergente de ${salva.login} ${salva.data}: ${[...campos, 'eficiencia'].join(', ')}`);
+  }
+}
+
 /** Copia a lista com `desde` limitado aos últimos `dias` até `ultimo`. */
 export function aparar(jogadores: Jogador[], ultimo: string, dias: number): Jogador[] {
   const inicio = addDays(ultimo, -(dias - 1));
@@ -164,10 +177,19 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<void> 
     confiarProxy: cfg.confiarProxy,
     podeDesenhar: Boolean(token),
     renderSvg: async (login, data, tema, salva: PartidaSalva) => {
-      if (!token) throw new SemRender('sem GITHUB_TOKEN');
-      const { contributions } = await fetchContributionsWindow(login, data, token, fetchComTimeout);
+      // Partidas novas usam a janela original guardada pelo cron: nenhuma consulta
+      // ao GitHub durante o replay. Para as antigas, a janela não foi preservada.
+      const snapshot = await repo.obterSnapshot(login, data);
+      if (snapshot !== null && salva.versao_motor !== ENGINE_VERSION) {
+        throw new SemRender('versão do motor diferente da partida gravada');
+      }
+      if (snapshot === null && !token) throw new SemRender('sem GITHUB_TOKEN para reconstrução legada');
+      const contributions = snapshot !== null
+        ? recuperarSnapshot(snapshot)
+        : (await fetchContributionsWindow(login, data, token!, fetchComTimeout)).contributions;
       const partida = await playDay({ login, date: data, contributions, theme: tema, withSvg: true });
-      if (partida) conferirDivergencia(login, data, salva, partida);
+      if (snapshot !== null) validarReplay(salva, partida);
+      else if (partida) conferirDivergencia(login, data, salva, partida);
       return partida?.svg ?? null;
     }
   });

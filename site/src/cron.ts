@@ -6,6 +6,7 @@ import { addDays, dataValida, ultimoDiaCompleto } from './datas.js';
 import { loadJogadores, type Jogador, type Publicado } from './jogadores.js';
 import { listPublished, type CommitPublicado } from './publicados.js';
 import type { PartidaRepo } from './repo.js';
+import { guardarSnapshot } from './snapshot.js';
 import { PgRepo } from './repo-pg.js';
 
 /** Saldo da API do GitHub que o cron deixa sobrando para os outros usos do token. */
@@ -57,7 +58,7 @@ export interface ResumoJogador {
 }
 
 export interface CronResult {
-  parou: 'limite' | null;
+  parou: 'limite' | 'token' | null;
   /** Último dia jogado (AAAA-MM-DD). */
   ultimo: string;
   jogadores: ResumoJogador[];
@@ -139,6 +140,11 @@ export async function runCron(deps: CronDeps): Promise<CronResult> {
         janela = await fetchWindow(login, data);
       } catch (e) {
         const msg = mensagem(e);
+        if (msg === 'GITHUB_401' || /^GITHUB_GRAPHQL:.*(bad credentials|expired token)/i.test(msg)) {
+          resultado.parou = 'token';
+          avisar(r, 'credencial GitHub inválida ou expirada; verifique GITHUB_TOKEN no Railway');
+          break;
+        }
         if (msg === 'USUARIO_NAO_ENCONTRADO') {
           naoEncontrado = true;
           avisar(r, 'usuário não encontrado no GitHub; pulado');
@@ -171,7 +177,8 @@ export async function runCron(deps: CronDeps): Promise<CronResult> {
       try {
         const p = await play({ login, date: data, contributions });
         if (p) {
-          await repo.upsert(p);
+          // A janela do GitHub é preservada junto do placar, antes que a API mude.
+          await repo.upsert({ ...p, snapshot: guardarSnapshot(contributions) });
           r.jogadas++;
         } else {
           await repo.marcarSemJogo(login, data, versao);
@@ -192,7 +199,7 @@ export async function runCron(deps: CronDeps): Promise<CronResult> {
     }
     r.pendentes = naoEncontrado ? 0 : faltam.length - i;
 
-    if (jogador.publicado && deps.listPublished && !naoEncontrado) {
+    if (jogador.publicado && deps.listPublished && !naoEncontrado && resultado.parou !== 'token') {
       try {
         const partidas = await repo.porJogador(login);
         const jaMarcou = partidas.some((p) => p.publicado_sha !== null);
@@ -279,6 +286,10 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<number
         r.total
       ) + (r.parou === 'limite' ? ' — parou pelo limite da API' : '')
     );
+    if (r.parou === 'token') {
+      console.error('[cron] token GitHub expirado ou inválido: verifique GITHUB_TOKEN; a execução falhou sem repetir consultas');
+      return 1;
+    }
     return 0;
   } catch (e) {
     console.error(`[cron] falhou: ${mensagem(e)}`);
