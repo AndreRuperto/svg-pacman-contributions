@@ -6,7 +6,7 @@
 - **Planos e desenhos:**
   - jogo: `docs/plans/2026-11-19-jogabilidade.md` · `docs/plans/2026-11-19-jogabilidade-design.md`
   - site: `docs/plans/2026-11-20-site-ranking.md` · `docs/plans/2026-11-20-site-ranking-design.md`
-- **Prancha de design:** "SVG Pac-Man · Identidade e sistema de design" (artifact `JMgq2AGqBKnyHFRLNT92cj`). **Não existe mais em 21/11:** foi apagada ou o acesso caiu. Cópia local dos quadros em `C:\tmp\prancha-pacman\project\` (pasta temporária, pode sumir).
+- **Prancha original recuperada em 22/11/2026:** o usuário forneceu o ZIP completo `SVG Pac-Man · Identidade e sistema de design-project.zip`, com `canvas.json` e 12 artboards `.dc.html` (identidade, componentes, temas, banner, celular, placar, fantasmas, logo e quatro telas). **É um projeto de design com exemplos ilustrativos, não um print do site em produção.** As referências foram inspecionadas e aplicadas na V1; o ZIP original ainda não foi versionado no GitHub.
 
 ## O que foi feito (19 a 21/11)
 
@@ -112,6 +112,23 @@ Os PRs #8 e este são só de anotações.
 
 **Sequência:** PR #17 confiabilidade → V1 ranking → V2 perfil → V3 partida → V4 acessibilidade → V5 prancha e limpeza. **O visual continua planejado, não foi redesenhado no PR #17.**
 
+## V1 visual — ranking inspirado na prancha original (22/11/2026)
+
+**Fonte restaurada:** o ZIP `SVG Pac-Man · Identidade e sistema de design-project.zip` contém `SiteRankingDesktop.dc.html` (1280×860), `SiteRanking.dc.html` (390×844), `SiteJogador.dc.html`, `SitePartida.dc.html`, `Logo.dc.html` e outros artboards. Jogadores e números em colchetes são **placeholders**. O site usa somente seus dados reais, nunca os do mockup.
+
+**Mudanças feitas na branch `chatgpt/ranking-design-original-v1-20261122`:**
+- [x] Hierarquia: título → descrição → filtros → data/contagem → classificação, sem cards decorativos.
+- [x] Desktop: tabela com fundo e cabeçalho próprios, colunas numéricas alinhadas, métrica ativa destacada e líder identificado por posição e cor.
+- [x] Mobile: cartão com posição, avatar, login e valor na primeira linha; fantasmas/mortes/duração na segunda. Grade sem colunas comprimidas, incluindo ajuste a 320–359px.
+- [x] Filtros por links SSR (Pontos/Eficiência, Último dia/7 dias/Recorde), `aria-current`, mínimo de 44px de toque.
+- [x] Largura funcional do ranking até 1120px; perfil e partida mantêm a largura própria.
+- [x] Tokens preservados: `#0B0D12`, `#161A22`, `#FFD23F`, `#00E5FF`, Silkscreen, Space Grotesk, Inter e JetBrains Mono.
+- [x] Testes de markup, dados dinâmicos, filtros e CSS responsivo sem tocar nas fórmulas de score.
+- [ ] Prints e auditoria visual real em **320, 360, 390, 430, 768, 1024 e 1440px**, teclado, zoom 200% e navegadores compatíveis. O navegador de captura da sessão foi bloqueado: **não afirmar que screenshots ou QA visual foram concluídos**.
+- [ ] Validar CI, PR e deploy Railway; registrar resultados após executar.
+
+**Sequência depois da V1:** V2 perfil + gráfico de históricos longos; V3 página da partida e status verificado vs reconstrução; V4 acessibilidade/cross-browser; V5 preservar os artboards/fontes na documentação versionada. Não copiar dados inventados da prancha para produção.
+
 ## Acompanhamento depois da publicação
 
 - [ ] Confirmar a primeira partida diária **criada com snapshot** e abrir seu replay para checar placar e SVG na produção.
@@ -121,7 +138,7 @@ Os PRs #8 e este são só de anotações.
 ## Próximos passos (prioridade)
 
 - [ ] **Token do GitHub:** a rotina agora identifica 401 e encerra com falha visível, sem consultas repetidas (PR #16). A rotação do segredo no Railway continua manual; não armazenar ou expor o valor.
-- [ ] **Prancha de design:** ela não existe mais. Decidir se recria, a partir da cópia local em `C:\tmp\prancha-pacman\project\` enquanto ela existir.
+- [x] **Prancha original recuperada:** ZIP integral fornecido em 22/11, inspecionado, com artboards de ranking/desktop/mobile. Preservar posteriormente um exemplar no repositório; não confundir placeholders do design com dados reais.
 - [ ] **Assets antigos:** decidir se apaga os que o código não usa mais (`src/assets/img/ghosts/*.png`, `src/assets/gifs/*.gif`, `src/assets/ghosts_constants.txt`). São cópias da arte do fliperama. Ficam por decisão de 20/11.
 - [x] **Replay de partidas novas:** cron guarda snapshot compacto e servidor só entrega replay se métricas e versão coincidirem (PR #16). Partidas legadas permanecem com aviso de reconstrução aproximada; ver "Problemas conhecidos".
 - [ ] **Opcional:**
