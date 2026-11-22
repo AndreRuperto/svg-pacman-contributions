@@ -164,6 +164,54 @@ describe('GET /', () => {
     expect(html).toContain('1 fantasma · 5 mortes · 3m 01s');
   });
 
+  it('V1 preserva os dados reais e dá hierarquia sem mudar o contrato do ranking', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, '/');
+    expect(html).toContain('class="pagina pagina-ranking"');
+    expect(html).toContain('class="topo-dentro topo-dentro-ranking"');
+    expect(html).toContain('class="ranking-abertura"');
+    expect(html).toContain('<h1 id="ranking-titulo">Ranking</h1>');
+    expect(html).toContain('aria-label="Filtrar classificação"');
+    expect(html).toContain('2 jogadores neste recorte');
+    expect(html).toContain('Último dia · 20 nov. 2026');
+    expect(html).toContain('class="ranking-classificacao"');
+    expect(html).toContain('class="linha linha-destaque"');
+    expect(html).toContain('class="linha-detalhes apoio"');
+    expect(html).toContain('1 fantasma · 5 mortes · 3m 01s');
+    expect(html).not.toContain('[jogador 1]');
+    expect(html).not.toContain('[0.000]');
+    // A ordem depende da pontuação persistida, não de números do mockup.
+    expect(html.indexOf('href="/jogador/bia"')).toBeLessThan(html.indexOf('href="/jogador/AndreRuperto"'));
+    expect(html).toContain('1.200');
+    expect(html).toContain('900');
+  });
+
+  it('V1 mantém filtros SSR, destaque da métrica e largura isolada na home', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, '/?aba=eficiencia&periodo=recorde');
+    expect(link(html, 'Eficiência')).toContain('aria-current="page"');
+    expect(link(html, 'Recorde')).toContain('aria-current="page"');
+    expect(html).toContain('class="num ativo"');
+    expect(html).toContain('Recorde · a melhor partida de cada jogador');
+    const perfil = (await pagina(app, '/jogador/AndreRuperto')).html;
+    expect(perfil).toContain('class="pagina"');
+    expect(perfil).not.toContain('pagina-ranking');
+  });
+
+  it('V1 usa CSS com cartões 320–959px e tabela desktop sem atingir outras telas', async () => {
+    const { app } = await montar();
+    const css = await (await app.request('/static/site.css')).text();
+    expect(css).toContain('.pagina-ranking .cartoes { display: flex; }');
+    expect(css).toContain('@media (max-width: 959px)');
+    expect(css).toContain('@media (max-width: 767px)');
+    expect(css).toContain('@media (max-width: 359px)');
+    expect(css).toContain('grid-template-columns: 22px 32px minmax(0, 1fr) auto');
+    expect(css).toContain('grid-column: 3 / 5');
+    expect(css).toContain('.pagina-ranking .convite');
+    expect(css).toContain('font-variant-numeric: tabular-nums');
+    expect(css).toContain('var(--acento)');
+  });
+
   it('link "Como entrar" aponta para a edição da lista', async () => {
     const { app } = await montar();
     const { html } = await pagina(app, '/');
