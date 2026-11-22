@@ -142,6 +142,19 @@ Todo dia, um cron joga a partida de cada jogador sobre o próprio gráfico de co
 - Partidas **anteriores aos snapshots** não são apagadas. A página explica que o replay é uma reconstrução com dados atuais e **pode diferir do placar**. Quando disponível, o botão **“Ver como foi publicado neste dia”** abre o SVG antigo.
 - O snapshot só guarda os dados públicos necessários à reprodução, nunca tokens nem conteúdo privado. Mudanças nas regras do motor devem vir com testes e revisão da versão.
 
+### ⚡ Replay confiável e cache persistente (PR #17)
+
+Para partidas que têm **snapshot original de contribuições**, o site calcula uma assinatura do placar, versão do motor e calendário registrado. O replay é conferido antes de ser entregue. Após a primeira geração, o SVG pode ser salvo **comprimido no PostgreSQL** e reutilizado mesmo após reiniciar o servidor.
+
+- O cache persistente **só é usado para replays com snapshot**. Partidas anteriores continuam como **reconstruções históricas**, sem afirmação de fidelidade.
+- As chaves incluem **jogador + dia + tema + assinatura do resultado e dados de origem**. Um novo placar ou calendário exige outra renderização.
+- SVGs com mais de **12 MiB** antes da compressão ou **2 MiB** comprimidos não são armazenados; o cache elimina entradas com mais de **30 dias**. O ranking e os snapshots originais não são apagados.
+- A API expõe `X-Pacman-Cache: gerado|persistente|memoria`, `X-Pacman-Replay: verificado|reconstrucao` e `Server-Timing: replay;dur=...`. Esses valores permitem medir o benefício do cache; **não são métricas de produção já medidas**.
+- Se o banco de cache falhar, o servidor tenta gerar novamente o replay verificado. Divergência entre métricas e SVG não deve virar um resultado público.
+- A CI cobre o pipeline com **cron real → snapshot → `playDay` → rota SVG → reabertura com cache**, além do contrato do PostgreSQL. **A primeira execução do cron em produção após o deploy precisa ser validada separadamente**.
+
+**Próximos passos visuais:** [`PROXIMOS_PASSOS.md`](PROXIMOS_PASSOS.md) e [plano detalhado do redesign](docs/plans/2026-11-22-redesign-ranking.md). Direção: **arcade editorial** — dados e animação em primeiro plano, layout mobile legível, sem neon excessivo, painéis vazios ou placares fictícios.
+
 ### 🎨 Temas
 
 | Tema | Visual |

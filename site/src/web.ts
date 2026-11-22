@@ -176,10 +176,9 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<void> 
     hoje: () => ultimoDiaCompleto(),
     confiarProxy: cfg.confiarProxy,
     podeDesenhar: Boolean(token),
-    renderSvg: async (login, data, tema, salva: PartidaSalva) => {
-      // Partidas novas usam a janela original guardada pelo cron: nenhuma consulta
-      // ao GitHub durante o replay. Para as antigas, a janela não foi preservada.
-      const snapshot = await repo.obterSnapshot(login, data);
+    renderSvg: async (login, data, tema, salva: PartidaSalva, snapshot) => {
+      // A API já leu o snapshot para computar a assinatura do cache.
+      // Nunca reler uma janela diferente no meio da reexecução.
       if (snapshot !== null && salva.versao_motor !== ENGINE_VERSION) {
         throw new SemRender('versão do motor diferente da partida gravada');
       }

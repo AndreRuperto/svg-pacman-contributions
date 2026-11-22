@@ -1,8 +1,12 @@
 import { Hono, type Context } from 'hono';
+import { performance } from 'node:perf_hooks';
+import { ENGINE_VERSION } from '../../src/runner.js';
 import { getConnInfo } from '@hono/node-server/conninfo';
 import { GAME_THEMES } from '../../src/core/constants.js';
 import type { ThemeKeys } from '../../src/types.js';
 import { LruCache } from './cache.js';
+import { assinaturaReplay, cacheavel } from './replay-cache.js';
+import type { ReplaySnapshot } from './snapshot.js';
 import { ABAS, PERIODOS, acharJogador, carregarJogador, carregarRanking, type DadosJogador, type DadosRanking } from './dados.js';
 import { dataValida, exigirHoje } from './datas.js';
 import type { Jogador } from './jogadores.js';
@@ -26,7 +30,7 @@ export interface AppDeps {
    * Recebe a partida salva para conferir se a de agora deu os mesmos números.
    * Lança `SemRender` quando este servidor não tem como desenhar (ex.: sem token).
    */
-  renderSvg: (login: string, data: string, tema: ThemeKeys, salva: PartidaSalva) => Promise<string | null>;
+  renderSvg: (login: string, data: string, tema: ThemeKeys, salva: PartidaSalva, snapshot: ReplaySnapshot | null) => Promise<string | null>;
   /** `false` quando o servidor não desenha partidas: a tela troca a animação por um aviso. Padrão `true`. */
   podeDesenhar?: boolean;
   /**
@@ -133,7 +137,8 @@ export function createApp(deps: AppDeps): Hono {
   const confiarProxy = deps.confiarProxy ?? false;
   const svgs = new LruCache<string>(CACHE_ITENS, { maxPeso: deps.maxBytesCache ?? CACHE_BYTES, peso: (s) => s.length });
   const memo = new LruCache<{ expira: number; corpo: unknown }>(MEMO_ITENS);
-  const emAndamento = new Map<string, Promise<string | null>>();
+  type ResultadoSvg = { svg: string | null; origem: 'persistente' | 'gerado' };
+  const emAndamento = new Map<string, Promise<ResultadoSvg>>();
   const renders = new Semaforo(deps.maxRenders ?? 2, deps.maxFila ?? 20);
   const limitePartida = deps.rateLimiter ?? new RateLimiter({ limite: 30, janelaMs: 60_000, agora });
   const limiteJson = deps.rateLimiterJson ?? new RateLimiter({ limite: 120, janelaMs: 60_000, agora });
@@ -245,21 +250,50 @@ export function createApp(deps: AppDeps): Hono {
     const [salva] = await deps.repo.entre(data, data, [jogador.login]);
     if (!salva) return erro(c, 404, 'Não há partida deste jogador neste dia.');
 
-    // com a versão do motor na chave, uma partida jogada de novo não serve o SVG antigo
-    const chave = `${chaveLogin(jogador.login)}|${data}|${tema}|${salva.versao_motor}`;
+    const inicio = performance.now();
+    const snapshot = await deps.repo.obterSnapshot(jogador.login, data);
+    if (snapshot !== null && salva.versao_motor !== ENGINE_VERSION) {
+      return erro(c, 503, 'Este replay foi criado por outra versão do motor e não pode ser verificado.');
+    }
+    // Chave muda se placar, versão ou qualquer célula da janela original mudar.
+    const assinatura = assinaturaReplay(salva, snapshot ?? []);
+    const chave = `${chaveLogin(jogador.login)}|${data}|${tema}|${assinatura}`;
     let svg = svgs.get(chave);
+    let origem: 'memoria' | 'persistente' | 'gerado' = 'memoria';
     if (svg === undefined) {
-      // pedidos simultâneos do mesmo SVG esperam a mesma renderização
+      // Pedidos simultâneos do mesmo SVG usam a mesma promessa, mesmo com cache frio.
       let pendente = emAndamento.get(chave);
       if (!pendente) {
-        pendente = renders
-          .executar(() => deps.renderSvg(jogador.login, data, tema, salva))
-          .finally(() => emAndamento.delete(chave));
+        pendente = renders.executar(async (): Promise<ResultadoSvg> => {
+          if (snapshot !== null) {
+            try {
+              const salvo = await deps.repo.obterSvg(jogador.login, data, tema, assinatura);
+              if (salvo !== null) return { svg: salvo, origem: 'persistente' };
+            } catch (e) {
+              // Cache é aceleração, não fonte de verdade: queda do cache não impede o replay.
+              console.warn('[cache] leitura indisponível:', e instanceof Error ? e.message : String(e));
+            }
+          }
+          const comecou = performance.now();
+          const novo = await deps.renderSvg(jogador.login, data, tema, salva, snapshot);
+          const duracao = Math.round(performance.now() - comecou);
+          console.info(`[replay] jogador=${jogador.login} data=${data} tema=${tema} duracao_ms=${duracao} origem=gerado snapshot=${snapshot !== null}`);
+          // Só guardar cache persistente quando o backend tiver validado a
+          // reexecução contra a partida salva e recebido um SVG válido.
+          if (novo !== null && snapshot !== null && cacheavel(novo)) {
+            try {
+              await deps.repo.gravarSvg(jogador.login, data, tema, assinatura, novo);
+            } catch (e) {
+              console.warn('[cache] gravação indisponível:', e instanceof Error ? e.message : String(e));
+            }
+          }
+          return { svg: novo, origem: 'gerado' };
+        }).finally(() => emAndamento.delete(chave));
         emAndamento.set(chave, pendente);
       }
-      let novo: string | null;
+      let resultado: ResultadoSvg;
       try {
-        novo = await pendente;
+        resultado = await pendente;
       } catch (e) {
         if (e instanceof SemRender) {
           if (!avisouSemRender) console.warn(`[api] a animação não pode ser desenhada: ${e.message}`);
@@ -271,13 +305,17 @@ export function createApp(deps: AppDeps): Hono {
         c.header('Retry-After', String(RETRY_FILA_S));
         return erro(c, 503, 'Muitas partidas sendo desenhadas agora. Tente de novo em alguns segundos.');
       }
-      if (novo === null) return erro(c, 404, 'Não há partida deste jogador neste dia.');
-      svgs.set(chave, novo);
-      svg = novo;
+      if (resultado.svg === null) return erro(c, 404, 'Não há partida deste jogador neste dia.');
+      svgs.set(chave, resultado.svg);
+      svg = resultado.svg;
+      origem = resultado.origem;
     }
 
     const maxAge = data === hoje() ? MAX_AGE_HOJE : MAX_AGE_PASSADO;
     return c.body(svg, 200, {
+      'X-Pacman-Cache': origem,
+      'X-Pacman-Replay': snapshot === null ? 'reconstrucao' : 'verificado',
+      'Server-Timing': `replay;dur=${(performance.now() - inicio).toFixed(1)}`,
       'Content-Type': 'image/svg+xml; charset=utf-8',
       'Cache-Control': `public, max-age=${maxAge}`,
       'X-Content-Type-Options': 'nosniff',

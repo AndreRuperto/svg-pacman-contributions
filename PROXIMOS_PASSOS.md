@@ -66,6 +66,50 @@ Os PRs #8 e este são só de anotações.
 - [x] Bundle recompilado e sincronizado pelo workflow (`c54ed6d`), com CI completa aprovada no PR #16.
 - [x] PR #16 mergeado (`8e61fbc`) e Railway confirmado com deploy `SUCCESS` nos serviços `web` e `cron` em 22/11/2026.
 
+## PR #17 — Replay verificável, cache persistente e métricas (22/11/2026)
+
+**Objetivo:** confiar no resultado da partida e tornar rápidas as aberturas seguintes sem reenviar o jogo ao motor.
+**Escopo técnico em implementação na branch `chatgpt/cache-replay-metricas-design-20261122`:**
+
+- [x] Assinatura SHA-256 de placar, versão do motor e snapshot original: qualquer mudança exige regeneração; não é assinatura de autenticidade de usuário.
+- [x] Cache persistente comprimido em PostgreSQL (`svg_cache`), somente para replays com snapshot verificado; arquivos acima de 12 MiB descomprimidos ou 2 MiB comprimidos não entram; limpeza de registros com mais de 30 dias.
+- [x] Fallback sem derrubar a rota: se cache estiver inacessível/corrompido, gerar SVG com o motor e conferir pontuação antes de entregar.
+- [x] `Server-Timing: replay;dur=...`, `X-Pacman-Cache: memoria|persistente|gerado`, `X-Pacman-Replay: verificado|reconstrucao`; logs de tempo real de geração sem token de acesso.
+- [x] Teste de integração sem rede `runCron → snapshot → playDay → API → cache` incluindo reabertura em novo processo lógico e divergência de placar.
+- [ ] Testes de CI + PostgreSQL real aprovados e PR #17 mergeado.
+- [ ] Verificar em produção **primeira partida real com snapshot pós-PR #16**. O cron normal executa `0 1 * * *` UTC; uma execução de deploy do serviço não equivale a uma rodada do cron. Não marcar como concluído apenas porque o deploy foi `SUCCESS`.
+- [ ] Medir latências de cache frio/quente **no ambiente real**. Hipótese-alvo: cache persistente mais rápido que renderizar novamente; não inventar números ou SLA antes de medir.
+- [ ] Pré-renderização agendada dos últimos dias (etapa futura, apenas após medir, para não saturar CPU/banco ou a API GitHub). O cache atual já torna aberturas futuras persistentes sem pré-renderizar.
+
+### Protocolo de validação pós-deploy
+
+1. Confirmar que a execução programada do `cron` ocorreu depois do PR #16, sem erro e com `jogadas > 0` para ao menos um participante.
+2. Abrir a partida nova no site e validar o SVG: `HTTP 200`, `X-Pacman-Replay=verificado`, plaquetas/métricas batendo no banco e SVG carregado.
+3. Reabrir a mesma URL: `X-Pacman-Cache=memoria`; reiniciar o serviço `web` **somente em janela controlada**, reabrir e conferir `X-Pacman-Cache=persistente`. Evitar reinícios desnecessários em produção; o teste de CI cobre esse cenário automaticamente.
+4. Testar um dia histórico: `X-Pacman-Replay=reconstrucao`, aviso na página, sem cache persistente e sem rebatizar de “verificado”.
+5. Comparar o `Server-Timing` de cache frio/persistente/RAM (P50 e P95 em amostra adequada); registrar resultados reais, navegador, data e links dos logs, sem expor credenciais.
+6. Testar uma divergência apenas em ambiente isolado com dados sintéticos; resposta precisa ser `503`, e nenhuma animação incorreta deve ser armazenada.
+
+## Próxima fase visual — direção proposta e documentação
+
+**O que eu considero correto melhorar:** manter a identidade **arcade editorial**, deixando o produto mais limpo, legível e orientado a informações, sem redesenhar o jogo como um cassino neon. A animação deve ser protagonista nas páginas de partida, e o ranking deve funcionar como uma tabela de dados de boa qualidade.
+
+**Documento executável e completo:** [Redesign do ranking, histórico e partida — 22/11/2026](docs/plans/2026-11-22-redesign-ranking.md). O documento cobre diagnóstico por arquivo, tokens, componentes, wireframes em texto, estados, telas, acessibilidade, viewports, QA e critérios de pronto. Essa especificação está no Git, para não repetir a perda da antiga prancha temporária.
+
+| Fase visual futura | Mudança recomendada | Principal critério de aceite |
+|---|---|---|
+| V1 · Ranking | Melhorar hierarquia título→métrica→período→tabela; destacar valor ativo e líder sem poluição; aproveitar a largura funcional até ~1200px se houver densidade; evitar painel lateral vazio | Tabela desktop clara e cartões mobile com posição, avatar, login e pontos; sem scroll horizontal do documento |
+| V2 · Perfil | KPIs alinhados em desktop e grade 2×2 mobile; gráfico amarelo com média ciano, quebras reais nos dias sem partida; histórico com hierarquia de datas | Perfis com 1 e 300+ partidas legíveis; paginação, gráfico e `<details>` funcionando sem JavaScript |
+| V3 · Partida | Replay antes das estatísticas secundárias; arena proporcional 1166:229, navegação 44px, seletor de tema discreto e métricas em grade responsiva | Status exibido coincide com resultado real da API; erro nunca parece “replay verificado”; mobile sem sobreposição |
+| V4 · Acessibilidade | Foco, contraste WCAG 2.2 AA, teclado, zoom 200%, `prefers-reduced-motion` e testes com SVG/SMIL | Chrome/Firefox/WebKit quando disponíveis; registrar plataformas não testadas |
+| V5 · Prancha persistente | Salvar capturas de interface real em `docs/design/`, com largura/versão/estado; comparação antes/depois | Referência independente de links temporários, sem exemplos/placares fictícios expostos como dados reais |
+
+**Tokens a preservar:** fundo `#0B0D12`, superfície `#161A22`, texto `#E8EAF0`, amarelo `#FFD23F`, ciano `#00E5FF`, contorno `#2A303C`, raios 12px, toques ≥44px e espaçamentos em múltiplos de 4px. Marca Silkscreen, títulos Space Grotesk, corpo Inter e placares JetBrains Mono.
+
+**O que não fazer:** não acrescentar cards vazios “para ocupar espaço”, não esconder as datas com carrosséis, não usar neon decorativo em excesso, não inventar métricas nem alterar pontos por motivo estético. Refatorar CSS só depois de medir estilos computados, ordem de importações e especificidade, preservando as URLs atuais.
+
+**Sequência:** PR #17 confiabilidade → V1 ranking → V2 perfil → V3 partida → V4 acessibilidade → V5 prancha e limpeza. **O visual continua planejado, não foi redesenhado no PR #17.**
+
 ## Acompanhamento depois da publicação
 
 - [ ] Confirmar a primeira partida diária **criada com snapshot** e abrir seu replay para checar placar e SVG na produção.
