@@ -32,3 +32,19 @@ CREATE TABLE IF NOT EXISTS dias_sem_jogo (
   versao_motor text NOT NULL,
   PRIMARY KEY (login_key, data)
 );
+
+-- Cache persistente e limitado por validade para SVGs cujo replay já foi
+-- calculado a partir de snapshot original e teve todas as métricas conferidas.
+-- A assinatura depende do snapshot + placar + versão; mudar dados invalida a
+-- leitura. Nunca inclui GITHUB_TOKEN ou dados privados.
+CREATE TABLE IF NOT EXISTS svg_cache (
+  login_key text NOT NULL,
+  data date NOT NULL,
+  tema text NOT NULL,
+  assinatura char(64) NOT NULL,
+  svg_gzip bytea NOT NULL,
+  criado_em timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (login_key, data, tema, assinatura),
+  CHECK (octet_length(svg_gzip) <= 2097152)
+);
+CREATE INDEX IF NOT EXISTS svg_cache_criado_em ON svg_cache (criado_em);
