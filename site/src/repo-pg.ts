@@ -1,6 +1,8 @@
 import postgres from 'postgres';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import { chaveLogin, type PartidaNova, type PartidaRepo, type PartidaSalva } from './repo.js';
 import type { ReplaySnapshot } from './snapshot.js';
+import { cacheavel, MAX_GZIP_BYTES, MAX_SVG_BYTES, MAX_CACHE_DAYS } from './replay-cache.js';
 
 type Sql = postgres.Sql;
 
@@ -51,7 +53,7 @@ export class PgRepo implements PartidaRepo {
 
   /** Só para os testes de contrato: esvazia as tabelas. */
   async truncateForTests(): Promise<void> {
-    await this.sql`TRUNCATE partidas, dias_sem_jogo`;
+    await this.sql`TRUNCATE svg_cache, partidas, dias_sem_jogo`;
   }
 
   async upsert(p: PartidaNova): Promise<void> {
@@ -74,6 +76,36 @@ export class PgRepo implements PartidaRepo {
     const linhas = await this.sql<{ snapshot: ReplaySnapshot | null }[]>`
       SELECT snapshot FROM partidas WHERE login_key = ${chaveLogin(login)} AND data = ${data}`;
     return linhas[0]?.snapshot ?? null;
+  }
+
+  async obterSvg(login: string, data: string, tema: string, assinatura: string): Promise<string | null> {
+    const rows = await this.sql<{ svg_gzip: Uint8Array }[]>`
+      SELECT svg_gzip FROM svg_cache
+      WHERE login_key = ${chaveLogin(login)} AND data = ${data}
+        AND tema = ${tema} AND assinatura = ${assinatura}
+        AND criado_em >= now() - interval '30 days'`;
+    if (!rows.length) return null;
+    // Uma linha de cache corrompida nunca pode servir SVG estranho nem
+    // derrubar a página; a API regenerará a animação verificada.
+    try {
+      const svg = gunzipSync(Buffer.from(rows[0].svg_gzip), { maxOutputLength: MAX_SVG_BYTES }).toString('utf8');
+      return cacheavel(svg) ? svg : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async gravarSvg(login: string, data: string, tema: string, assinatura: string, svg: string): Promise<void> {
+    if (!cacheavel(svg)) return;
+    const comprimido = gzipSync(Buffer.from(svg, 'utf8'), { level: 6 });
+    if (comprimido.length > MAX_GZIP_BYTES) return;
+    await this.sql`
+      INSERT INTO svg_cache (login_key, data, tema, assinatura, svg_gzip)
+      VALUES (${chaveLogin(login)}, ${data}, ${tema}, ${assinatura}, ${comprimido})
+      ON CONFLICT (login_key, data, tema, assinatura) DO UPDATE SET
+        svg_gzip = EXCLUDED.svg_gzip, criado_em = now()`;
+    // Limpeza oportunista: 30 dias no cache; partidas e snapshots não mudam.
+    await this.sql`DELETE FROM svg_cache WHERE criado_em < now() - ${MAX_CACHE_DAYS} * interval '1 day'`;
   }
 
   async porJogador(login: string): Promise<PartidaSalva[]> {
