@@ -42,7 +42,7 @@ function tabela(d: DadosRanking): Html {
   </tr></thead>
   <tbody>
   ${d.linhas.map(
-    (l) => html`<tr>
+    (l) => html`<tr class="${l.posicao === 1 ? 'ranking-lider' : ''}">
     <td class="${classePosicao(l)}">${l.posicao}</td>
     <th scope="row"><a class="jogador" href="${urlJogador(l.login)}"><img class="avatar" src="${urlAvatar(l.login, 56)}" alt="" width="28" height="28" loading="lazy">${l.login}</a></th>
     <td class="num${d.aba === 'pontos' ? ' ativo' : ''}">${inteiro(l.pontos)}</td>
@@ -59,19 +59,24 @@ function tabela(d: DadosRanking): Html {
 function cartoes(d: DadosRanking): Html {
   return html`<ol class="cartoes" aria-label="Ranking por ${NOME_ABA[d.aba].toLowerCase()}">
   ${d.linhas.map(
-    (l) => html`<li><a class="linha" href="${urlJogador(l.login)}">
+    (l) => html`<li><a class="linha${l.posicao === 1 ? ' linha-destaque' : ''}" href="${urlJogador(l.login)}">
     <span class="${classePosicao(l)}">${l.posicao}</span>
     <img class="avatar avatar-36" src="${urlAvatar(l.login, 72)}" alt="" width="36" height="36" loading="lazy">
-    <span class="linha-texto"><span class="linha-login">${l.login}</span><span class="apoio">${resumo(l)}</span></span>
+    <span class="linha-texto"><span class="linha-login">${l.login}</span></span>
     <span class="linha-valor">${valorDa(d.aba, l)}<span class="sr"> ${NOME_ABA[d.aba].toLowerCase()}</span></span>
+    <span class="linha-detalhes apoio">${resumo(l)}</span>
   </a></li>`
   )}
 </ol>`;
 }
 
 export function paginaRanking(d: DadosRanking): Html {
-  const corpo = html`<h1>Ranking</h1>
-<p class="sub">Cada jogador tem uma partida por dia, jogada sobre o próprio gráfico de contribuições.</p>
+  const corpo = html`<header class="ranking-abertura">
+  <p class="ranking-kicker">PAC-MAN NAS CONTRIBUIÇÕES</p>
+  <h1 id="ranking-titulo">Ranking</h1>
+  <p class="ranking-descricao">Cada jogador tem uma partida por dia, jogada sobre o próprio gráfico de contribuições.</p>
+</header>
+<section class="ranking-controles" aria-label="Filtrar classificação">
 <div class="filtros">
   <nav aria-label="Métrica">
     <ul class="segmentos">
@@ -88,10 +93,17 @@ export function paginaRanking(d: DadosRanking): Html {
     </ul>
   </nav>
 </div>
-<p class="periodo">${legendaPeriodo(d.periodo, d.hoje)}</p>
-${d.linhas.length
-  ? html`${tabela(d)}${cartoes(d)}`
-  : html`<p class="cartao vazio">Ainda não há partidas para este período.</p>`}
+<div class="ranking-contexto">
+  <p class="periodo">${legendaPeriodo(d.periodo, d.hoje)}</p>
+  <p class="ranking-quantidade">${plural(d.linhas.length, 'jogador', 'jogadores')} neste recorte</p>
+</div>
+</section>
+<section class="ranking-classificacao" aria-labelledby="ranking-classificacao-titulo">
+  <h2 class="sr" id="ranking-classificacao-titulo">Classificação por ${NOME_ABA[d.aba].toLowerCase()}</h2>
+  ${d.linhas.length
+    ? html`${tabela(d)}${cartoes(d)}`
+    : html`<p class="cartao vazio">Ainda não há partidas para este período.</p>`}
+</section>
 <section class="cartao convite" aria-labelledby="convite-titulo">
   <h2 id="convite-titulo">Quer entrar no ranking?</h2>
   <p>Adicione seu login do GitHub em <code>ranking/jogadores.json</code> com um pull request. Na rodada seguinte do cron, suas partidas entram no ranking.</p>

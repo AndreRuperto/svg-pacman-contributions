@@ -1,14 +1,23 @@
 # Direção de design — SVG Pac-Man Ranking
-**Data:** 22/11/2026 · **Status:** especificação aprovada para planejamento, **não implementada** · **Alvo:** próximas PRs de frontend, após confiabilidade do replay.
+**Data:** 22/11/2026 · **Status:** V1 ranking implementada no PR #18 (aguardando validação/merge), V2–V5 ainda planejadas · **Alvo:** evoluir frontend sem modificar motor e placares.
+
+## Referências efetivamente conferidas (ZIP do usuário, 22/11)
+- `SiteRankingDesktop.dc.html`: artboard 1280 × 860, tabela com sete colunas e métricas alinhadas, filtros por pontuação/período e CTA discreto.
+- `SiteRanking.dc.html`: artboard 390 × 844, botões em grupos separados e cartões com posição, avatar, jogador, valor e detalhes.
+- `SiteJogador.dc.html` e `SitePartida.dc.html`: referências reservadas para V2 e V3, não implementadas na V1.
+- `Main.dc.html`, `Componentes.dc.html`, `Logo.dc.html`, `Temas.dc.html`, `Fantasmas.dc.html`, `Banner.dc.html`, `Celular.dc.html` e `Placar.dc.html`: identidade, tokens, sprites e proporções já incorporados ao produto.
+- A prancha preserva 12 artboards em `canvas.json`. Ela usa conteúdo ilustrativo, inclusive nomes de jogadores entre colchetes. **O site em produção não deve importar a lógica fictícia dos artboards.**
+
+**Limite desta rodada:** conseguimos inspecionar os arquivos HTML e o JSON da prancha, mas a captura automatizada foi bloqueada pelo ambiente. Não há screenshot renderizado validado e os testes de overflow/zoom/contraste no navegador continuam na lista de aceitação.
 
 ## 1. Diagnóstico do layout atual (conferido no código)
 - O site já possui identidade coerente: fundo `#0B0D12`, superfícies `#161A22`, contorno `#2A303C`, amarelo `#FFD23F` e ciano `#00E5FF` em `site/public/site.css`.
-- A largura máxima atual é **1040px** com **16px** de padding lateral; acima de **768px** mostra ranking em tabela, abaixo disso em cartões. Há páginas de ranking, jogador/histórico, partida e publicado.
+- **Base anterior à V1:** largura máxima de **1040px** com **16px** de padding lateral; acima de **768px**, ranking em tabela, abaixo disso em cartões. **V1:** ranking isolado até 1120px, tabela ≥960px, cartões em largura menor; perfil/partida não mudaram.
 - O perfil exibe **quatro métricas** e um gráfico de pontos por dia; uma lista de partidas usa `<details>` e SVG embutido quando aberta.
 - O SVG atual mede **1166 × 229** originalmente, com `viewBox` e escala fluida; o site não deve distorcer sua proporção.
 - A identidade “A · Mordida na grade”, os oito temas, os fantasmas vetoriais e as cores do jogo **devem ser preservados**.
 - Pontos de revisão: hierarquia fraca entre título/filtros/dados, grande bloco de tabela no desktop, pouco contexto ao comparar jogadores, navegação entre partidas sem informações de status logo acima do player, espaços mortos em resoluções largas e leitura compactada em 320–390px. Essas são hipóteses de design **para validar com screenshots**, não bugs confirmados por auditoria visual nesta rodada.
-- Não usar a prancha antiga como fonte de verdade: o artefato original não está disponível. Este documento é a **nova especificação persistida no Git**.
+- **Prancha original recuperada:** o usuário anexou em 22/11/2026 o ZIP `SVG Pac-Man · Identidade e sistema de design-project.zip` contendo `canvas.json` e os artboards `.dc.html`. É referência para o estilo, **não screenshot atual da produção**; jogadores fictícios em colchetes jamais devem virar dados da aplicação.
 
 ## 2. Direção visual que recomendo
 **“Arcade editorial, não cassino neon”.** Visual de produto de dados com detalhes de videogame:
@@ -119,4 +128,4 @@ Os números no desenho são ilustrativos, **nunca dados de interface**.
 - Não afirmar testes manuais/navegadores executados apenas por existir checklist.
 
 ## Definição de pronto para a fase visual
-Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A fase visual ainda está planejada; as mudanças de desempenho do PR #17 não implicam que esse redesign já esteja aplicado.**
+Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A V1 do ranking tem código e testes no PR #18; V2–V5 continuam planejadas. Capturas e auditoria visual cross-browser ainda são pendentes.**
