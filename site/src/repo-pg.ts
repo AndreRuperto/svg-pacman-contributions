@@ -1,5 +1,6 @@
 import postgres from 'postgres';
 import { chaveLogin, type PartidaNova, type PartidaRepo, type PartidaSalva } from './repo.js';
+import type { ReplaySnapshot } from './snapshot.js';
 
 type Sql = postgres.Sql;
 
@@ -56,16 +57,23 @@ export class PgRepo implements PartidaRepo {
   async upsert(p: PartidaNova): Promise<void> {
     await this.sql`
       INSERT INTO partidas (login_key, login, data, pontos, fantasmas, mortes, maior_combo, quadros, celulas,
-        eficiencia, interrompida, versao_motor, publicado_sha)
+        eficiencia, interrompida, versao_motor, publicado_sha, snapshot)
       VALUES (${chaveLogin(p.login)}, ${p.login}, ${p.data}, ${p.pontos}, ${p.fantasmas}, ${p.mortes},
         ${p.maior_combo}, ${p.quadros}, ${p.celulas}, ${p.eficiencia}, ${p.interrompida}, ${p.versao_motor},
-        ${p.publicado_sha ?? null})
+        ${p.publicado_sha ?? null}, ${p.snapshot === undefined ? null : this.sql.json(p.snapshot)})
       ON CONFLICT (login_key, data) DO UPDATE SET
         login = EXCLUDED.login, pontos = EXCLUDED.pontos, fantasmas = EXCLUDED.fantasmas,
         mortes = EXCLUDED.mortes, maior_combo = EXCLUDED.maior_combo, quadros = EXCLUDED.quadros,
         celulas = EXCLUDED.celulas, eficiencia = EXCLUDED.eficiencia, interrompida = EXCLUDED.interrompida,
         versao_motor = EXCLUDED.versao_motor,
+        snapshot = EXCLUDED.snapshot,
         publicado_sha = COALESCE(EXCLUDED.publicado_sha, partidas.publicado_sha)`;
+  }
+
+  async obterSnapshot(login: string, data: string): Promise<ReplaySnapshot | null> {
+    const linhas = await this.sql<{ snapshot: ReplaySnapshot | null }[]>`
+      SELECT snapshot FROM partidas WHERE login_key = ${chaveLogin(login)} AND data = ${data}`;
+    return linhas[0]?.snapshot ?? null;
   }
 
   async porJogador(login: string): Promise<PartidaSalva[]> {
