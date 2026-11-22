@@ -1,5 +1,5 @@
 # Direção de design — SVG Pac-Man Ranking
-**Data:** 22/11/2026 · **Status:** V1 ranking implementada no PR #18 (aguardando validação/merge), V2–V5 ainda planejadas · **Alvo:** evoluir frontend sem modificar motor e placares.
+**Data:** 22/11/2026 · **Status:** V1 ranking publicada no PR #18; V2 perfil implementada na branch do PR #19 (aguardando CI e publicação), V3–V5 ainda planejadas · **Alvo:** evoluir frontend sem modificar motor e placares.
 
 ## Referências efetivamente conferidas (ZIP do usuário, 22/11)
 - `SiteRankingDesktop.dc.html`: artboard 1280 × 860, tabela com sete colunas e métricas alinhadas, filtros por pontuação/período e CTA discreto.
@@ -68,6 +68,14 @@ Os números no desenho são ilustrativos, **nunca dados de interface**.
 - Cada participante: **posição + avatar + login** na primeira linha; **placar ativo** destacado na direita; detalhe “fantasmas · mortes · duração” embaixo. Não tentar comprimir sete colunas.
 - Avatar entre 32–40px; número principal 20–24px, mono tabular, com truncamento do login e título acessível. Sem esconder participantes ou mudar a ordem do ranking no mobile.
 
+## Estado da implementação V2 (22/11/2026)
+
+A referência visual é o artboard original `SiteJogador.dc.html` (390×1080). A implementação é em SSR/Hono, usando exclusivamente resultados registrados.
+
+**Aplicado no código:** grade 2×2/4×1 para KPIs; filtros SSR `?periodo=30d|90d|todos` no gráfico (padrão `todos`); média e contagem referentes à janela selecionada; rolagem horizontal interna no celular sem quebrar o documento; resumo textual para leitores de tela; histórico com situação, data semântica e faixa de paginação. O histórico mantém 30 registros por página e seu estado é independente do filtro do gráfico.
+
+**O que continua sendo hipótese, não QA concluído:** aparência final em aparelhos reais, overflow em 320px, comportamento de zoom 200%, contraste em navegador e compatibilidade de rolagem via teclado em todos os browsers. A CI verifica código, contratos e HTML, mas não substitui fotos da aplicação. Evidências visuais devem ser guardadas em `docs/design/` posteriormente.
+
 ## 5. Perfil do jogador (`/jogador/:login`)
 **Ordem de leitura:** voltar → identidade → números resumidos → gráfico → histórico e navegação.
 - Cabeçalho do jogador: avatar 56–64px, login, período desde entrada, número de partidas; evitar grande espaço à direita do avatar.
@@ -114,7 +122,7 @@ Os números no desenho são ilustrativos, **nunca dados de interface**.
 
 ## 10. Implementação sugerida em PRs pequenos
 1. **V1 · Hierarquia/ranking:** `views/ranking.ts`, `site/public/site.css` e testes de filtros. Capturas antes/depois em 320/390/1024/1440. Sem mudanças no motor.
-2. **V2 · Perfil/histórico:** KPIs 2×2 no mobile, gráfico responsivo, estados da lista e paginação. Não mudar regras de score.
+2. **V2 · Perfil/histórico:** quatro KPIs 2×2 no mobile, gráfico com períodos 30d/90d/todos e rolagem interna, estados e paginação. Código entregue na branch do PR #19; screenshots/cross-browser ainda pendentes. Não mudar regras de score.
 3. **V3 · Partida:** arena proporcional, navegação e status de replay **baseado no backend**, tema e placar adaptativos. Tratar falha de API sem mostrar SVG inconsistente.
 4. **V4 · Acessibilidade transversal:** audit de navegação por teclado, zoom 200%, contraste e movimento reduzido em SVG/SMIL; browser matrix.
 5. **V5 · Prancha persistente:** criar imagens de referência *a partir da UI real* e salvar em `docs/design/` com indicação de versão/viewport. Proibido depender apenas de artefatos temporários.
@@ -128,4 +136,4 @@ Os números no desenho são ilustrativos, **nunca dados de interface**.
 - Não afirmar testes manuais/navegadores executados apenas por existir checklist.
 
 ## Definição de pronto para a fase visual
-Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A V1 do ranking tem código e testes no PR #18; V2–V5 continuam planejadas. Capturas e auditoria visual cross-browser ainda são pendentes.**
+Cada PR deve conter screenshots de antes/depois, lista de viewports testados, resultado de CI, alterações acessíveis, eventuais regressões e atualização do `PROXIMOS_PASSOS.md`. **A V1 está na main via PR #18 e a V2 tem implementação/testes no PR #19 (pendente de CI/merge). V3–V5 continuam planejadas. Capturas e auditoria visual cross-browser ainda são pendentes.**
