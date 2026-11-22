@@ -69,17 +69,19 @@ Os PRs #8 e este são só de anotações.
 ## PR #17 — Replay verificável, cache persistente e métricas (22/11/2026)
 
 **Objetivo:** confiar no resultado da partida e tornar rápidas as aberturas seguintes sem reenviar o jogo ao motor.
-**Escopo técnico em implementação na branch `chatgpt/cache-replay-metricas-design-20261122`:**
+**Implementado no PR #17, mergeado na `main` em `38d506e` (22/11/2026):**
 
 - [x] Assinatura SHA-256 de placar, versão do motor e snapshot original: qualquer mudança exige regeneração; não é assinatura de autenticidade de usuário.
 - [x] Cache persistente comprimido em PostgreSQL (`svg_cache`), somente para replays com snapshot verificado; arquivos acima de 12 MiB descomprimidos ou 2 MiB comprimidos não entram; limpeza de registros com mais de 30 dias.
 - [x] Fallback sem derrubar a rota: se cache estiver inacessível/corrompido, gerar SVG com o motor e conferir pontuação antes de entregar.
 - [x] `Server-Timing: replay;dur=...`, `X-Pacman-Cache: memoria|persistente|gerado`, `X-Pacman-Replay: verificado|reconstrucao`; logs de tempo real de geração sem token de acesso.
 - [x] Teste de integração sem rede `runCron → snapshot → playDay → API → cache` incluindo reabertura em novo processo lógico e divergência de placar.
-- [ ] Testes de CI + PostgreSQL real aprovados e PR #17 mergeado.
+- [x] Testes de CI + PostgreSQL real aprovados no [PR #17](https://github.com/AndreRuperto/svg-pacman-contributions/pull/17) e merge realizado no commit `38d506e`.
 - [ ] Verificar em produção **primeira partida real com snapshot pós-PR #16**. O cron normal executa `0 1 * * *` UTC; uma execução de deploy do serviço não equivale a uma rodada do cron. Não marcar como concluído apenas porque o deploy foi `SUCCESS`.
 - [ ] Medir latências de cache frio/quente **no ambiente real**. Hipótese-alvo: cache persistente mais rápido que renderizar novamente; não inventar números ou SLA antes de medir.
 - [ ] Pré-renderização agendada dos últimos dias (etapa futura, apenas após medir, para não saturar CPU/banco ou a API GitHub). O cache atual já torna aberturas futuras persistentes sem pré-renderizar.
+
+**Deploy verificado:** Railway registrou `SUCCESS` para **web** e **cron** no commit `38d506e` em 22/11/2026; a avaliação de saúde do ambiente não apontou problemas ativos. Isso **não comprova** que o cron programado gerou uma partida com snapshot depois desse deploy.
 
 ### Protocolo de validação pós-deploy
 
