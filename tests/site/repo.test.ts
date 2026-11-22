@@ -42,6 +42,27 @@ function contrato(nome: string, criar: () => Promise<PartidaRepo>) {
       expect(await repo.porJogador('ana')).toEqual([{ ...p('ana', '2026-11-20'), publicado_sha: null }]);
     });
 
+    it('snapshot de replay é preservado no banco sem contaminar o placar público', async () => {
+      const janela = [
+        ['2026-11-19', 3, 'SECOND_QUARTILE'],
+        ['2026-11-20', 25, 'FOURTH_QUARTILE']
+      ] as const;
+      expect(await repo.obterSnapshot('Ana', '2026-11-20')).toBeNull();
+      await repo.upsert({ ...p('Ana', '2026-11-20'), snapshot: janela.map((l) => [...l]) });
+      expect(await repo.obterSnapshot('ana', '2026-11-20')).toEqual(janela);
+      expect((await repo.porJogador('ana'))[0]).not.toHaveProperty('snapshot');
+
+      // Mesmo que o chamador altere o array, a memória do repositório é isolada.
+      const lido = await repo.obterSnapshot('ANA', '2026-11-20');
+      expect(lido).not.toBeNull();
+      if (lido) lido[0][1] = 999;
+      expect((await repo.obterSnapshot('ana', '2026-11-20'))?.[0][1]).toBe(3);
+
+      // Um replay reprocessado sem janela NÃO pode receber janela de outra partida.
+      await repo.upsert(p('ana', '2026-11-20', 500));
+      expect(await repo.obterSnapshot('ana', '2026-11-20')).toBeNull();
+    });
+
     it('datasExistentes filtra pela versão', async () => {
       await repo.upsert(p('ana', '2026-11-19', 100, '1.0.0'));
       await repo.upsert(p('ana', '2026-11-20', 100, '1.1.0'));
