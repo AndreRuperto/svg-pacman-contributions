@@ -428,6 +428,87 @@ describe('GET /jogador/:login', () => {
 });
 
 describe('GET /jogador/:login/:data', () => {
+  it('V3 dá prioridade à arena sem alterar dados, pontuação ou URLs', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}`);
+    expect(html).toContain('<main id="conteudo" class="pagina pagina-partida">');
+    expect(html).toContain('class="partida-pagina"');
+    expect(html).toContain('class="partida-secao-arena"');
+    expect(html).toContain('aria-labelledby="partida-arena-titulo"');
+    expect(html).toContain('class="cartao palco partida-palco"');
+    expect(html).toContain('class="tiles tiles-6 partida-placar-grade"');
+    expect(html).toContain('<h2 id="partida-placar-titulo">Placar registrado</h2>');
+    expect(html.indexOf('class="partida-palco"')).toBe(-1); // a área tem as classes originais
+    expect(html.indexOf('class="cartao palco partida-palco"'))
+      .toBeLessThan(html.indexOf('class="tiles tiles-6 partida-placar-grade"'));
+    expect(html).toContain('900');
+    expect(html).toContain('×3');
+    expect(html).toContain('3m 01s');
+    const jogador = (await pagina(app, '/jogador/AndreRuperto')).html;
+    expect(jogador).toContain('<main id="conteudo" class="pagina">');
+  });
+
+  it('V3 identifica reconstrução histórica quando não houve snapshot original', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}`);
+    expect(html).toContain('<strong>Reconstrução histórica</strong>');
+    expect(html).toContain('pode diferir do placar registrado.');
+    expect(html).not.toContain('<strong>Replay verificado</strong>');
+    expect(html).toContain('Banner original do dia');
+    expect(html).toContain('Ver como foi publicado neste dia');
+    const semOriginal = (await pagina(app, `/jogador/bia/${HOJE}`)).html;
+    expect(semOriginal).toContain('Reconstrução histórica');
+    expect(semOriginal).not.toContain('Banner original do dia');
+  });
+
+  it('V3 com snapshot preservado não antecipa a validação do SVG', async () => {
+    const { app, repo } = await montar();
+    const snapshot = [['2026-11-20', 2, 'FIRST_QUARTILE']] as [string, number, 'FIRST_QUARTILE'][];
+    await repo.upsert({ ...p('AndreRuperto', HOJE, 900), snapshot });
+    const { html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}`);
+    expect(html).toContain('<strong>Dados originais preservados</strong>');
+    expect(html).toContain('A verificação ocorre durante a geração da animação.');
+    expect(html).not.toContain('<strong>Replay verificado</strong>');
+    expect(html).not.toContain('Reconstrução histórica');
+    expect(html).toContain('href="/api/partida/AndreRuperto/2026-11-20?tema=github-dark"');
+  });
+
+  it('V3 navega entre partidas registradas e preserva o tema', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, '/jogador/AndreRuperto/2026-11-19?tema=neon');
+    expect(html).toContain('href="/jogador/AndreRuperto/2026-11-15?tema=neon"');
+    expect(html).toContain('href="/jogador/AndreRuperto/2026-11-20?tema=neon"');
+    expect(html).toContain('aria-label="Dia anterior, 15 nov. 2026"');
+    expect(html).toContain('aria-label="Dia seguinte, 20 nov. 2026"');
+    expect(html).toContain('Navegue entre as partidas registradas. Os dias sem jogo são pulados.');
+    expect(html).toContain('<option value="neon" selected>');
+  });
+
+  it('V3 mostra indisponibilidade antes de qualquer indicação de verificação', async () => {
+    const { app, repo } = await montar({ deps: { podeDesenhar: false } });
+    const snapshot = [['2026-11-20', 2, 'FIRST_QUARTILE']] as [string, number, 'FIRST_QUARTILE'][];
+    await repo.upsert({ ...p('AndreRuperto', HOJE, 900), snapshot });
+    const { html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}`);
+    expect(html).toContain('<strong>Animação indisponível</strong>');
+    expect(html).toContain('A animação não está disponível neste servidor.');
+    expect(html).not.toContain('/api/partida/');
+    expect(html).not.toContain('<strong>Dados originais preservados</strong>');
+    expect(html).toContain('Placar registrado');
+  });
+
+  it('V3 mantém 2x3 mobile, 3x2 tablet e 6 métricas desktop no CSS isolado', async () => {
+    const { app } = await montar();
+    const css = await (await app.request('/static/site.css')).text();
+    expect(css).toContain('.pagina-partida { max-width: 1160px; }');
+    expect(css).toContain('.partida-placar-grade');
+    expect(css).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
+    expect(css).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))');
+    expect(css).toContain('grid-template-columns: repeat(6, minmax(0, 1fr))');
+    expect(css).toContain('.partida-pagina .partida-palco .partida-svg');
+    expect(css).toContain('aspect-ratio: 1166 / 229');
+    expect(css).toContain('@media (max-width: 359px)');
+  });
+
   it('imagem da partida no tema padrão', async () => {
     const { app } = await montar();
     const { res, html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}`);
