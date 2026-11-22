@@ -63,7 +63,7 @@ Os PRs #8 e este são só de anotações.
 - [x] Identificar token expirado do GitHub (401) e retornar falha do cron sem revelar credenciais.
 - [x] SVG com viewBox, título, descrição e regra de movimento reduzido; validar compatibilidade visual depois.
 - [x] Validação de entradas da Action, documentação operacional e CONTRIBUTING.md.
-- [ ] Atualizar o bundle distribuído da Action e aprovar a CI completa.
+- [x] Bundle da Action recompilado e sincronizado pelo workflow (`c54ed6d`); ainda falta confirmar a CI completa após a sincronização.
 - [ ] Merge do PR #16, conferir deploy Railway dos serviços web e cron.
 
 ## Próximos passos (prioridade)
