@@ -1,6 +1,6 @@
 # Próximos passos
 
-- **Data:** 2026-11-23 (V4 em PR, aguardando aprovação)
+- **Data:** 2026-11-23 · V4 mergeada (PR #21, `553eb7b`) e em produção
 - **Branch:** `main`. PR #16 mergeado com sucesso em `8e61fbc` (22/11/2026).
 - **Site:** https://svg-pacman-ranking.up.railway.app
 - **Planos e desenhos:**
@@ -173,7 +173,7 @@ Os PRs #8 e este são só de anotações.
 
 ## V4 — acessibilidade e QA visual (23/11/2026)
 
-**Status:** branch `claude/v4-acessibilidade-ab7d83`, PR aberto contra a `main`; **não mergeado** (aguarda aprovação do usuário). Relatório completo e capturas: [`docs/design/qa-v4.md`](docs/design/qa-v4.md) e `docs/design/qa-v4/` (50 JPEG).
+**Status:** [PR #21](https://github.com/AndreRuperto/svg-pacman-contributions/pull/21) mergeado (squash) em `553eb7b` em 23/11/2026, com CI verde (`test` e `Acessibilidade (Playwright + axe)`). Deploy Railway de `web` e `cron` em `SUCCESS` no commit `553eb7b`; site público conferido a 390 px (sem rolagem horizontal, arena carregando, link "Pausar a animação" presente). Relatório completo e capturas: [`docs/design/qa-v4.md`](docs/design/qa-v4.md) e `docs/design/qa-v4/` (50 JPEG).
 
 **Feito (com evidência):**
 
@@ -189,7 +189,7 @@ Os PRs #8 e este são só de anotações.
 - [ ] Firefox e WebKit/Safari (só Chromium foi testado).
 - [ ] Leitores de tela reais (NVDA/VoiceOver/TalkBack) e modo de alto contraste real.
 - [ ] Lista de partidas do perfil: abrir uma partida ainda toca a animação mesmo com movimento reduzido (ação explícita da pessoa; fechar esconde). Não há quadro parado sem mexer no SVG do motor.
-- [ ] Depois do merge (só com aprovação): confirmar deploy de `web` e `cron` no Railway e conferir o site público.
+- [x] Depois do merge: deploy de `web` e `cron` confirmado no Railway (`SUCCESS`, `553eb7b`) e site público conferido no navegador.
 
 ## Acompanhamento depois da publicação
 
