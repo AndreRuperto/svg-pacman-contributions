@@ -1,6 +1,6 @@
 # Próximos passos
 
-- **Data:** 2026-11-22
+- **Data:** 2026-11-23 (V4 em PR, aguardando aprovação)
 - **Branch:** `main`. PR #16 mergeado com sucesso em `8e61fbc` (22/11/2026).
 - **Site:** https://svg-pacman-ranking.up.railway.app
 - **Planos e desenhos:**
@@ -166,15 +166,35 @@ Os PRs #8 e este são só de anotações.
 - [x] Estilos `.partida-pagina` e `.pagina-partida` isolados, preservando V1 ranking e V2 perfil.
 - [x] Testes SSR de status com/sem snapshot, modo indisponível, escolha de tema, links entre datas não consecutivas, CSS responsivo e placar.
 - [x] CI do PR #20 aprovada (TypeScript, lint, Vitest, PostgreSQL e Action), squash merge na `main` no commit `d7ad477`. Deploy Railway de `web` e `cron` em verificação final; não declarar `SUCCESS` até a confirmação.
-- [ ] QA visual real em 320, 360, 390, 430, 768, 1024 e 1440px; zoom 200%, teclado, Chrome/Firefox/WebKit e comportamento SVG/SMIL. **Não confundir testes de HTML/CSS com screenshots e inspeção do navegador.**
+- [x] QA visual real em 320, 360, 390, 430, 768, 1024 e 1440px, zoom 200%, teclado e SVG/SMIL **no Chromium** — feito na V4 (ver `docs/design/qa-v4.md`). Firefox/WebKit continuam pendentes.
 - [ ] Em produção, confirmar uma partida posterior ao snapshot com `X-Pacman-Replay=verificado`, e testar separadamente um dia histórico com `reconstrucao`; ainda pendente de evidência operacional real.
 
 **Próximo ciclo:** V4 — acessibilidade transversal com testes de viewport/teclado/zoom e compatibilidade de movimento reduzido; depois V5 preservar referências e capturas de cada etapa em `docs/design/`. Evitar alterações cosméticas simultâneas ao motor ou banco.
 
+## V4 — acessibilidade e QA visual (23/11/2026)
+
+**Status:** branch `claude/v4-acessibilidade-ab7d83`, PR aberto contra a `main`; **não mergeado** (aguarda aprovação do usuário). Relatório completo e capturas: [`docs/design/qa-v4.md`](docs/design/qa-v4.md) e `docs/design/qa-v4/` (50 JPEG).
+
+**Feito (com evidência):**
+
+- [x] Servidor de teste sem banco e sem rede: `pnpm site:teste` (`site/src/web-teste.ts` + `site/src/fixture.ts`, 3 jogadores fixos, partidas jogadas pelo motor com snapshot, "hoje" = 20/11/2026).
+- [x] Playwright + `@axe-core/playwright` (`pnpm test:e2e`, `tests/e2e/`): axe WCAG 2.2 A/AA + boas práticas e overflow em 8 telas × 7 larguras + zoom 200% (1024/1280/1440); foco visível em todas as paradas do Tab (320/390/1440); fluxos só com teclado; `prefers-reduced-motion`. **123/123 passando** no Chromium. Job `acessibilidade` no CI (só Chromium).
+- [x] **Animação com movimento reduzido:** a regra do SVG do motor não para o SMIL no Chromium (teste registra isso). O site agora não toca a arena sozinha com `reduce` (nem baixa o SVG) e oferece "Reproduzir a animação" sob demanda.
+- [x] **Pausar sem JavaScript** para todos: "Pausar a animação" → `?animacao=parada`, mantido nas setas de dia e no formulário de tema; também na página do publicado.
+- [x] Setas decorativas com `aria-hidden`, foco com afastamento sobre o amarelo, palco sem cortar o foco, `forced-colors`, `animation: none` com movimento reduzido, ajuda da partida em 12 px.
+- [x] `pnpm qa:capturas` gera as capturas (servidor de teste rodando).
+
+**Pendente da V4:**
+
+- [ ] Firefox e WebKit/Safari (só Chromium foi testado).
+- [ ] Leitores de tela reais (NVDA/VoiceOver/TalkBack) e modo de alto contraste real.
+- [ ] Lista de partidas do perfil: abrir uma partida ainda toca a animação mesmo com movimento reduzido (ação explícita da pessoa; fechar esconde). Não há quadro parado sem mexer no SVG do motor.
+- [ ] Depois do merge (só com aprovação): confirmar deploy de `web` e `cron` no Railway e conferir o site público.
+
 ## Acompanhamento depois da publicação
 
 - [ ] Confirmar a primeira partida diária **criada com snapshot** e abrir seu replay para checar placar e SVG na produção.
-- [ ] Conferir o visual do SVG com movimento reduzido em diferentes navegadores e leitores de tela; CSS interno foi adicionado, mas compatibilidade de SMIL varia.
+- [ ] Conferir o SVG com movimento reduzido em Firefox/WebKit e leitores de tela. No Chromium, a regra interna do SVG **não** para o SMIL (confirmado na V4); o site contorna isso na página da partida e do publicado.
 - [ ] Rotacionar `GITHUB_TOKEN` quando necessário, conferindo o resultado do cron no Railway; token não foi acessado nem substituído nesta rodada.
 
 ## Próximos passos (prioridade)
@@ -216,6 +236,9 @@ Os PRs #8 e este são só de anotações.
 pnpm install
 pnpm test                               # todos os testes
 pnpm lint                               # ESLint
+PORT=3457 pnpm site:teste               # site em memória com dados fixos (sem banco/GitHub)
+pnpm test:e2e                           # Playwright + axe (sobe o site:teste sozinho)
+pnpm qa:capturas                        # capturas em docs/design/qa-v4/ (com o site:teste no ar)
 pnpm exec tsc --noEmit                  # tipos
 pnpm preview --theme neon --no-open     # gera outputs/preview-<estilo>-<tema>.svg
 pnpm run build:action                   # github-action/dist/index.js (esbuild)
