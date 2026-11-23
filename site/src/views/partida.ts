@@ -12,7 +12,7 @@ import {
   urlPaginaPublicado,
   urlPartida
 } from './formato.js';
-import { layout, type Html } from './layout.js';
+import { IMAGENS, layout, type Html } from './layout.js';
 
 export interface PartidaPagina {
   jogador: DadosJogador;
@@ -23,11 +23,51 @@ export interface PartidaPagina {
   podeDesenhar?: boolean;
   /** True apenas se o cron preservou a janela de contribuições desta partida. */
   snapshotDisponivel?: boolean;
+  /** `?animacao=parada`: a arena só toca quando a pessoa pede (sem JavaScript). */
+  parada?: boolean;
+}
+
+/** Query das páginas da partida: tema fora do padrão e animação parada. */
+export function queryPartida(tema: ThemeKeys, temaPadrao: ThemeKeys, parada: boolean): string {
+  const p = [...(tema === temaPadrao ? [] : [`tema=${tema}`]), ...(parada ? ['animacao=parada'] : [])];
+  return p.length ? `?${p.join('&')}` : '';
+}
+
+/**
+ * A animação (SMIL) dentro de um <img> não pode ser pausada por CSS, e a regra de movimento reduzido
+ * que o motor põe no SVG não para o SMIL no Chromium. Sem mexer no SVG e sem JavaScript (a CSP não
+ * permite), a arena aparece de dois jeitos:
+ * - reprodução automática, só quando o sistema não pede menos movimento (com movimento reduzido o CSS
+ *   esconde a imagem e o <source> troca o SVG pelo logo, então a animação nem é baixada);
+ * - sob demanda: um <details> fechado "Reproduzir a animação" (movimento reduzido ou `?animacao=parada`).
+ * `urlPausar`/`urlRetomar` alternam o modo para qualquer pessoa (WCAG 2.2.2: pausar o movimento).
+ */
+export function arena(o: { src: string; alt: string; parada: boolean; urlPausar: string; urlRetomar: string }): Html {
+  const sobDemanda = html`<details class="arena-sob-demanda${o.parada ? ' arena-parada' : ''}">
+          <summary>Reproduzir a animação</summary>
+          <img src="${o.src}" alt="${o.alt}" width="1166" height="229" class="partida-svg" loading="lazy" decoding="async">
+        </details>`;
+  if (o.parada) {
+    return html`<div class="arena">
+        <p class="apoio arena-nota">A animação está pausada. Abra abaixo para assistir.</p>
+        ${sobDemanda}
+        <p class="arena-alternar"><a href="${o.urlRetomar}">Voltar à reprodução automática</a></p>
+      </div>`;
+  }
+  return html`<div class="arena">
+        <picture class="arena-auto">
+          <source media="(prefers-reduced-motion: reduce)" srcset="${IMAGENS['logo.svg'].url}">
+          <img src="${o.src}" alt="${o.alt}" width="1166" height="229" class="partida-svg" decoding="async">
+        </picture>
+        <p class="apoio arena-nota arena-nota-reduzida">Seu sistema pede menos movimento, então a animação não começa sozinha.</p>
+        ${sobDemanda}
+        <p class="arena-alternar arena-pausar"><a href="${o.urlPausar}">Pausar a animação</a></p>
+      </div>`;
 }
 
 function seta(data: string | undefined, rotulo: string, simbolo: string, login: string, sufixo: string): Html {
   return data
-    ? html`<a class="seta" href="${urlPartida(login, data)}${sufixo}" aria-label="${rotulo}, ${dataExtenso(data)}">${simbolo}</a>`
+    ? html`<a class="seta" href="${urlPartida(login, data)}${sufixo}" aria-label="${rotulo}, ${dataExtenso(data)}"><span aria-hidden="true">${simbolo}</span></a>`
     : html`<span class="seta seta-off" aria-hidden="true">${simbolo}</span>`;
 }
 
@@ -36,14 +76,14 @@ function stat(rotulo: string, valor: string): Html {
 }
 
 export function paginaPartida({
-  jogador, partida: p, tema, temaPadrao, podeDesenhar = true, snapshotDisponivel = false
+  jogador, partida: p, tema, temaPadrao, podeDesenhar = true, snapshotDisponivel = false, parada = false
 }: PartidaPagina): Html {
   const { login } = jogador;
   // As partidas vêm ordenadas por data decrescente: pulamos dias sem partida.
   const i = jogador.partidas.findIndex((x) => x.data === p.data);
   const seguinte = jogador.partidas[i - 1]?.data;
   const anterior = jogador.partidas[i + 1]?.data;
-  const sufixo = tema === temaPadrao ? '' : `?tema=${tema}`;
+  const sufixo = queryPartida(tema, temaPadrao, parada);
   const quando = dataExtenso(p.data);
   const urlSvg = `/api/partida/${encodeURIComponent(login)}/${p.data}?tema=${tema}`;
   const possuiOriginal = Boolean(jogador.publicado && p.publicado_sha);
@@ -68,7 +108,7 @@ export function paginaPartida({
       </div>`;
 
   const corpo = html`<div class="partida-pagina">
-<p class="voltar partida-voltar"><a href="${urlJogador(login)}">‹ ${login}</a></p>
+<p class="voltar partida-voltar"><a href="${urlJogador(login)}"><span aria-hidden="true">‹</span>${login}</a></p>
 <header class="partida-cabecalho">
   <div class="dia-nav">
     ${seta(anterior, 'Dia anterior', '‹', login, sufixo)}
@@ -85,7 +125,13 @@ export function paginaPartida({
   ${integridade}
   ${podeDesenhar
     ? html`<div class="cartao palco partida-palco">
-        <img src="${urlSvg}" alt="Partida de ${login} em ${quando}" width="1166" height="229" class="partida-svg" decoding="async">
+        ${arena({
+          src: urlSvg,
+          alt: `Partida de ${login} em ${quando}`,
+          parada,
+          urlPausar: `${urlPartida(login, p.data)}${queryPartida(tema, temaPadrao, true)}`,
+          urlRetomar: `${urlPartida(login, p.data)}${queryPartida(tema, temaPadrao, false)}`
+        })}
       </div>
       <details class="partida-zoom">
         <summary>Ampliar a arena</summary>
@@ -108,6 +154,7 @@ ${podeDesenhar
         </select>
         <button class="botao" type="submit">Mudar</button>
       </div>
+      ${parada ? html`<input type="hidden" name="animacao" value="parada">` : ''}
     </form>
   </section>`
   : ''}
@@ -146,13 +193,20 @@ ${possuiOriginal
  * raw.githubusercontent.com, a CSP do GitHub (default-src 'none') bloqueia as imagens embutidas nele
  * (os fantasmas antigos eram PNGs em base64 dentro do arquivo).
  */
-export function paginaPublicado(jogador: DadosJogador, p: PartidaSalva, url: string): Html {
+export function paginaPublicado(jogador: DadosJogador, p: PartidaSalva, url: string, parada = false): Html {
   const { login } = jogador;
   const quando = dataExtenso(p.data);
-  const corpo = html`<p class="voltar"><a href="${urlPartida(login, p.data)}">‹ Partida de ${quando}</a></p>
+  const aqui = urlPaginaPublicado(login, p.data);
+  const corpo = html`<p class="voltar"><a href="${urlPartida(login, p.data)}"><span aria-hidden="true">‹</span>Partida de ${quando}</a></p>
 <h1>Como foi publicado em ${quando}</h1>
 <p class="apoio">O banner que apareceu no README de ${login} neste dia, gerado pela versão do jogo daquela época. Os números da partida neste site foram recalculados com as regras de hoje e podem ser diferentes.</p>
-<div class="cartao"><img src="${url}" alt="Banner publicado no perfil de ${login} em ${quando}" width="1166" height="229" class="partida-svg"></div>
+<div class="cartao palco">${arena({
+    src: url,
+    alt: `Banner publicado no perfil de ${login} em ${quando}`,
+    parada,
+    urlPausar: `${aqui}?animacao=parada`,
+    urlRetomar: aqui
+  })}</div>
 <p><a href="${url}">Abrir o arquivo original</a></p>`;
   return layout({ titulo: `${login} em ${quando}, como foi publicado`, corpo });
 }

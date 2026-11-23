@@ -51,6 +51,9 @@
     "site:web": "tsx site/src/web.ts",
     "site:cron": "tsx site/src/cron.ts",
     "site:dev": "tsx watch site/src/web.ts",
+    "site:teste": "tsx site/src/web-teste.ts",
+    "test:e2e": "playwright test",
+    "qa:capturas": "tsx tests/e2e/capturas.ts",
     "lint": "eslint .",
     "format": "prettier --write",
     "format:check": "prettier --check"
@@ -66,7 +69,9 @@
     "tsx": "^4.6.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.65.1",
     "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.14.0",
     "@types/node-fetch": "^2.6.12",
