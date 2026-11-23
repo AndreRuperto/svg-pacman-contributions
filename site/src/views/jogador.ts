@@ -182,7 +182,7 @@ export function paginaJogador(
   const exibindoFim = Math.min(total, pagina * POR_PAGINA);
 
   const corpo = html`<div class="perfil-pagina">
-<p class="voltar"><a href="/">‹ Ranking</a></p>
+<p class="voltar"><a href="/"><span aria-hidden="true">‹</span>Ranking</a></p>
 <div class="perfil perfil-identidade">
   <img class="avatar avatar-56" src="${urlAvatar(d.login, 112)}" alt="" width="56" height="56">
   <div class="perfil-dados">
@@ -221,9 +221,9 @@ export function paginaJogador(
     : html`<p class="cartao vazio">Ainda não há partidas deste jogador.</p>`}
   ${paginas > 1
     ? html`<nav class="paginacao" aria-label="Páginas das partidas">
-    ${pagina > 1 ? html`<a href="${urlPagina(pagina - 1)}">‹ Mais recentes</a>` : html`<span></span>`}
+    ${pagina > 1 ? html`<a href="${urlPagina(pagina - 1)}"><span aria-hidden="true">‹</span>Mais recentes</a>` : html`<span></span>`}
     <span class="apoio">Página ${pagina} de ${paginas}</span>
-    ${pagina < paginas ? html`<a href="${urlPagina(pagina + 1)}">Mais antigas ›</a>` : html`<span></span>`}
+    ${pagina < paginas ? html`<a href="${urlPagina(pagina + 1)}">Mais antigas<span aria-hidden="true">›</span></a>` : html`<span></span>`}
   </nav>`
     : ''}
 </section>

@@ -357,7 +357,8 @@ export function createApp(deps: AppDeps): Hono {
     const t = c.req.query('tema');
     const tema = t !== undefined && temaValido(t) ? t : TEMA_PADRAO;
     const snapshotDisponivel = (await deps.repo.obterSnapshot(d.login, data)) !== null;
-    return pagina(c, paginaPartida({ jogador: d, partida, tema, temaPadrao: TEMA_PADRAO, podeDesenhar, snapshotDisponivel }));
+    const parada = c.req.query('animacao') === 'parada';
+    return pagina(c, paginaPartida({ jogador: d, partida, tema, temaPadrao: TEMA_PADRAO, podeDesenhar, snapshotDisponivel, parada }));
   });
 
   app.get('/jogador/:login/:data/publicado', async (c) => {
@@ -369,7 +370,8 @@ export function createApp(deps: AppDeps): Hono {
     if (!partida || !d.publicado || !partida.publicado_sha) {
       return falha(c, 404, 'Sem banner publicado', `Não há banner publicado de ${d.login} neste dia.`);
     }
-    return pagina(c, paginaPublicado(d, partida, urlPublicado(d.publicado, partida.publicado_sha)));
+    const parada = c.req.query('animacao') === 'parada';
+    return pagina(c, paginaPublicado(d, partida, urlPublicado(d.publicado, partida.publicado_sha), parada));
   });
 
   return app;

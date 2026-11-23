@@ -586,6 +586,27 @@ describe('GET /jogador/:login/:data', () => {
     expect(ultimo).toMatch(/<a [^>]*aria-label="Dia anterior, 19 nov\. 2026"/);
   });
 
+  it('V4: arena com reprodução automática, opção de pausar e versão sob demanda para movimento reduzido', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}?tema=neon`);
+    expect(html).toMatch(/<picture class="arena-auto">\s*<source media="\(prefers-reduced-motion: reduce\)" srcset="\/static\/logo\.svg\?v=/);
+    expect(html).toMatch(/<details class="arena-sob-demanda">\s*<summary>Reproduzir a animação<\/summary>\s*<img [^>]*loading="lazy"/);
+    expect(link(html, 'Pausar a animação')).toContain(`href="/jogador/AndreRuperto/${HOJE}?tema=neon&amp;animacao=parada"`);
+  });
+
+  it('V4: ?animacao=parada não toca sozinha e mantém a pausa nas setas e no formulário de tema', async () => {
+    const { app } = await montar();
+    const { html } = await pagina(app, '/jogador/AndreRuperto/2026-11-19?animacao=parada');
+    expect(html).not.toContain('arena-auto');
+    expect(html).toContain('<details class="arena-sob-demanda arena-parada">');
+    expect(link(html, 'Voltar à reprodução automática')).toContain('href="/jogador/AndreRuperto/2026-11-19"');
+    expect(html).toContain('href="/jogador/AndreRuperto/2026-11-15?animacao=parada"');
+    expect(html).toContain('<input type="hidden" name="animacao" value="parada">');
+    const pub = (await pagina(app, `/jogador/AndreRuperto/${HOJE}/publicado?animacao=parada`)).html;
+    expect(pub).not.toContain('arena-auto');
+    expect(link(pub, 'Voltar à reprodução automática')).toContain(`href="/jogador/AndreRuperto/${HOJE}/publicado"`);
+  });
+
   it('sem como desenhar, troca a imagem por um aviso', async () => {
     const { app } = await montar({ deps: { podeDesenhar: false } });
     const { res, html } = await pagina(app, `/jogador/AndreRuperto/${HOJE}`);

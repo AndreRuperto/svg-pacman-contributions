@@ -60,3 +60,6 @@ check_path.py
 TODO.txt
 
 *.py
+# Playwright
+playwright-report/
+test-results/

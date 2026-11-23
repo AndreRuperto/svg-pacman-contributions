@@ -724,7 +724,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
 }
 @media (max-width: 767px) {
   .partida-pagina { gap: var(--esp-5); }
-  .partida-cabecalho-ajuda { font-size: 11px; }
+  .partida-cabecalho-ajuda { font-size: 12px; }
   .partida-secao-topo h2 { font-size: 18px; }
   .partida-pagina .partida-palco { padding: var(--esp-1); }
   .partida-zoom { display: block; }
@@ -739,4 +739,44 @@ code { font-family: var(--mono); font-size: 0.9em; }
   .partida-placar-grade { gap: var(--esp-2); }
   .partida-pagina .partida-metrica .tile-valor { font-size: 17px; }
   .partida-pagina .tema-campos .botao { padding: 0 var(--esp-3); }
+}
+
+
+/* ---------- V4 · acessibilidade: arena com pausa e movimento reduzido ---------- */
+/* O SMIL do SVG não para com CSS; com movimento reduzido a arena só toca sob demanda. */
+.palco { overflow: visible; }
+.partida-pagina .partida-palco { overflow: visible; }
+.arena { display: flex; flex-direction: column; gap: var(--esp-2); min-width: 0; }
+.arena-auto { display: block; }
+.arena-nota { font-size: 13px; padding: var(--esp-1) var(--esp-2) 0; }
+.arena-nota-reduzida { display: none; }
+.arena-sob-demanda { display: none; }
+.arena-sob-demanda.arena-parada { display: block; }
+.arena-sob-demanda > summary {
+  display: list-item; list-style: inside disclosure-closed;
+  cursor: pointer; min-height: var(--toque); line-height: 24px;
+  padding: 9px var(--esp-3);
+  border: 1px solid var(--fio); border-radius: var(--raio-campo);
+  font-weight: 600; color: var(--link);
+}
+.arena-sob-demanda > summary:hover { border-color: var(--link); }
+.arena-sob-demanda[open] > summary { margin-bottom: var(--esp-2); list-style-type: disclosure-open; }
+/* Setas decorativas (aria-hidden) ao lado do texto dos links de voltar e da paginação. */
+.voltar a, .paginacao a { gap: var(--esp-1); }
+.arena-alternar { padding: 0 var(--esp-2); }
+.arena-alternar a { display: inline-flex; align-items: center; min-height: var(--toque); font-weight: 500; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  .arena-auto, .arena-pausar { display: none; }
+  .arena-nota-reduzida, .arena-sob-demanda { display: block; }
+  *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; }
+}
+/* Foco sempre visível, inclusive sobre o amarelo dos botões e segmentos ativos. */
+.botao:focus-visible,
+.segmentos a[aria-current="page"]:focus-visible,
+.perfil-grafico-filtros a[aria-current="page"]:focus-visible {
+  outline: 2px solid var(--link); outline-offset: 3px;
+}
+@media (forced-colors: active) {
+  :focus-visible { outline: 2px solid CanvasText; }
+  .seta, .segmentos a, .pilulas a, .perfil-grafico-filtros a { border: 1px solid CanvasText; }
 }
